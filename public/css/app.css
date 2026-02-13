@@ -1,0 +1,2 @@
+/* Compatibility stylesheet: keeps legacy app.css references working. */
+@import url('./style.css');

@@ -1,0 +1,123 @@
+# Hair Aura - Apache Rewrite Rules
+# Enable URL rewriting and route all requests to index.php
+
+# Enable rewrite engine
+RewriteEngine On
+
+# Set base directory (uncomment and modify if not in root)
+# RewriteBase /
+
+# Redirect www to non-www (optional)
+# RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+# RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# Redirect HTTP to HTTPS (recommended for production)
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# Don't rewrite files or directories that exist
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Don't rewrite access to assets
+RewriteRule ^(css|js|img|uploads|assets)/ - [L]
+
+# Route all other requests to index.php
+RewriteRule ^ index.php [QSA,L]
+
+# ==================== SECURITY HEADERS ====================
+
+# Protect against common attacks
+<IfModule mod_headers.c>
+    # XSS Protection
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Prevent MIME type sniffing
+    Header set X-Content-Type-Options "nosniff"
+    
+    # Clickjacking protection
+    Header set X-Frame-Options "SAMEORIGIN"
+    
+    # Referrer policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Content Security Policy (adjust as needed)
+    # Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com fonts.googleapis.com; font-src 'self' fonts.gstatic.com cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self';"
+</IfModule>
+
+# ==================== COMPRESSION ====================
+
+# Enable gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# ==================== CACHING ====================
+
+# Enable browser caching for static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Images
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    
+    # CSS and JavaScript
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    
+    # Fonts
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+</IfModule>
+
+# ==================== PHP SETTINGS ====================
+
+<IfModule mod_php.c>
+    # Increase upload size
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    
+    # Increase memory limit
+    php_value memory_limit 256M
+    
+    # Increase max execution time
+    php_value max_execution_time 300
+</IfModule>
+
+# ==================== PROTECT SENSITIVE FILES ====================
+
+# Deny access to sensitive files
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Deny access to common sensitive files
+<FilesMatch "(\.env|\.git|\.htaccess|\.htpasswd|composer\.(json|lock)|package\.(json|lock)|README\.md|CHANGELOG\.md)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Protect SQL files
+<FilesMatch "\.(sql|sqlite|sqlite3)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# ==================== DIRECTORY LISTING ====================
+
+# Disable directory browsing
+Options -Indexes
+
+# ==================== CHARACTER ENCODING ====================
+
+# Set default charset
+AddDefaultCharset UTF-8
