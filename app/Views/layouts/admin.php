@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" data-app-base="<?= htmlspecialchars(rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/')) ?>">
 <head>
+    <?php
+    $theme = (array) ($themeVars ?? []);
+    $themePrimary = htmlspecialchars((string) ($theme['primary'] ?? '#D4A574'));
+    $themePrimaryDark = htmlspecialchars((string) ($theme['primary_dark'] ?? '#B8935F'));
+    $themeSecondary = htmlspecialchars((string) ($theme['secondary'] ?? '#2C2C2C'));
+    $themeGold = htmlspecialchars((string) ($theme['gold'] ?? '#D4AF37'));
+    $adminCssVersion = is_file(BASE_PATH . '/public/css/admin.css') ? (string) filemtime(BASE_PATH . '/public/css/admin.css') : (string) time();
+    $passwordCssVersion = is_file(BASE_PATH . '/public/css/password-toggle.css') ? (string) filemtime(BASE_PATH . '/public/css/password-toggle.css') : (string) time();
+    $adminJsVersion = is_file(BASE_PATH . '/public/js/admin.js') ? (string) filemtime(BASE_PATH . '/public/js/admin.js') : (string) time();
+    $passwordJsVersion = is_file(BASE_PATH . '/public/js/password-toggle.js') ? (string) filemtime(BASE_PATH . '/public/js/password-toggle.js') : (string) time();
+    ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel | Hair Aura</title>
@@ -18,8 +29,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Admin CSS -->
-    <link rel="stylesheet" href="<?= asset('/css/admin.css') ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/admin.css') ?>';">
-    <link rel="stylesheet" href="<?= asset('/css/password-toggle.css') ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/password-toggle.css') ?>';">
+    <link rel="stylesheet" href="<?= asset('/css/admin.css') ?>?v=<?= htmlspecialchars($adminCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/admin.css') ?>?v=<?= htmlspecialchars($adminCssVersion) ?>';">
+    <link rel="stylesheet" href="<?= asset('/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>';">
+    <style>
+        :root {
+            --primary: <?= $themePrimary ?>;
+            --primary-dark: <?= $themePrimaryDark ?>;
+            --secondary: <?= $themeSecondary ?>;
+            --gold: <?= $themeGold ?>;
+        }
+    </style>
 </head>
 <body>
     <?php $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: ''; ?>
@@ -188,7 +207,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <!-- Admin JS -->
-    <script src="<?= asset('/js/admin.js') ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/admin.js') ?>';"></script>
-    <script src="<?= asset('/js/password-toggle.js') ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/password-toggle.js') ?>';"></script>
+    <script src="<?= asset('/js/admin.js') ?>?v=<?= htmlspecialchars($adminJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/admin.js') ?>?v=<?= htmlspecialchars($adminJsVersion) ?>';"></script>
+    <script src="<?= asset('/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>';"></script>
 </body>
 </html>

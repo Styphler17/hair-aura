@@ -567,7 +567,7 @@ class HomeController extends Controller
      */
     private function sitemapUrl(string $loc, string $priority, string $changefreq, ?string $lastmod = null): string
     {
-        $url = 'https://hair-aura.debesties.com' . $loc;
+        $url = $this->absoluteUrl($loc);
         $xml = "  <url>\n";
         $xml .= "    <loc>{$url}</loc>\n";
         if ($lastmod) {
@@ -591,7 +591,7 @@ class HomeController extends Controller
         echo "Disallow: /cart/\n";
         echo "Disallow: /checkout/\n";
         echo "Disallow: /account/\n";
-        echo "Sitemap: https://hair-aura.debesties.com/sitemap.xml\n";
+        echo "Sitemap: " . $this->absoluteUrl('/sitemap.xml') . "\n";
         exit;
     }
     
@@ -650,7 +650,11 @@ class HomeController extends Controller
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
-                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts'
+                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+                'theme_primary' => '#D4A574',
+                'theme_primary_dark' => '#B8935F',
+                'theme_secondary' => '#2C2C2C',
+                'theme_gold' => '#D4AF37'
             ]
         ];
 

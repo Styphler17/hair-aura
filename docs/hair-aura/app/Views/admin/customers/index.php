@@ -35,7 +35,7 @@
                             <tr>
                                 <td data-label="Customer">
                                     <strong><?= htmlspecialchars(trim((string) (($customer['first_name'] ?? '') . ' ' . ($customer['last_name'] ?? '')))) ?></strong>
-                                    <div class="small text-muted"><?= htmlspecialchars((string) ($customer['email'] ?? '')) ?></div>
+                                    <div class="small text-muted"><?= htmlspecialchars((string) (($customer['email'] ?? '') !== '' ? $customer['email'] : '-')) ?></div>
                                 </td>
                                 <td data-label="Phone"><?= htmlspecialchars((string) ($customer['phone'] ?? '-')) ?></td>
                                 <td data-label="Orders"><?= (int) ($customer['order_count'] ?? 0) ?></td>

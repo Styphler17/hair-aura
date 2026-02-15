@@ -64,6 +64,13 @@ mysql -u root -p hair_aura < sql/schema.sql
 mysql -u root -p hair_aura < sql/seeds.sql
 ```
 
+If you are upgrading an existing database, apply:
+
+```sql
+ALTER TABLE users MODIFY email VARCHAR(255) NULL;
+UPDATE users SET email = NULL WHERE role = 'customer';
+```
+
 ### Step 3: Configuration
 ```bash
 cp .env.example .env
@@ -108,8 +115,10 @@ sudo systemctl restart apache2
 - **Password**: Admin@123
 
 ### Sample Customer Accounts
-- **Email**: ama.owusu@email.com
+- **Phone**: +233241234567
 - **Password**: Customer@123
+
+Customer login uses **phone + password**. Admin login uses **email + password**.
 
 ## Project Structure
 
@@ -151,6 +160,11 @@ hair-aura/
 - Session security with HTTP-only cookies
 - XSS protection headers
 - File upload validation
+
+## Security Action Required
+
+- `.env` must not be committed. This repository now ignores `.env`.
+- If `.env` or production secrets were committed before, rotate DB, mail, and API credentials immediately.
 
 ## Payment Integration
 
@@ -209,7 +223,7 @@ chown -R www-data:www-data .
 
 For support and inquiries:
 - Email: support@hair-aura.debesties.com
-- Phone: +233 20 123 4567
+- Phone: +233508007873
 
 ## License
 

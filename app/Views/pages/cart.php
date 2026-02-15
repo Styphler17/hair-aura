@@ -14,6 +14,13 @@
 <!-- Cart Section -->
 <section class="cart-section py-5">
     <div class="container">
+        <?php
+        $site = (array) ($siteSettings ?? []);
+        $supportPhone = (string) ($site['phone'] ?? '+233508007873');
+        $supportWhatsapp = (string) ($site['whatsapp'] ?? '+233508007873');
+        $supportEmail = (string) ($site['email'] ?? 'support@example.com');
+        $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
+        ?>
         <?php if (!empty($stockErrors)): ?>
         <div class="alert alert-warning">
             <h5><i class="fas fa-exclamation-triangle"></i> Stock Issues</h5>
@@ -168,9 +175,9 @@
                 <!-- Need Help -->
                 <div class="need-help mt-4">
                     <h5>Need Help?</h5>
-                    <p><i class="fas fa-phone"></i> <a href="tel:+233508007873">+233508007873</a></p>
-                    <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/233508007873" target="_blank" rel="noopener">WhatsApp us</a></p>
-                    <p><i class="fas fa-envelope"></i> support@hair-aura.debesties.com</p>
+                    <p><i class="fas fa-phone"></i> <a href="tel:<?= htmlspecialchars($supportPhone) ?>"><?= htmlspecialchars($supportPhone) ?></a></p>
+                    <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener">WhatsApp us</a></p>
+                    <p><i class="fas fa-envelope"></i> <?= htmlspecialchars($supportEmail) ?></p>
                     <a href="/faq" class="btn btn-outline-secondary btn-sm">View FAQ</a>
                 </div>
             </div>

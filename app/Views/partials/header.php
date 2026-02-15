@@ -1,3 +1,11 @@
+<?php
+$site = (array) ($siteSettings ?? []);
+$contactPhone = (string) ($site['phone'] ?? '+233508007873');
+$contactWhatsapp = (string) ($site['whatsapp'] ?? '+233508007873');
+$contactEmail = (string) ($site['email'] ?? 'support@example.com');
+$contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
+?>
+
 <!-- Top Bar -->
 <div class="top-bar">
     <div class="container">
@@ -5,12 +13,12 @@
             <div class="col-md-6">
                 <span class="top-bar-text">
                     <i class="fas fa-phone"></i>
-                    <a href="tel:+233508007873">+233508007873</a>
+                    <a href="tel:<?= htmlspecialchars($contactPhone) ?>"><?= htmlspecialchars($contactPhone) ?></a>
                     <span class="divider">|</span>
                     <i class="fab fa-whatsapp"></i>
-                    <a href="https://wa.me/233508007873" target="_blank" rel="noopener">WhatsApp</a>
+                    <a href="https://wa.me/<?= htmlspecialchars($contactWhatsappDigits) ?>" target="_blank" rel="noopener">WhatsApp</a>
                     <span class="divider">|</span>
-                    <i class="fas fa-envelope"></i> hello@hair-aura.debesties.com
+                    <i class="fas fa-envelope"></i> <?= htmlspecialchars($contactEmail) ?>
                 </span>
             </div>
             <div class="col-md-6 text-end">

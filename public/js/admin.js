@@ -101,6 +101,12 @@ function initCharts() {
         return;
     }
 
+    const css = getComputedStyle(document.documentElement);
+    const primaryColor = (css.getPropertyValue('--primary') || '#D4A574').trim();
+    const secondaryColor = (css.getPropertyValue('--secondary') || '#2C2C2C').trim();
+    const primaryFill = hexToRgba(primaryColor, 0.14);
+    const secondaryFill = hexToRgba(secondaryColor, 0.12);
+
     const source = document.getElementById('salesChartData');
     let rows = [];
     if (source) {
@@ -127,8 +133,8 @@ function initCharts() {
                 {
                     label: 'Revenue (GH₵)',
                     data: revenueValues,
-                    borderColor: '#D4A574',
-                    backgroundColor: 'rgba(212, 165, 116, 0.14)',
+                    borderColor: primaryColor,
+                    backgroundColor: primaryFill,
                     fill: true,
                     tension: 0.3,
                     yAxisID: 'yRevenue'
@@ -136,8 +142,8 @@ function initCharts() {
                 {
                     label: 'Orders',
                     data: orderValues,
-                    borderColor: '#2C2C2C',
-                    backgroundColor: 'rgba(44,44,44,0.12)',
+                    borderColor: secondaryColor,
+                    backgroundColor: secondaryFill,
                     fill: false,
                     tension: 0.2,
                     yAxisID: 'yOrders'
@@ -179,6 +185,18 @@ function initCharts() {
             }
         }
     });
+}
+
+function hexToRgba(hex, alpha) {
+    const normalized = String(hex || '').trim().replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
+        return `rgba(212, 165, 116, ${alpha})`;
+    }
+
+    const r = parseInt(normalized.slice(0, 2), 16);
+    const g = parseInt(normalized.slice(2, 4), 16);
+    const b = parseInt(normalized.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 /**

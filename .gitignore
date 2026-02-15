@@ -1,0 +1,18 @@
+.env
+.env.*
+!.env.example
+
+# Runtime/cache
+storage/cache/*
+storage/logs/*
+bootstrap/cache/*
+
+# Dependencies
+vendor/
+node_modules/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

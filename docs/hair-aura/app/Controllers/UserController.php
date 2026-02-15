@@ -121,7 +121,6 @@ class UserController extends Controller
         $errors = $this->validate($data, [
             'first_name' => 'required|min:2',
             'last_name' => 'required|min:2',
-            'email' => 'required|email',
             'phone' => 'required|min:8',
             'password' => 'required|min:8',
             'password_confirm' => 'required|match:password',
@@ -134,13 +133,6 @@ class UserController extends Controller
             $this->redirect('/register');
         }
         
-        // Check if email exists
-        if (User::findByEmail($data['email'])) {
-            $this->flash('error', 'Email address is already registered');
-            $_SESSION['old_input'] = $data;
-            $this->redirect('/register');
-        }
-
         if (User::findByPhone($data['phone'])) {
             $this->flash('error', 'Phone number is already registered');
             $_SESSION['old_input'] = $data;
@@ -149,7 +141,6 @@ class UserController extends Controller
         
         try {
             $user = User::register([
-                'email' => $data['email'],
                 'password' => $data['password'],
                 'first_name' => $data['first_name'],
                 'last_name' => $data['last_name'],

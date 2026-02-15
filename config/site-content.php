@@ -18,6 +18,10 @@ return [
         'name' => 'Hair Aura',
         'tagline' => 'Unlock Your Aura with Perfect Wigs',
         'meta_description' => 'Premium wigs and hair extensions in Ghana.',
-        'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts'
+        'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+        'theme_primary' => '#D4A574',
+        'theme_primary_dark' => '#B8935F',
+        'theme_secondary' => '#2C2C2C',
+        'theme_gold' => '#D4AF37'
     ]
 ];

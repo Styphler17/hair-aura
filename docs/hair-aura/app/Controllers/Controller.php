@@ -36,12 +36,15 @@ abstract class Controller
         $this->cart = new CartSession();
         
         // Share common data with all views
+        $siteSettings = $this->loadSiteSettings();
         View::share([
             'cartCount' => $this->cart->count(),
             'cartSummary' => $this->cart->getSummary(),
             'user' => $this->user,
             'isLoggedIn' => $this->isLoggedIn,
-            'isAdmin' => Auth::isAdmin()
+            'isAdmin' => Auth::isAdmin(),
+            'siteSettings' => $siteSettings,
+            'themeVars' => $this->resolveThemeVars($siteSettings)
         ]);
     }
     
@@ -394,5 +397,106 @@ abstract class Controller
     {
         $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         return Auth::validateCsrf($token);
+    }
+
+    /**
+     * Build absolute URL using APP_URL or runtime host fallback.
+     */
+    protected function absoluteUrl(string $path = '/'): string
+    {
+        $baseUrl = $this->siteBaseUrl();
+        $normalizedPath = '/' . ltrim($path, '/');
+        return rtrim($baseUrl, '/') . $normalizedPath;
+    }
+
+    /**
+     * Resolve site base URL.
+     */
+    protected function siteBaseUrl(): string
+    {
+        $configured = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
+        if ($configured !== '') {
+            return $configured;
+        }
+
+        $host = (string) ($_SERVER['HTTP_HOST'] ?? '');
+        if ($host === '') {
+            return '';
+        }
+
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $basePath = rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/');
+        return $scheme . '://' . $host . $basePath;
+    }
+
+    /**
+     * Load site settings block from config/site-content.php.
+     */
+    private function loadSiteSettings(): array
+    {
+        $defaults = [
+            'name' => 'Hair Aura',
+            'tagline' => 'Unlock Your Aura with Perfect Wigs',
+            'meta_description' => 'Premium wigs and hair extensions in Ghana.',
+            'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+            'email' => 'support@example.com',
+            'phone' => '+233508007873',
+            'whatsapp' => '+233508007873',
+            'location' => 'Accra, Ghana',
+            'theme_primary' => '#D4A574',
+            'theme_primary_dark' => '#B8935F',
+            'theme_secondary' => '#2C2C2C',
+            'theme_gold' => '#D4AF37'
+        ];
+
+        $path = __DIR__ . '/../../config/site-content.php';
+        if (!is_file($path)) {
+            return $defaults;
+        }
+
+        $data = require $path;
+        if (!is_array($data)) {
+            return $defaults;
+        }
+
+        return array_merge(
+            $defaults,
+            (array) ($data['contact'] ?? []),
+            (array) ($data['site'] ?? [])
+        );
+    }
+
+    /**
+     * Resolve theme CSS variables with strict #RRGGBB values.
+     */
+    private function resolveThemeVars(array $siteSettings): array
+    {
+        return [
+            'primary' => $this->normalizeHexColor((string) ($siteSettings['theme_primary'] ?? ''), '#D4A574'),
+            'primary_dark' => $this->normalizeHexColor((string) ($siteSettings['theme_primary_dark'] ?? ''), '#B8935F'),
+            'secondary' => $this->normalizeHexColor((string) ($siteSettings['theme_secondary'] ?? ''), '#2C2C2C'),
+            'gold' => $this->normalizeHexColor((string) ($siteSettings['theme_gold'] ?? ''), '#D4AF37')
+        ];
+    }
+
+    /**
+     * Normalize color input to strict #RRGGBB.
+     */
+    private function normalizeHexColor(string $value, string $fallback): string
+    {
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            return strtoupper($fallback);
+        }
+
+        if ($trimmed[0] !== '#') {
+            $trimmed = '#' . $trimmed;
+        }
+
+        if (!preg_match('/^#[0-9a-fA-F]{6}$/', $trimmed)) {
+            return strtoupper($fallback);
+        }
+
+        return strtoupper($trimmed);
     }
 }

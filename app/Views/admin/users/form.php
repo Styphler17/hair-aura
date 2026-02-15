@@ -24,7 +24,8 @@ $title = $isEdit ? 'Edit User' : 'Add User';
 
         <div class="col-md-6">
             <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($account?->email ?? '') ?>" required>
+            <input type="email" id="accountEmail" name="email" class="form-control" value="<?= htmlspecialchars($account?->email ?? '') ?>">
+            <div class="form-text">Required only for admin accounts.</div>
         </div>
         <div class="col-md-6">
             <label class="form-label">Phone</label>
@@ -33,7 +34,7 @@ $title = $isEdit ? 'Edit User' : 'Add User';
 
         <div class="col-md-6">
             <label class="form-label">Role</label>
-            <select name="role" class="form-select" required>
+            <select name="role" id="accountRole" class="form-select" required>
                 <option value="customer" <?= (($account?->role ?? 'customer') === 'customer') ? 'selected' : '' ?>>Customer</option>
                 <option value="admin" <?= (($account?->role ?? '') === 'admin') ? 'selected' : '' ?>>Admin</option>
             </select>
@@ -52,10 +53,10 @@ $title = $isEdit ? 'Edit User' : 'Add User';
         </div>
 
         <?php if (!$isEdit): ?>
-        <div class="col-md-6 d-flex align-items-end">
+        <div class="col-md-6 d-flex align-items-end" id="emailVerifiedWrap">
             <div class="form-check mb-2">
                 <input type="checkbox" class="form-check-input" id="email_verified" name="email_verified" value="1" checked>
-                <label class="form-check-label" for="email_verified">Email verified</label>
+                <label class="form-check-label" for="email_verified">Admin email verified</label>
             </div>
         </div>
         <?php endif; ?>
@@ -66,3 +67,25 @@ $title = $isEdit ? 'Edit User' : 'Add User';
         </div>
     </div>
 </form>
+
+<script>
+    (function () {
+        const roleField = document.getElementById('accountRole');
+        const emailField = document.getElementById('accountEmail');
+        const emailVerifiedWrap = document.getElementById('emailVerifiedWrap');
+        if (!roleField || !emailField) {
+            return;
+        }
+
+        const sync = () => {
+            const isAdmin = roleField.value === 'admin';
+            emailField.required = isAdmin;
+            if (emailVerifiedWrap) {
+                emailVerifiedWrap.style.display = isAdmin ? '' : 'none';
+            }
+        };
+
+        roleField.addEventListener('change', sync);
+        sync();
+    })();
+</script>

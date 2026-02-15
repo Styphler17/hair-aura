@@ -273,23 +273,32 @@ class AdminManagementController extends Controller
         $firstName = trim((string) ($data['first_name'] ?? ''));
         $lastName = trim((string) ($data['last_name'] ?? ''));
         $email = trim(strtolower((string) ($data['email'] ?? '')));
+        $email = $email !== '' ? $email : null;
         $phone = User::normalizePhone((string) ($data['phone'] ?? ''));
         $role = in_array(($data['role'] ?? 'customer'), ['admin', 'customer'], true)
             ? $data['role']
             : 'customer';
+        $requiresEmail = $role === 'admin';
 
-        if ($firstName === '' || $lastName === '' || $email === '' || $phone === '') {
-            $this->flash('error', 'First name, last name, email, and phone are required');
+        if ($firstName === '' || $lastName === '' || $phone === '') {
+            $this->flash('error', 'First name, last name, and phone are required');
             $this->redirect($id > 0 ? '/admin/users/edit/' . $id : '/admin/users/add');
         }
 
-        $emailExists = $db->fetchOne(
-            'SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1',
-            ['email' => $email, 'id' => $id]
-        );
-        if ($emailExists) {
-            $this->flash('error', 'Email already exists');
+        if ($requiresEmail && $email === null) {
+            $this->flash('error', 'Email is required for admin accounts');
             $this->redirect($id > 0 ? '/admin/users/edit/' . $id : '/admin/users/add');
+        }
+
+        if ($email !== null) {
+            $emailExists = $db->fetchOne(
+                'SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1',
+                ['email' => $email, 'id' => $id]
+            );
+            if ($emailExists) {
+                $this->flash('error', 'Email already exists');
+                $this->redirect($id > 0 ? '/admin/users/edit/' . $id : '/admin/users/add');
+            }
         }
 
         $phoneExists = $db->fetchOne(
@@ -351,7 +360,7 @@ class AdminManagementController extends Controller
         }
 
         $payload['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
-        $payload['email_verified'] = isset($data['email_verified']) ? 1 : 0;
+        $payload['email_verified'] = $requiresEmail ? (isset($data['email_verified']) ? 1 : 0) : 0;
         $payload['created_at'] = date('Y-m-d H:i:s');
 
         $newId = $db->insert('users', $payload);
@@ -402,6 +411,21 @@ class AdminManagementController extends Controller
         $content['site']['tagline'] = trim((string) $this->post('tagline', $content['site']['tagline']));
         $content['site']['meta_description'] = trim((string) $this->post('meta_description', $content['site']['meta_description']));
         $content['site']['meta_keywords'] = trim((string) $this->post('meta_keywords', $content['site']['meta_keywords']));
+        $colorInputs = [
+            'theme_primary' => '#D4A574',
+            'theme_primary_dark' => '#B8935F',
+            'theme_secondary' => '#2C2C2C',
+            'theme_gold' => '#D4AF37'
+        ];
+        foreach ($colorInputs as $field => $fallback) {
+            $raw = (string) $this->post($field, $content['site'][$field] ?? $fallback);
+            $normalized = $this->normalizeHexColor($raw);
+            if ($normalized === null) {
+                $this->flash('error', 'Invalid color value for ' . str_replace('_', ' ', $field) . '. Use #RRGGBB format.');
+                $this->redirect('/admin/settings');
+            }
+            $content['site'][$field] = $normalized;
+        }
 
         $this->saveSiteContent($content);
 
@@ -1053,7 +1077,11 @@ class AdminManagementController extends Controller
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
-                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts'
+                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+                'theme_primary' => '#D4A574',
+                'theme_primary_dark' => '#B8935F',
+                'theme_secondary' => '#2C2C2C',
+                'theme_gold' => '#D4AF37'
             ]
         ];
     }
@@ -1450,6 +1478,24 @@ class AdminManagementController extends Controller
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
         $slug = trim((string) $slug, '-');
         return $slug !== '' ? $slug : 'post-' . time();
+    }
+
+    private function normalizeHexColor(string $value): ?string
+    {
+        $color = trim($value);
+        if ($color === '') {
+            return null;
+        }
+
+        if ($color[0] !== '#') {
+            $color = '#' . $color;
+        }
+
+        if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+            return null;
+        }
+
+        return strtoupper($color);
     }
 
     private function uploadBlogImage(string $inputName): ?string

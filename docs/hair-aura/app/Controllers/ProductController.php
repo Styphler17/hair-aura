@@ -187,6 +187,7 @@ class ProductController extends Controller
             'category' => $category,
             'inWishlist' => $inWishlist,
             'canReview' => $canReview,
+            'shareUrl' => $this->absoluteUrl('/product/' . $product->slug),
             'seo' => $seo,
             'productSchema' => $productSchema
         ]);

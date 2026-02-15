@@ -8,6 +8,10 @@
     $runtimeBaseUrl = $requestHost !== '' ? ($requestScheme . '://' . $requestHost . rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/')) : '';
     $siteBaseUrl = $configuredBaseUrl !== '' ? $configuredBaseUrl : rtrim($runtimeBaseUrl, '/');
     $publicRoot = __DIR__ . '/../../../public';
+    $styleCssVersion = is_file($publicRoot . '/css/style.css') ? (string) filemtime($publicRoot . '/css/style.css') : (string) time();
+    $passwordCssVersion = is_file($publicRoot . '/css/password-toggle.css') ? (string) filemtime($publicRoot . '/css/password-toggle.css') : (string) time();
+    $mainJsVersion = is_file($publicRoot . '/js/main.js') ? (string) filemtime($publicRoot . '/js/main.js') : (string) time();
+    $passwordJsVersion = is_file($publicRoot . '/js/password-toggle.js') ? (string) filemtime($publicRoot . '/js/password-toggle.js') : (string) time();
 
     $resolvePublicAsset = static function (array $candidates) use ($publicRoot): string {
         foreach ($candidates as $candidate) {
@@ -38,6 +42,11 @@
         : $siteBaseUrl . '/' . ltrim($ogImageRaw, '/');
 
     $ogType = (string) ($seo['og_type'] ?? 'website');
+    $theme = (array) ($themeVars ?? []);
+    $themePrimary = htmlspecialchars((string) ($theme['primary'] ?? '#D4A574'));
+    $themePrimaryDark = htmlspecialchars((string) ($theme['primary_dark'] ?? '#B8935F'));
+    $themeSecondary = htmlspecialchars((string) ($theme['secondary'] ?? '#2C2C2C'));
+    $themeGold = htmlspecialchars((string) ($theme['gold'] ?? '#D4AF37'));
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,12 +64,6 @@
     <meta property="og:type" content="<?= htmlspecialchars($ogType) ?>">
     <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<?= htmlspecialchars($seo['title'] ?? 'Hair Aura') ?>">
-    <meta name="twitter:description" content="<?= htmlspecialchars($seo['description'] ?? 'Premium Wigs & Hair Extensions Ghana') ?>">
-    <meta name="twitter:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="<?= asset($faviconIco) ?>">
@@ -82,8 +85,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?= asset('/css/style.css') ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/style.css') ?>';">
-    <link rel="stylesheet" href="<?= asset('/css/password-toggle.css') ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/password-toggle.css') ?>';">
+    <link rel="stylesheet" href="<?= asset('/css/style.css') ?>?v=<?= htmlspecialchars($styleCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/style.css') ?>?v=<?= htmlspecialchars($styleCssVersion) ?>';">
+    <link rel="stylesheet" href="<?= asset('/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>';">
+    <style>
+        :root {
+            --primary: <?= $themePrimary ?>;
+            --primary-dark: <?= $themePrimaryDark ?>;
+            --secondary: <?= $themeSecondary ?>;
+            --gold: <?= $themeGold ?>;
+        }
+    </style>
     
     <!-- Product Schema (if available) -->
     <?php if (isset($productSchema)): ?>
@@ -125,7 +136,7 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
     <!-- Custom JS -->
-    <script src="<?= asset('/js/main.js') ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/main.js') ?>';"></script>
-    <script src="<?= asset('/js/password-toggle.js') ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/password-toggle.js') ?>';"></script>
+    <script src="<?= asset('/js/main.js') ?>?v=<?= htmlspecialchars($mainJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/main.js') ?>?v=<?= htmlspecialchars($mainJsVersion) ?>';"></script>
+    <script src="<?= asset('/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>';"></script>
 </body>
 </html>

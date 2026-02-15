@@ -77,7 +77,7 @@
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
                                             <div class="fw-semibold"><?= htmlspecialchars(trim((string) (($account['first_name'] ?? '') . ' ' . ($account['last_name'] ?? '')))) ?></div>
-                                            <div class="small text-muted"><?= htmlspecialchars((string) ($account['email'] ?? '')) ?></div>
+                                            <div class="small text-muted"><?= htmlspecialchars((string) (($account['email'] ?? '') !== '' ? $account['email'] : ($account['phone'] ?? '-'))) ?></div>
                                         </div>
                                         <a href="<?= url('/admin/users/edit/' . (int) $account['id']) ?>" class="btn btn-sm btn-outline-primary">Open</a>
                                     </div>

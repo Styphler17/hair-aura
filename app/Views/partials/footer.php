@@ -17,10 +17,7 @@
                         </p>
                         <div class="footer-social">
                             <a href="https://instagram.com/hairaura" target="_blank"><i class="fab fa-instagram"></i></a>
-                            <a href="https://facebook.com/hairaura" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                            <a href="https://twitter.com/hairaura" target="_blank"><i class="fab fa-twitter"></i></a>
                             <a href="https://tiktok.com/@hairaura" target="_blank"><i class="fab fa-tiktok"></i></a>
-                            <a href="https://youtube.com/hairaura" target="_blank"><i class="fab fa-youtube"></i></a>
                         </div>
                     </div>
                 </div>
@@ -78,22 +75,11 @@
                     <div id="newsletterMessage"></div>
 
                     <?php
-                    $footerPhone = '+233508007873';
-                    $footerWhatsapp = '+233508007873';
-                    $footerEmail = 'hello@hair-aura.debesties.com';
-                    $footerLocation = 'Accra, Ghana';
-
-                    $siteContentPath = BASE_PATH . '/config/site-content.php';
-                    if (file_exists($siteContentPath)) {
-                        $siteContent = require $siteContentPath;
-                        if (is_array($siteContent)) {
-                            $contactContent = (array) ($siteContent['contact'] ?? []);
-                            $footerPhone = (string) ($contactContent['phone'] ?? $footerPhone);
-                            $footerWhatsapp = (string) ($contactContent['whatsapp'] ?? $footerWhatsapp);
-                            $footerEmail = (string) ($contactContent['email'] ?? $footerEmail);
-                            $footerLocation = (string) ($contactContent['location'] ?? $footerLocation);
-                        }
-                    }
+                    $site = (array) ($siteSettings ?? []);
+                    $footerPhone = (string) ($site['phone'] ?? '+233508007873');
+                    $footerWhatsapp = (string) ($site['whatsapp'] ?? '+233508007873');
+                    $footerEmail = (string) ($site['email'] ?? 'support@example.com');
+                    $footerLocation = (string) ($site['location'] ?? 'Accra, Ghana');
                     $footerWhatsappDigits = preg_replace('/\D+/', '', $footerWhatsapp);
                     ?>
                     <div class="footer-contact mt-4">

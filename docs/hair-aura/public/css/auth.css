@@ -6,6 +6,7 @@
     --primary: #D4A574;
     --primary-dark: #B8935F;
     --secondary: #2C2C2C;
+    --gold: #D4AF37;
 }
 
 * {
@@ -16,24 +17,89 @@
 
 body.auth-page {
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, var(--secondary) 0%, #1a1a1a 100%);
+    background: radial-gradient(circle at 20% 20%, #1a1a1a 0%, #0d0d0d 60%, #070707 100%);
+    background-size: 140% 140%;
+    animation: bgShift 18s ease-in-out infinite alternate;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body.auth-page::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: url('../img/noise.png') repeat;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.bg-blobs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+.bg-blobs::before,
+.bg-blobs::after {
+    content: "";
+    position: fixed;
+    width: min(70vw, 600px);
+    height: min(70vw, 600px);
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    will-change: transform, opacity;
+    animation: blobFloat 25s linear infinite;
+}
+
+.bg-blobs::before {
+    background: radial-gradient(circle at 50% 50%, var(--primary), transparent 70%);
+    top: -180px;
+    left: -180px;
+}
+
+.bg-blobs::after {
+    background: radial-gradient(circle at 50% 50%, var(--gold), transparent 70%);
+    bottom: -180px;
+    right: -180px;
+    animation-delay: 12s;
+}
+
+.gold-line {
+    position: fixed;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.25;
+    pointer-events: none;
+    z-index: 2;
+    animation: shimmer 6s linear infinite;
 }
 
 .auth-wrapper {
     width: 100%;
     max-width: 450px;
+    position: relative;
+    z-index: 3;
 }
 
 .auth-container {
-    background: #fff;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(4px);
     border-radius: 20px;
     padding: 3rem;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
 .auth-logo {
@@ -173,12 +239,63 @@ body.auth-page {
     color: #fff;
 }
 
+@keyframes bgShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes blobFloat {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(0, 80px, 0) scale(1.1);
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-50%);
+    }
+    100% {
+        transform: translateX(50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.auth-page {
+        animation: none;
+    }
+
+    .bg-blobs,
+    .bg-blobs::before,
+    .bg-blobs::after,
+    .gold-line {
+        animation: none;
+        transform: none;
+    }
+}
+
 @media (max-width: 576px) {
     .auth-container {
         padding: 2rem;
     }
-    
+
     .auth-logo a {
         font-size: 1.5rem;
+    }
+
+    .bg-blobs::before,
+    .bg-blobs::after {
+        width: 420px;
+        height: 420px;
+        filter: blur(100px);
     }
 }

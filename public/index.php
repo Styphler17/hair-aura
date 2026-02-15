@@ -16,6 +16,15 @@ define('APP_PATH', BASE_PATH . '/app');
 define('CONFIG_PATH', BASE_PATH . '/config');
 define('VIEWS_PATH', APP_PATH . '/Views');
 
+// Let PHP built-in server serve real static files (css/js/img/uploads) directly.
+if (PHP_SAPI === 'cli-server') {
+    $uriPath = urldecode(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/');
+    $publicFile = __DIR__ . $uriPath;
+    if ($uriPath !== '/' && is_file($publicFile)) {
+        return false;
+    }
+}
+
 // Error reporting (disable in production)
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
@@ -57,13 +66,12 @@ foreach ($uploadDirs as $dir) {
 $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
 $phpSelf = str_replace('\\', '/', $_SERVER['PHP_SELF'] ?? '');
-$scriptDir = rtrim(str_replace('/index.php', '', ($phpSelf ?: $scriptName)), '/');
-$cleanBaseDir = rtrim((string) preg_replace('#/public$#', '', $scriptDir), '/');
 
 // Prefer a filesystem-based base path; this is more reliable in subfolder installs.
 $docRootReal = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
 $publicReal = realpath(__DIR__);
 $publicFromDocRoot = '';
+$scriptDir = '';
 
 if ($docRootReal && $publicReal) {
     $docRootNorm = str_replace('\\', '/', $docRootReal);
@@ -73,6 +81,67 @@ if ($docRootReal && $publicReal) {
         $suffix = trim(substr($publicNorm, strlen($docRootNorm)), '/');
         $publicFromDocRoot = $suffix === '' ? '' : '/' . $suffix;
     }
+}
+
+// Derive script directory from SCRIPT_FILENAME first to avoid PHP built-in server
+// edge-cases where PHP_SELF equals the request path (e.g. /login).
+$scriptFilenameReal = realpath($_SERVER['SCRIPT_FILENAME'] ?? '');
+if ($docRootReal && $scriptFilenameReal) {
+    $docRootNorm = str_replace('\\', '/', $docRootReal);
+    $scriptDirNorm = str_replace('\\', '/', dirname($scriptFilenameReal));
+    if (strpos($scriptDirNorm, $docRootNorm) === 0) {
+        $suffix = trim(substr($scriptDirNorm, strlen($docRootNorm)), '/');
+        $scriptDir = $suffix === '' ? '' : '/' . $suffix;
+    }
+}
+
+if ($scriptDir === '') {
+    $scriptDir = rtrim(str_replace('/index.php', '', ($scriptName ?: $phpSelf)), '/');
+}
+
+$cleanBaseDir = rtrim((string) preg_replace('#/public$#', '', $scriptDir), '/');
+
+// Fallback static asset serving for environments where rewrite forwards
+// /css, /js, /img, /uploads, /assets to index.php.
+$assetPrefixes = [];
+if ($scriptDir !== '') {
+    $assetPrefixes[] = $scriptDir;
+}
+if ($cleanBaseDir !== '') {
+    $assetPrefixes[] = rtrim($cleanBaseDir, '/') . '/public';
+    $assetPrefixes[] = $cleanBaseDir;
+}
+$assetPrefixes[] = '/public';
+$assetPrefixes = array_values(array_unique(array_filter($assetPrefixes)));
+
+$assetCandidates = [$requestPath];
+foreach ($assetPrefixes as $prefix) {
+    $prefix = rtrim($prefix, '/');
+    if ($prefix !== '' && str_starts_with($requestPath, $prefix . '/')) {
+        $assetCandidates[] = substr($requestPath, strlen($prefix));
+    }
+}
+
+foreach ($assetCandidates as $candidate) {
+    $candidatePath = '/' . ltrim((string) $candidate, '/');
+    if (!preg_match('#^/(css|js|img|uploads|assets)/#', $candidatePath)) {
+        continue;
+    }
+
+    $fullAssetPath = __DIR__ . $candidatePath;
+    if (!is_file($fullAssetPath)) {
+        continue;
+    }
+
+    if (!headers_sent()) {
+        $mimeType = function_exists('mime_content_type') ? mime_content_type($fullAssetPath) : '';
+        if (is_string($mimeType) && $mimeType !== '') {
+            header('Content-Type: ' . $mimeType);
+        }
+    }
+
+    readfile($fullAssetPath);
+    exit;
 }
 
 // Use /public for assets when the app is not served directly from public/

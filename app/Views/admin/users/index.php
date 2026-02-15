@@ -7,7 +7,7 @@
     <div class="card-body row g-2 align-items-end">
         <div class="col-md-7">
             <label class="form-label">Search</label>
-            <input type="text" name="search" class="form-control" value="<?= htmlspecialchars($search ?? '') ?>" placeholder="Name, email, phone">
+            <input type="text" name="search" class="form-control" value="<?= htmlspecialchars($search ?? '') ?>" placeholder="Name, phone, or email">
         </div>
         <div class="col-md-3">
             <label class="form-label">Role</label>
@@ -42,7 +42,7 @@
                         <?php foreach ($users as $account): ?>
                             <tr>
                                 <td data-label="Name"><?= htmlspecialchars(trim(($account['first_name'] ?? '') . ' ' . ($account['last_name'] ?? ''))) ?></td>
-                                <td data-label="Email"><?= htmlspecialchars($account['email'] ?? '') ?></td>
+                                <td data-label="Email"><?= htmlspecialchars((string) (($account['email'] ?? '') !== '' ? $account['email'] : '-')) ?></td>
                                 <td data-label="Phone"><?= htmlspecialchars($account['phone'] ?? '') ?></td>
                                 <td data-label="Role"><span class="badge bg-<?= ($account['role'] ?? '') === 'admin' ? 'dark' : 'secondary' ?>"><?= htmlspecialchars(ucfirst($account['role'] ?? 'customer')) ?></span></td>
                                 <td data-label="Status">

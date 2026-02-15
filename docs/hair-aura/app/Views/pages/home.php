@@ -338,6 +338,18 @@
     </div>
 </section>
 
+<?php
+$instagramFiles = [];
+$instagramDir = BASE_PATH . '/public/img/instagram';
+if (is_dir($instagramDir)) {
+    $matches = glob($instagramDir . '/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
+    if (is_array($matches)) {
+        sort($matches);
+        $instagramFiles = array_slice($matches, 0, 6);
+    }
+}
+?>
+<?php if (!empty($instagramFiles)): ?>
 <!-- Instagram Feed -->
 <section class="instagram-section py-5">
     <div class="container">
@@ -347,19 +359,24 @@
         </div>
         
         <div class="row g-2">
-            <?php for ($i = 1; $i <= 6; $i++): ?>
-            <div class="col-4 col-md-2">
-                <a href="https://instagram.com/hairaura" target="_blank" class="instagram-item">
-                    <img src="/img/instagram/<?= $i ?>.jpg" alt="Instagram" loading="lazy">
-                    <div class="instagram-overlay">
-                        <i class="fab fa-instagram"></i>
-                    </div>
-                </a>
-            </div>
-            <?php endfor; ?>
+            <?php foreach ($instagramFiles as $instagramFile): ?>
+                <?php
+                $instagramName = basename($instagramFile);
+                $instagramUrl = asset('/img/instagram/' . $instagramName);
+                ?>
+                <div class="col-4 col-md-2">
+                    <a href="https://instagram.com/hairaura" target="_blank" rel="noopener" class="instagram-item">
+                        <img src="<?= htmlspecialchars($instagramUrl) ?>" alt="Instagram" loading="lazy">
+                        <div class="instagram-overlay">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                    </a>
+                </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </section>
+<?php endif; ?>
 
 <!-- CTA Section -->
 <section class="cta-section py-5">

@@ -33,10 +33,7 @@ return [
     // Social Media
     'social' => [
         'instagram' => 'https://instagram.com/hairaura',
-        'facebook' => 'https://facebook.com/hairaura',
-        'twitter' => 'https://twitter.com/hairaura',
-        'tiktok' => 'https://tiktok.com/@hairaura',
-        'youtube' => 'https://youtube.com/hairaura'
+        'tiktok' => 'https://tiktok.com/@hairaura'
     ],
     
     // Business

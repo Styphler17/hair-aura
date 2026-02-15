@@ -474,7 +474,8 @@ class User extends Model
     public static function register(array $data): static
     {
         $user = new static();
-        $user->email = $data['email'];
+        $email = trim((string) ($data['email'] ?? ''));
+        $user->email = $email !== '' ? strtolower($email) : null;
         $user->password_hash = password_hash($data['password'], PASSWORD_BCRYPT);
         $user->first_name = $data['first_name'];
         $user->last_name = $data['last_name'];
@@ -501,7 +502,8 @@ class User extends Model
             "SELECT * FROM users 
              WHERE first_name LIKE :query 
                 OR last_name LIKE :query 
-                OR email LIKE :query 
+                OR email LIKE :query
+                OR phone LIKE :query
              ORDER BY created_at DESC 
              LIMIT :limit",
             ['query' => "%{$query}%", 'limit' => $limit]

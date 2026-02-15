@@ -444,7 +444,7 @@ INSERT INTO `testimonials` (`id`, `customer_name`, `customer_location`, `custome
 
 CREATE TABLE `users` (
   `id` int(10) UNSIGNED NOT NULL,
-  `email` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
   `first_name` varchar(100) NOT NULL,
   `last_name` varchar(100) NOT NULL,
@@ -466,10 +466,10 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `phone`, `avatar`, `role`, `is_active`, `email_verified`, `created_at`, `updated_at`, `last_login`) VALUES
 (1, 'admin@hair-aura.debesties.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Administrator', '+233201234567', NULL, 'admin', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
-(2, 'ama.owusu@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
-(3, 'kwasi.mensah@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
-(4, 'abena.darko@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
-(5, 'yaa.asantewaa@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL);
+(2, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
+(3, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
+(4, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL),
+(5, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL);
 
 -- --------------------------------------------------------
 

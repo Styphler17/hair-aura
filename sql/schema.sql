@@ -15,7 +15,7 @@ USE hair_aura;
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    `email` VARCHAR(255) NOT NULL UNIQUE,
+    `email` VARCHAR(255) NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
     `first_name` VARCHAR(100) NOT NULL,
     `last_name` VARCHAR(100) NOT NULL,

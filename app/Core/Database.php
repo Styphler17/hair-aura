@@ -73,9 +73,14 @@ class Database
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$this->config['charset']} COLLATE {$this->config['collation']}"
+                PDO::ATTR_EMULATE_PREPARES => false
             ];
+
+            // Some PHP builds do not expose MYSQL_ATTR_INIT_COMMAND as a constant.
+            if (\defined('PDO::MYSQL_ATTR_INIT_COMMAND')) {
+                $options[\constant('PDO::MYSQL_ATTR_INIT_COMMAND')] =
+                    "SET NAMES {$this->config['charset']} COLLATE {$this->config['collation']}";
+            }
             
             $this->connection = new PDO(
                 $dsn,

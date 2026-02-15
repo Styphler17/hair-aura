@@ -13,10 +13,10 @@ INSERT INTO `users` (`email`, `password_hash`, `first_name`, `last_name`, `phone
 -- SAMPLE CUSTOMERS (Password: Customer@123)
 -- ============================================
 INSERT INTO `users` (`email`, `password_hash`, `first_name`, `last_name`, `phone`, `role`, `is_active`, `email_verified`) VALUES
-('ama.owusu@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', 'customer', 1, 1),
-('kwasi.mensah@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', 'customer', 1, 1),
-('abena.darko@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', 'customer', 1, 1),
-('yaa.asantewaa@email.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', 'customer', 1, 1);
+(NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', 'customer', 1, 1),
+(NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', 'customer', 1, 1),
+(NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', 'customer', 1, 1),
+(NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', 'customer', 1, 1);
 
 -- ============================================
 -- CATEGORIES

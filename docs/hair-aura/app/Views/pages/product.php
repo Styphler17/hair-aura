@@ -1,3 +1,14 @@
+<?php
+$shareUrl = (string) ($shareUrl ?? '');
+if ($shareUrl === '') {
+    $configuredBaseUrl = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
+    $requestHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
+    $requestScheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $runtimeBaseUrl = $requestHost !== '' ? ($requestScheme . '://' . $requestHost . rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/')) : '';
+    $siteBaseUrl = $configuredBaseUrl !== '' ? $configuredBaseUrl : rtrim($runtimeBaseUrl, '/');
+    $shareUrl = $siteBaseUrl . '/product/' . ltrim((string) ($product->slug ?? ''), '/');
+}
+?>
 <!-- Product Detail -->
 <section class="product-detail-section py-5">
     <div class="container">
@@ -380,15 +391,7 @@
             </div>
             <div class="modal-body">
                 <div class="share-buttons">
-                    <a href="https://facebook.com/sharer/sharer.php?u=<?= urlencode('https://hair-aura.debesties.com/product/' . $product->slug) ?>" 
-                       target="_blank" class="btn btn-facebook">
-                        <i class="fab fa-facebook-f"></i> Facebook
-                    </a>
-                    <a href="https://twitter.com/intent/tweet?url=<?= urlencode('https://hair-aura.debesties.com/product/' . $product->slug) ?>&text=<?= urlencode($product->name) ?>" 
-                       target="_blank" class="btn btn-twitter">
-                        <i class="fab fa-twitter"></i> Twitter
-                    </a>
-                    <a href="https://wa.me/233508007873?text=<?= urlencode($product->name . ' - https://hair-aura.debesties.com/product/' . $product->slug) ?>" 
+                    <a href="https://wa.me/233508007873?text=<?= urlencode($product->name . ' - ' . $shareUrl) ?>" 
                        target="_blank" class="btn btn-whatsapp">
                         <i class="fab fa-whatsapp"></i> WhatsApp
                     </a>
@@ -396,7 +399,7 @@
                 <div class="share-link mt-3">
                     <label>Or copy link:</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" value="https://hair-aura.debesties.com/product/<?= $product->slug ?>" readonly>
+                        <input type="text" class="form-control" value="<?= htmlspecialchars($shareUrl) ?>" readonly>
                         <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(this.previousElementSibling.value)">
                             <i class="fas fa-copy"></i>
                         </button>

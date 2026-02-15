@@ -18,7 +18,7 @@
                     </div>
                 </div>
                 <div class="small text-muted">Email</div>
-                <div class="mb-2"><?= htmlspecialchars((string) $customer->email) ?></div>
+                <div class="mb-2"><?= htmlspecialchars((string) (($customer->email ?? '') !== '' ? $customer->email : '-')) ?></div>
                 <div class="small text-muted">Phone</div>
                 <div class="mb-2"><?= htmlspecialchars((string) $customer->phone) ?></div>
                 <div class="small text-muted">Member Since</div>
