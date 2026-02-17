@@ -15,21 +15,21 @@ $mediaImages = $mediaImages ?? [];
         <input type="hidden" name="id" value="<?= (int) ($product?->id ?? 0) ?>">
 
         <div class="col-md-8">
-            <label class="form-label">Product Name</label>
-            <input type="text" name="name" id="productName" class="form-control" value="<?= htmlspecialchars($product?->name ?? '') ?>" required>
+            <label class="form-label text-primary fw-bold"><i class="fas fa-tag me-1"></i> Product Name</label>
+            <input type="text" name="name" id="productName" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->name ?? '') ?>" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Slug</label>
-            <input type="text" name="slug" id="productSlug" class="form-control" value="<?= htmlspecialchars($product?->slug ?? '') ?>" required>
+            <label class="form-label text-primary fw-bold"><i class="fas fa-link me-1"></i> Slug</label>
+            <input type="text" name="slug" id="productSlug" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->slug ?? '') ?>" required>
         </div>
 
         <div class="col-md-4">
-            <label class="form-label">SKU</label>
-            <input type="text" name="sku" class="form-control" value="<?= htmlspecialchars($product?->sku ?? '') ?>">
+            <label class="form-label text-primary fw-bold"><i class="fas fa-barcode me-1"></i> SKU</label>
+            <input type="text" name="sku" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->sku ?? '') ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Category</label>
-            <select name="category_id" class="form-select" required>
+            <label class="form-label text-success fw-bold"><i class="fas fa-layer-group me-1"></i> Category</label>
+            <select name="category_id" class="form-select hover-shadow transition" required>
                 <option value="">Select category</option>
                 <?php foreach (($categories ?? []) as $category): ?>
                     <option value="<?= (int) $category['id'] ?>" <?= ((int) ($product?->category_id ?? 0) === (int) $category['id']) ? 'selected' : '' ?>>
@@ -39,26 +39,26 @@ $mediaImages = $mediaImages ?? [];
             </select>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Brand</label>
-            <input type="text" name="brand" class="form-control" value="<?= htmlspecialchars($product?->brand ?? 'Hair Aura') ?>">
+            <label class="form-label text-success fw-bold"><i class="fas fa-copyright me-1"></i> Brand</label>
+            <input type="text" name="brand" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->brand ?? 'Hair Aura') ?>">
         </div>
 
         <div class="col-md-4">
-            <label class="form-label">Price (GHS)</label>
-            <input type="number" step="0.01" name="price" class="form-control" value="<?= htmlspecialchars((string) ($product?->price ?? '')) ?>" required>
+            <label class="form-label text-info fw-bold"><i class="fas fa-money-bill-wave me-1"></i> Price (GHS)</label>
+            <input type="number" step="0.01" name="price" class="form-control hover-shadow transition" value="<?= htmlspecialchars((string) ($product?->price ?? '')) ?>" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Sale Price (GHS)</label>
-            <input type="number" step="0.01" name="sale_price" class="form-control" value="<?= htmlspecialchars((string) ($product?->sale_price ?? '')) ?>">
+            <label class="form-label text-info fw-bold"><i class="fas fa-percentage me-1"></i> Sale Price (GHS)</label>
+            <input type="number" step="0.01" name="sale_price" class="form-control hover-shadow transition" value="<?= htmlspecialchars((string) ($product?->sale_price ?? '')) ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Stock Quantity</label>
-            <input type="number" name="stock_quantity" class="form-control" value="<?= htmlspecialchars((string) ($product?->stock_quantity ?? '0')) ?>" required>
+            <label class="form-label text-info fw-bold"><i class="fas fa-cubes me-1"></i> Stock Quantity</label>
+            <input type="number" name="stock_quantity" class="form-control hover-shadow transition" value="<?= htmlspecialchars((string) ($product?->stock_quantity ?? '0')) ?>" required>
         </div>
 
         <div class="col-md-4">
-            <label class="form-label">Stock Status</label>
-            <select name="stock_status" class="form-select">
+            <label class="form-label text-info fw-bold"><i class="fas fa-clipboard-check me-1"></i> Stock Status</label>
+            <select name="stock_status" class="form-select hover-shadow transition">
                 <?php $stockStatus = (string) ($product?->stock_status ?? 'in_stock'); ?>
                 <option value="in_stock" <?= $stockStatus === 'in_stock' ? 'selected' : '' ?>>In Stock</option>
                 <option value="out_of_stock" <?= $stockStatus === 'out_of_stock' ? 'selected' : '' ?>>Out of Stock</option>
@@ -66,98 +66,65 @@ $mediaImages = $mediaImages ?? [];
             </select>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Hair Type</label>
-            <input type="text" name="hair_type" class="form-control" value="<?= htmlspecialchars($product?->hair_type ?? '') ?>">
+            <label class="form-label text-dark fw-bold"><i class="fas fa-wind me-1"></i> Hair Type</label>
+            <input type="text" name="hair_type" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->hair_type ?? '') ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Texture</label>
-            <input type="text" name="texture" class="form-control" value="<?= htmlspecialchars($product?->texture ?? '') ?>">
+            <label class="form-label text-dark fw-bold"><i class="fas fa-fingerprint me-1"></i> Texture</label>
+            <input type="text" name="texture" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->texture ?? '') ?>">
         </div>
 
         <div class="col-md-4">
-            <label class="form-label">Length (inches)</label>
-            <input type="number" name="length_inches" class="form-control" value="<?= htmlspecialchars((string) ($product?->length_inches ?? '')) ?>">
+            <label class="form-label text-dark fw-bold"><i class="fas fa-ruler-vertical me-1"></i> Length (inches)</label>
+            <input type="number" name="length_inches" class="form-control hover-shadow transition" value="<?= htmlspecialchars((string) ($product?->length_inches ?? '')) ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Color</label>
-            <input type="text" name="color" class="form-control" value="<?= htmlspecialchars($product?->color ?? '') ?>">
+            <label class="form-label text-dark fw-bold"><i class="fas fa-palette me-1"></i> Color</label>
+            <input type="text" name="color" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->color ?? '') ?>">
         </div>
         <div class="col-md-4">
-            <label class="form-label">Density</label>
-            <input type="text" name="density" class="form-control" value="<?= htmlspecialchars($product?->density ?? '') ?>">
-        </div>
-
-        <div class="col-12">
-            <label class="form-label">Short Description</label>
-            <textarea name="short_description" class="form-control" rows="2"><?= htmlspecialchars($product?->short_description ?? '') ?></textarea>
+            <label class="form-label text-dark fw-bold"><i class="fas fa-compress-arrows-alt me-1"></i> Density</label>
+            <input type="text" name="density" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->density ?? '') ?>">
         </div>
 
         <div class="col-12">
-            <label class="form-label">Description</label>
-            <textarea name="description" class="form-control" rows="6"><?= htmlspecialchars($product?->description ?? '') ?></textarea>
+            <label class="form-label text-muted fw-bold"><i class="fas fa-quote-left me-1"></i> Short Description</label>
+            <textarea name="short_description" class="form-control hover-shadow transition" rows="2"><?= htmlspecialchars($product?->short_description ?? '') ?></textarea>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label text-muted fw-bold"><i class="fas fa-align-left me-1"></i> Description</label>
+            <textarea name="description" class="form-control hover-shadow transition" rows="6"><?= htmlspecialchars($product?->description ?? '') ?></textarea>
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">Meta Title</label>
-            <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars($product?->meta_title ?? '') ?>">
+            <label class="form-label text-secondary fw-bold"><i class="fas fa-search me-1"></i> Meta Title</label>
+            <input type="text" name="meta_title" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->meta_title ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Meta Description</label>
-            <input type="text" name="meta_description" class="form-control" value="<?= htmlspecialchars($product?->meta_description ?? '') ?>">
+            <label class="form-label text-secondary fw-bold"><i class="fas fa-info-circle me-1"></i> Meta Description</label>
+            <input type="text" name="meta_description" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->meta_description ?? '') ?>">
         </div>
 
         <div class="col-12">
-            <label class="form-label">Meta Keywords</label>
-            <input type="text" name="meta_keywords" class="form-control" value="<?= htmlspecialchars($product?->meta_keywords ?? '') ?>">
+            <label class="form-label text-secondary fw-bold"><i class="fas fa-key me-1"></i> Meta Keywords</label>
+            <input type="text" name="meta_keywords" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->meta_keywords ?? '') ?>">
         </div>
 
         <div class="col-12">
-            <label class="form-label">Upload Product Images</label>
-            <input type="file" name="images[]" id="productImages" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple>
+            <label class="form-label text-warning fw-bold"><i class="fas fa-images me-1"></i> Upload Product Images</label>
+            <input type="file" name="images[]" id="productImages" class="form-control hover-shadow transition" accept=".jpg,.jpeg,.png,.webp" multiple>
             <div id="imagePreview" class="mt-2 d-flex flex-wrap gap-2"></div>
         </div>
 
-        <div class="col-12">
-            <label class="form-label">Or Pick Images From Media Library</label>
-            <div class="border rounded p-3 bg-white">
-                <input type="text" class="form-control mb-2" placeholder="Search library..." onkeyup="filterMediaCheckboxes(this)">
-                <div class="d-flex flex-wrap gap-2 media-checkbox-container" style="max-height: 300px; overflow-y: auto;">
-                    <?php foreach ($mediaImages as $media): ?>
-                        <?php 
-                            $mPath = $media['file_path'] ?? '';
-                            $mName = $media['file_name'] ?? 'image';
-                            $mId = $media['id'] ?? uniqid();
-                        ?>
-                        <div class="media-checkbox-option position-relative" style="width: 100px; height: 100px;" data-name="<?= htmlspecialchars($mName) ?>">
-                            <input type="checkbox" name="library_images[]" value="<?= htmlspecialchars($mPath) ?>" id="media_<?= $mId ?>" class="btn-check">
-                            <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="media_<?= $mId ?>">
-                                <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
-                                     class="w-100 h-100" style="object-fit: cover;"
-                                     title="<?= htmlspecialchars($mName) ?>"
-                                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                            </label>
-                            <div class="position-absolute top-0 end-0 p-1">
-                                <i class="fas fa-check-circle text-primary bg-white rounded-circle check-icon" style="opacity: 0; transition: opacity 0.2s;"></i>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-            <div class="form-text">Select multiple images if needed. Use the search box to find images quickly.</div>
-        </div>
-        
-        <style>
-            .btn-check:checked + label {
-                border-color: var(--bs-primary, #0d6efd) !important;
-                border-width: 3px !important;
-            }
-            .btn-check:checked ~ div .check-icon {
-                opacity: 1 !important;
-            }
-            .media-checkbox-option label:hover {
-                border-color: #adb5bd !important;
-            }
-        </style>
+        <?php
+            // Setup for partial
+            $inputName = 'library_images';
+            $isMultiple = true;
+            $currentValue = []; // Start empty for products (adds new)
+            $label = 'Or Pick Images From Media Library';
+            include __DIR__ . '/../partials/media_library_selector.php';
+        ?>
 
         <div class="col-12 d-flex flex-wrap gap-3">
             <div class="form-check">
@@ -191,11 +158,21 @@ $mediaImages = $mediaImages ?? [];
     <div class="card-body d-flex flex-wrap gap-3">
         <?php foreach ($images as $image): ?>
             <div class="position-relative" style="width: 120px; height: 120px;">
-                <img src="<?= asset('/uploads/products/' . $image['image_path']) ?>" 
+                <?php
+                $imgPath = (string) $image['image_path'];
+                if (str_starts_with($imgPath, 'http')) {
+                    $fullImgPath = $imgPath;
+                } elseif (str_starts_with($imgPath, 'uploads/') || str_starts_with($imgPath, 'img/')) {
+                    $fullImgPath = asset('/' . ltrim($imgPath, '/'));
+                } else {
+                    $fullImgPath = asset('/uploads/products/' . $imgPath);
+                }
+                ?>
+                <img src="<?= $fullImgPath ?>" 
                      alt="<?= htmlspecialchars($image['alt_text'] ?? '') ?>" 
                      class="w-100 h-100 rounded border shadow-sm" 
                      style="object-fit: cover;"
-                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp'); ?>';">
                 
                 <form action="<?= url('/admin/products/images/delete/' . $image['id']) ?>" method="post" 
                       onsubmit="return confirm('Are you sure you want to remove this image?');" 
@@ -217,18 +194,4 @@ $mediaImages = $mediaImages ?? [];
 </div>
 <?php endif; ?>
 
-<script>
-function filterMediaCheckboxes(input) {
-    const filter = input.value.toLowerCase();
-    const container = input.nextElementSibling; 
-    const items = container.querySelectorAll('.media-checkbox-option[data-name]');
-    items.forEach(item => {
-        const name = item.getAttribute('data-name').toLowerCase();
-        if (name.includes(filter)) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-}
-</script>
+

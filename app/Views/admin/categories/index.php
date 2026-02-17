@@ -2,7 +2,7 @@
 $resolveCategoryImage = static function (?string $image): string {
     $name = trim((string) $image);
     if ($name === '') {
-        return asset('/img/product-placeholder.png');
+        return asset('/img/product-placeholder.webp');
     }
 
     if (str_starts_with($name, 'http://') || str_starts_with($name, 'https://')) {
@@ -30,60 +30,36 @@ $mediaImages = $mediaImages ?? [];
         <form method="post" action="<?= url('/admin/categories/save') ?>" enctype="multipart/form-data" class="row g-2">
             <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
             <div class="col-md-4">
-                <label class="form-label">Name</label>
-                <input type="text" name="name" class="form-control" required>
+                <label class="form-label text-primary fw-bold"><i class="fas fa-tag me-1"></i> Name</label>
+                <input type="text" name="name" class="form-control hover-shadow transition" required>
             </div>
             <div class="col-md-3">
-                <label class="form-label">Slug</label>
-                <input type="text" name="slug" class="form-control" required>
+                <label class="form-label text-primary fw-bold"><i class="fas fa-link me-1"></i> Slug</label>
+                <input type="text" name="slug" class="form-control hover-shadow transition" required>
             </div>
             <div class="col-md-2">
-                <label class="form-label">Sort Order</label>
-                <input type="number" name="sort_order" class="form-control" value="0">
+                <label class="form-label text-success fw-bold"><i class="fas fa-sort-numeric-down me-1"></i> Sort Order</label>
+                <input type="number" name="sort_order" class="form-control hover-shadow transition" value="0">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Meta Title</label>
-                <input type="text" name="meta_title" class="form-control">
+                <label class="form-label text-secondary fw-bold"><i class="fas fa-search me-1"></i> Meta Title</label>
+                <input type="text" name="meta_title" class="form-control hover-shadow transition">
             </div>
             <div class="col-md-6">
-                <label class="form-label">Category Image</label>
-                <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                <label class="form-label text-warning fw-bold"><i class="fas fa-upload me-1"></i> Upload Category Image</label>
+                <input type="file" name="image_file" class="form-control hover-shadow transition" accept=".jpg,.jpeg,.png,.webp">
             </div>
-            <div class="col-md-6">
-                <label class="form-label">Or Pick From Media Library</label>
-                <div class="dropdown">
-                    <input type="hidden" name="library_image" id="library_image_new">
-                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="btn_library_image_new" data-bs-toggle="dropdown" aria-expanded="false">
-                        Choose image from library
-                    </button>
-                    <div class="dropdown-menu p-2 shadow" style="width: 100%; min-width: 300px;">
-                        <input type="text" class="form-control mb-2 form-control-sm" placeholder="Search..." onkeyup="filterMedia(this)">
-                        <div class="d-flex flex-wrap gap-2 media-grid-container" style="max-height: 250px; overflow-y: auto;">
-                            <div class="media-option" style="width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #dee2e6;" 
-                                 onclick="setMediaImage('library_image_new', '', 'btn_library_image_new', 'Choose image from library')" title="None">
-                                <i class="fas fa-ban text-muted"></i>
-                            </div>
-                            <?php foreach ($mediaImages as $media): ?>
-                                <?php 
-                                    $mPath = $media['file_path'] ?? ''; 
-                                    $mName = $media['file_name'] ?? 'image';
-                                ?>
-                                <div class="media-option" style="width: 60px; height: 60px; cursor: pointer;" 
-                                     onclick="setMediaImage('library_image_new', '<?= htmlspecialchars($mPath) ?>', 'btn_library_image_new', '<?= htmlspecialchars($mName) ?>')"
-                                     data-name="<?= htmlspecialchars(strtolower($mName)) ?>">
-                                    <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
-                                         class="img-thumbnail w-100 h-100" style="object-fit: cover;"
-                                         title="<?= htmlspecialchars($mName) ?>"
-                                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php
+                // Setup for partial
+                $inputName = 'library_image';
+                $isMultiple = false;
+                $currentValue = '';
+                $label = 'Or Pick From Media Library';
+                include __DIR__ . '/../partials/media_library_selector.php';
+            ?>
             <div class="col-12">
-                <label class="form-label">Description</label>
-                <textarea name="description" class="form-control" rows="2"></textarea>
+                <label class="form-label text-info fw-bold"><i class="fas fa-align-left me-1"></i> Description</label>
+                <textarea name="description" class="form-control hover-shadow transition" rows="2"></textarea>
             </div>
             <div class="col-12 d-flex gap-3">
                 <div class="form-check">
@@ -98,164 +74,288 @@ $mediaImages = $mediaImages ?? [];
 
 <div class="card">
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 admin-table-mobile">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Image</th>
-                        <th>Slug</th>
-                        <th>Products</th>
-                        <th>Sort</th>
-                        <th>Status</th>
-                        <th class="text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($categories)): ?>
-                        <?php foreach ($categories as $category): ?>
-                            <tr>
-                                <td data-label="Name">
-                                    <strong><?= htmlspecialchars((string) ($category['name'] ?? '')) ?></strong>
-                                    <?php if (!empty($category['description'])): ?>
-                                        <div class="small text-muted"><?= htmlspecialchars(strlen((string) $category['description']) > 80 ? substr((string) $category['description'], 0, 77) . '...' : (string) $category['description']) ?></div>
-                                    <?php endif; ?>
-                                </td>
-                                <td data-label="Image">
-                                    <img
-                                        src="<?= htmlspecialchars($resolveCategoryImage((string) ($category['image'] ?? ''))) ?>"
-                                        alt="<?= htmlspecialchars((string) ($category['name'] ?? 'Category')) ?>"
-                                        class="category-thumb"
-                                        onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';"
-                                    >
-                                </td>
-                                <td data-label="Slug"><?= htmlspecialchars((string) ($category['slug'] ?? '')) ?></td>
-                                <td data-label="Products"><?= (int) ($category['product_count'] ?? 0) ?></td>
-                                <td data-label="Sort"><?= (int) ($category['sort_order'] ?? 0) ?></td>
-                                <td data-label="Status">
-                                    <?php if (!empty($category['is_active'])): ?>
-                                        <span class="badge bg-success">Active</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-secondary">Inactive</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td data-label="Action" class="text-end">
-                                    <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editCategory<?= (int) $category['id'] ?>">Edit</button>
-                                </td>
-                            </tr>
-                            <tr class="collapse" id="editCategory<?= (int) $category['id'] ?>">
-                                <td colspan="7">
-                                    <form method="post" action="<?= url('/admin/categories/save') ?>" enctype="multipart/form-data" class="row g-2">
-                                        <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                        <input type="hidden" name="id" value="<?= (int) $category['id'] ?>">
-                                        <div class="col-md-3">
-                                            <input type="text" name="name" class="form-control" value="<?= htmlspecialchars((string) ($category['name'] ?? '')) ?>" required>
+        <form id="bulkActionForm" method="post" action="<?= url('/admin/categories/bulk-delete') ?>">
+            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 admin-table-mobile">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="selectAllItems">
+                                </div>
+                            </th>
+                            <th>Name</th>
+                            <th>Image</th>
+                            <th>Slug</th>
+                            <th>Products</th>
+                            <th>Sort</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($categories)): ?>
+                            <?php foreach ($categories as $category): ?>
+                                <?php $catId = (int) ($category['id'] ?? 0); ?>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input class="form-check-input item-checkbox" type="checkbox" name="ids[]" value="<?= $catId ?>">
                                         </div>
-                                        <div class="col-md-2">
-                                            <input type="text" name="slug" class="form-control" value="<?= htmlspecialchars((string) ($category['slug'] ?? '')) ?>" required>
+                                    </td>
+                                    <td data-label="Name">
+                                        <strong><?= htmlspecialchars((string) ($category['name'] ?? '')) ?></strong>
+                                        <?php if (!empty($category['description'])): ?>
+                                            <div class="small text-muted"><?= htmlspecialchars(strlen((string) $category['description']) > 80 ? substr((string) $category['description'], 0, 77) . '...' : (string) $category['description']) ?></div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td data-label="Image">
+                                        <img
+                                            src="<?= htmlspecialchars($resolveCategoryImage((string) ($category['image'] ?? ''))) ?>"
+                                            alt="<?= htmlspecialchars((string) ($category['name'] ?? 'Category')) ?>"
+                                            class="category-thumb"
+                                            onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';"
+                                        >
+                                    </td>
+                                    <td data-label="Slug"><?= htmlspecialchars((string) ($category['slug'] ?? '')) ?></td>
+                                    <td data-label="Products"><?= (int) ($category['product_count'] ?? 0) ?></td>
+                                    <td data-label="Sort"><?= (int) ($category['sort_order'] ?? 0) ?></td>
+                                    <td data-label="Status">
+                                        <?php if (!empty($category['is_active'])): ?>
+                                            <span class="badge bg-success">Active</span>
+                                        <?php else: ?>
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td data-label="Action" class="text-end">
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editCategory<?= $catId ?>">Edit</button>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteItemModal" 
+                                                    data-id="<?= $catId ?>"
+                                                    data-title="<?= htmlspecialchars((string)($category['name'] ?? '')) ?>"
+                                                    data-products="<?= (int)($category['product_count'] ?? 0) ?>">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         </div>
-                                        <div class="col-md-2">
-                                            <input type="number" name="sort_order" class="form-control" value="<?= (int) ($category['sort_order'] ?? 0) ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_title'] ?? '')) ?>" placeholder="Meta title">
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="is_active" id="active<?= (int) $category['id'] ?>" value="1" <?= !empty($category['is_active']) ? 'checked' : '' ?>>
-                                                <label class="form-check-label" for="active<?= (int) $category['id'] ?>">Active</label>
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="editCategory<?= $catId ?>">
+                                    <td colspan="8">
+                                        <form method="post" action="<?= url('/admin/categories/save') ?>" enctype="multipart/form-data" class="row g-2">
+                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                                            <input type="hidden" name="id" value="<?= $catId ?>">
+                                            <div class="col-md-3">
+                                                <input type="text" name="name" class="form-control" value="<?= htmlspecialchars((string) ($category['name'] ?? '')) ?>" required>
                                             </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="dropdown">
-                                                <input type="hidden" name="library_image" id="library_image_<?= $category['id'] ?>">
-                                                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="btn_library_image_<?= $category['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Pick from media library
-                                                </button>
-                                                <div class="dropdown-menu p-2 shadow" style="width: 100%; min-width: 300px;">
-                                                    <input type="text" class="form-control mb-2 form-control-sm" placeholder="Search..." onkeyup="filterMedia(this)">
-                                                    <div class="d-flex flex-wrap gap-2 media-grid-container" style="max-height: 250px; overflow-y: auto;">
-                                                        <div class="media-option" style="width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #dee2e6;" 
-                                                             onclick="setMediaImage('library_image_<?= $category['id'] ?>', '', 'btn_library_image_<?= $category['id'] ?>', 'Pick from media library')" title="None">
-                                                            <i class="fas fa-ban text-muted"></i>
-                                                        </div>
-                                                        <?php foreach ($mediaImages as $media): ?>
-                                                            <?php 
-                                                                $mPath = $media['file_path'] ?? ''; 
-                                                                $mName = $media['file_name'] ?? 'image';
-                                                            ?>
-                                                            <div class="media-option" style="width: 60px; height: 60px; cursor: pointer;" 
-                                                                 onclick="setMediaImage('library_image_<?= $category['id'] ?>', '<?= htmlspecialchars($mPath) ?>', 'btn_library_image_<?= $category['id'] ?>', '<?= htmlspecialchars($mName) ?>')"
-                                                                 data-name="<?= htmlspecialchars(strtolower($mName)) ?>">
-                                                                <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
-                                                                     class="img-thumbnail w-100 h-100" style="object-fit: cover;"
-                                                                     title="<?= htmlspecialchars($mName) ?>"
-                                                                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                                                            </div>
-                                                        <?php endforeach; ?>
-                                                    </div>
+                                            <div class="col-md-2">
+                                                <input type="text" name="slug" class="form-control" value="<?= htmlspecialchars((string) ($category['slug'] ?? '')) ?>" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="number" name="sort_order" class="form-control" value="<?= (int) ($category['sort_order'] ?? 0) ?>">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_title'] ?? '')) ?>" placeholder="Meta title">
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="is_active" id="active<?= $catId ?>" value="1" <?= !empty($category['is_active']) ? 'checked' : '' ?>>
+                                                    <label class="form-check-label" for="active<?= $catId ?>">Active</label>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-2 d-flex align-items-center">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="remove_image" id="removeImage<?= (int) $category['id'] ?>" value="1">
-                                                <label class="form-check-label" for="removeImage<?= (int) $category['id'] ?>">Remove image</label>
+                                            <div class="col-md-4">
+                                                <label class="form-label text-warning fw-bold text-start d-block"><i class="fas fa-upload me-1"></i> Upload New Image</label>
+                                                <input type="file" name="image_file" class="form-control hover-shadow transition" accept=".jpg,.jpeg,.png,.webp">
                                             </div>
-                                        </div>
-                                        <div class="col-md-1 d-flex align-items-center">
-                                            <img
-                                                src="<?= htmlspecialchars($resolveCategoryImage((string) ($category['image'] ?? ''))) ?>"
-                                                alt="<?= htmlspecialchars((string) ($category['name'] ?? 'Category')) ?>"
-                                                class="category-thumb"
-                                                onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';"
-                                            >
-                                        </div>
-                                        <div class="col-12">
-                                            <textarea name="description" class="form-control" rows="2" placeholder="Description"><?= htmlspecialchars((string) ($category['description'] ?? '')) ?></textarea>
-                                        </div>
-                                        <div class="col-md-10">
-                                            <input type="text" name="meta_description" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_description'] ?? '')) ?>" placeholder="Meta description">
-                                        </div>
-                                        <div class="col-md-2 d-grid">
-                                            <button type="submit" class="btn btn-primary">Save</button>
-                                        </div>
-                                    </form>
-                                </td>
+                                            <div class="col-md-8">
+                                                <?php
+                                                    // Setup for partial
+                                                    $inputName = 'library_image';
+                                                    $isMultiple = false;
+                                                    $currentValue = $category['image'] ?? '';
+                                                    $label = 'Or Pick From Media Library';
+                                                    include __DIR__ . '/../partials/media_library_selector.php';
+                                                ?>
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="remove_image" id="removeImage<?= $catId ?>" value="1">
+                                                    <label class="form-check-label text-danger fw-bold" for="removeImage<?= $catId ?>">Remove image</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-1 d-flex align-items-center">
+                                                <img
+                                                    src="<?= htmlspecialchars($resolveCategoryImage((string) ($category['image'] ?? ''))) ?>"
+                                                    alt="<?= htmlspecialchars((string) ($category['name'] ?? 'Category')) ?>"
+                                                    class="category-thumb"
+                                                    onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';"
+                                                >
+                                            </div>
+                                            <div class="col-12">
+                                                <textarea name="description" class="form-control" rows="2" placeholder="Description"><?= htmlspecialchars((string) ($category['description'] ?? '')) ?></textarea>
+                                            </div>
+                                            <div class="col-md-10">
+                                                <input type="text" name="meta_description" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_description'] ?? '')) ?>" placeholder="Meta description">
+                                            </div>
+                                            <div class="col-md-2 d-grid">
+                                                <button type="submit" class="btn btn-primary">Save</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted">No categories found.</td>
                             </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No categories found.</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Actions Bar -->
+<div id="bulkActionsBar" class="position-fixed bottom-0 start-50 translate-middle-x mb-4 d-none" style="z-index: 1050;">
+    <div class="card shadow-lg border-0 bg-dark text-white px-4 py-3">
+        <div class="d-flex align-items-center gap-4">
+            <div><span id="selectedCount">0</span> items selected</div>
+            <div class="vr"></div>
+            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
+                <i class="fas fa-trash-alt me-2"></i>Delete Selected
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Bulk Delete Categories</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <i class="fas fa-exclamation-triangle text-danger fa-4x mb-3"></i>
+                <h4 class="fw-bold">Delete <span id="bulkDeleteCount">0</span> categories?</h4>
+                <p class="text-muted">This will permanently delete the selected categories. Note: Categories containing products cannot be deleted in bulk for safety.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmBulkDelete">Yes, Delete All</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Single Delete Confirmation Modal -->
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content text-dark">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Delete Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-exclamation-circle text-danger fa-4x mb-3"></i>
+                    <h4 class="fw-bold">Are you sure?</h4>
+                    <p class="text-muted">You are about to delete the following category:</p>
+                    <div class="p-3 bg-light rounded text-start italic border-start border-danger border-4">
+                        <span id="itemToDeleteTitle" class="fw-semibold"></span>
+                    </div>
+                </div>
+                <div id="categoryWarning" class="alert alert-warning mt-3 d-none">
+                    <i class="fas fa-exclamation-triangle me-2"></i> This category contains <span id="categoryProductCount"></span> product(s). You must move or delete them before deleting this category.
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">No, Cancel</button>
+                <form id="deleteItemForm" method="post" action="">
+                    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                    <button type="submit" class="btn btn-danger px-4" id="confirmSingleDelete">Yes, Delete It</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-function setMediaImage(inputId, value, buttonId, label) {
-    document.getElementById(inputId).value = value;
-    const btn = document.getElementById(buttonId);
-    if(btn) btn.innerText = label ? label.substring(0, 20) + (label.length > 20 ? '...' : '') : 'Select Image';
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Single Delete Modal
+    const deleteModal = document.getElementById('deleteItemModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            const products = parseInt(button.getAttribute('data-products') || '0');
+            const form = document.getElementById('deleteItemForm');
+            const titleSpan = document.getElementById('itemToDeleteTitle');
+            const warning = document.getElementById('categoryWarning');
+            const prodCountSpan = document.getElementById('categoryProductCount');
+            const confirmBtn = document.getElementById('confirmSingleDelete');
+            
+            form.action = '<?= url('/admin/categories/delete/') ?>' + id;
+            titleSpan.textContent = title;
+            prodCountSpan.textContent = products;
+            
+            if (products > 0) {
+                warning.classList.remove('d-none');
+                confirmBtn.disabled = true;
+            } else {
+                warning.classList.add('d-none');
+                confirmBtn.disabled = false;
+            }
+        });
+    }
 
-function filterMedia(input) {
-    const filter = input.value.toLowerCase();
-    const container = input.nextElementSibling; 
-    const items = container.querySelectorAll('.media-option[data-name]');
-    items.forEach(item => {
-        const name = item.getAttribute('data-name');
-        if (name.includes(filter)) {
-            item.style.display = 'block';
+    // Multi-select Logic
+    const selectAll = document.getElementById('selectAllItems');
+    const checkboxes = document.querySelectorAll('.item-checkbox');
+    const bulkBar = document.getElementById('bulkActionsBar');
+    const selectedCountSpan = document.getElementById('selectedCount');
+    const bulkDeleteCountSpan = document.getElementById('bulkDeleteCount');
+    const bulkForm = document.getElementById('bulkActionForm');
+    const confirmBulk = document.getElementById('confirmBulkDelete');
+
+    function updateBulkBar() {
+        const checked = document.querySelectorAll('.item-checkbox:checked').length;
+        if (checked > 0) {
+            bulkBar.classList.remove('d-none');
+            selectedCountSpan.textContent = checked;
+            bulkDeleteCountSpan.textContent = checked;
         } else {
-            item.style.display = 'none';
+            bulkBar.classList.add('d-none');
         }
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            updateBulkBar();
+        });
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            const allChecked = Array.from(checkboxes).every(c => c.checked);
+            if (selectAll) selectAll.checked = allChecked;
+            updateBulkBar();
+        });
     });
-}
+
+    if (confirmBulk) {
+        confirmBulk.addEventListener('click', function() {
+            bulkForm.submit();
+        });
+    }
+});
 </script>
+
+

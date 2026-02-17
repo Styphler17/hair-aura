@@ -66,6 +66,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="csrf-token" content="<?= \App\Core\Auth::csrfToken() ?>">
     
     <!-- SEO Meta Tags -->
     <title><?= htmlspecialchars($seo['title'] ?? 'Hair Aura | Premium Wigs & Hair Extensions Ghana') ?></title>
@@ -117,6 +118,27 @@
         <?= json_encode($productSchema, JSON_PRETTY_PRINT) ?>
     </script>
     <?php endif; ?>
+
+    <!-- Local Business Schema (if available) -->
+    <?php if (isset($localBusinessSchema)): ?>
+    <script type="application/ld+json">
+        <?= json_encode($localBusinessSchema, JSON_PRETTY_PRINT) ?>
+    </script>
+    <?php endif; ?>
+
+    <!-- FAQ Schema (if available) -->
+    <?php if (isset($faqSchema)): ?>
+    <script type="application/ld+json">
+        <?= json_encode($faqSchema, JSON_PRETTY_PRINT) ?>
+    </script>
+    <?php endif; ?>
+
+    <!-- Breadcrumb Schema (if available) -->
+    <?php if (isset($breadcrumbSchema)): ?>
+    <script type="application/ld+json">
+        <?= json_encode($breadcrumbSchema, JSON_PRETTY_PRINT) ?>
+    </script>
+    <?php endif; ?>
 </head>
 <body>
     <!-- Header -->
@@ -134,11 +156,29 @@
     
     <!-- Main Content -->
     <main>
-        <?php if (isset($content)) echo $content; ?>
+        <?= (string) ($content ?? '') ?>
     </main>
     
     <!-- Footer -->
     <?php include __DIR__ . '/../partials/footer.php'; ?>
+
+    <!-- Quick View Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header border-0 pb-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-0" id="quickViewContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <button type="button" class="back-to-top" id="backToTopBtn" aria-label="Back to top">
         <i class="fas fa-arrow-up"></i>

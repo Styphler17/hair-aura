@@ -145,7 +145,13 @@ foreach ($assetCandidates as $candidate) {
 }
 
 // Use /public for assets when the app is not served directly from public/
-$GLOBALS['app_asset_url'] = $publicFromDocRoot !== '' ? $publicFromDocRoot : $scriptDir;
+// If the URL already contains the domain and we are serving from 'public' folder, 
+// we should double-check if /public is actually required in the URL.
+$globalsAssetUrl = $publicFromDocRoot !== '' ? $publicFromDocRoot : $scriptDir;
+if ($globalsAssetUrl === '/public') {
+    $globalsAssetUrl = '';
+}
+$GLOBALS['app_asset_url'] = $globalsAssetUrl;
 
 // Use clean base for routes when /public is hidden by rewrite rules
 $routeFromDocRoot = rtrim((string) preg_replace('#/public$#', '', $publicFromDocRoot), '/');
@@ -295,6 +301,7 @@ $router->group('/admin', function($router) {
     $router->get('/products/edit/{id:\d+}', ['AdminController', 'editProduct']);
     $router->post('/products/save', ['AdminController', 'saveProduct']);
     $router->post('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->post('/products/bulk-delete', ['AdminController', 'bulkDeleteProducts']);
     $router->post('/products/images/delete/{id:\d+}', ['AdminController', 'deleteProductImage']);
     
     // Orders
@@ -305,6 +312,9 @@ $router->group('/admin', function($router) {
     // Customers
     $router->get('/customers', ['AdminController', 'customers']);
     $router->get('/customers/{id:\d+}', ['AdminController', 'customerDetail']);
+    $router->post('/customers/bulk-delete', ['AdminController', 'bulkDeleteCustomers']);
+    $router->post('/customers/bulk-ban', ['AdminController', 'bulkBanCustomers']);
+    $router->post('/customers/bulk-unban', ['AdminController', 'bulkUnbanCustomers']);
     
     // Reviews
     $router->get('/reviews', ['AdminController', 'reviews']);
@@ -314,6 +324,8 @@ $router->group('/admin', function($router) {
     // Categories
     $router->get('/categories', ['AdminController', 'categories']);
     $router->post('/categories/save', ['AdminController', 'saveCategory']);
+    $router->post('/categories/delete/{id:\d+}', ['AdminController', 'deleteCategory']);
+    $router->post('/categories/bulk-delete', ['AdminController', 'bulkDeleteCategories']);
 
     // Blog CRUD
     $router->get('/blogs', ['AdminManagementController', 'blogs']);
@@ -321,6 +333,9 @@ $router->group('/admin', function($router) {
     $router->get('/blogs/edit/{id:\d+}', ['AdminManagementController', 'editBlog']);
     $router->post('/blogs/save', ['AdminManagementController', 'saveBlog']);
     $router->post('/blogs/delete/{id:\d+}', ['AdminManagementController', 'deleteBlog']);
+    $router->post('/blogs/bulk-delete', ['AdminManagementController', 'bulkDeleteBlogs']);
+    $router->post('/blogs/bulk-publish', ['AdminManagementController', 'bulkPublishBlogs']);
+    $router->post('/blogs/bulk-unpublish', ['AdminManagementController', 'bulkUnpublishBlogs']);
 
     // User CRUD
     $router->get('/users', ['AdminManagementController', 'users']);
@@ -328,6 +343,7 @@ $router->group('/admin', function($router) {
     $router->get('/users/edit/{id:\d+}', ['AdminManagementController', 'editUser']);
     $router->post('/users/save', ['AdminManagementController', 'saveUser']);
     $router->post('/users/delete/{id:\d+}', ['AdminManagementController', 'deleteUser']);
+    $router->post('/users/bulk-deactivate', ['AdminManagementController', 'bulkDeactivateUsers']);
 
     // Content / Site Management
     $router->get('/about-page', ['AdminManagementController', 'aboutPage']);
@@ -339,10 +355,15 @@ $router->group('/admin', function($router) {
     $router->get('/notes', ['AdminManagementController', 'notes']);
     $router->post('/notes/save', ['AdminManagementController', 'saveNote']);
     $router->post('/notes/delete/{id:\d+}', ['AdminManagementController', 'deleteNote']);
+    $router->get('/faqs', ['AdminManagementController', 'faqs']);
+    $router->post('/faqs/save', ['AdminManagementController', 'saveFaq']);
+    $router->post('/faqs/delete/{id:\d+}', ['AdminManagementController', 'deleteFaq']);
+    $router->post('/faqs/bulk-delete', ['AdminManagementController', 'bulkDeleteFaqs']);
     $router->get('/media', ['AdminManagementController', 'mediaLibrary']);
     $router->post('/media/upload', ['AdminManagementController', 'uploadMedia']);
     $router->post('/media/rename', ['AdminManagementController', 'renameMedia']);
     $router->post('/media/delete/{id:\d+}', ['AdminManagementController', 'deleteMedia']);
+    $router->post('/media/bulk-delete', ['AdminManagementController', 'bulkDeleteMedia']);
     $router->post('/media/sync', ['AdminManagementController', 'syncMedia']);
     $router->get('/search', ['AdminManagementController', 'search']);
     $router->get('/settings', ['AdminManagementController', 'settings']);

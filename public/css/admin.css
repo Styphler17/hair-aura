@@ -100,8 +100,13 @@ body {
 .nav-link:hover,
 .nav-link.active {
     color: #fff;
-    background: rgba(255,255,255,0.05);
+    background: rgba(212, 165, 116, 0.1);
     border-left-color: var(--primary);
+}
+
+.nav-link.active i {
+    color: var(--primary) !important;
+    transform: scale(1.1);
 }
 
 .nav-link i {
@@ -673,4 +678,42 @@ body {
     .pagination .page-link {
         padding: 0.35rem 0.6rem;
     }
+}
+
+/* Custom Effects & Premium UI */
+.transition {
+    transition: all 0.2s ease-in-out !important;
+}
+
+.hover-shadow {
+    border: 1px solid rgba(212, 165, 116, 0.15) !important;
+}
+
+.hover-shadow:focus, 
+.hover-shadow:hover {
+    border-color: var(--primary) !important;
+    box-shadow: 0 4px 12px rgba(212, 165, 116, 0.1) !important;
+}
+
+.zoom-on-hover:hover {
+    transform: scale(1.03);
+}
+
+.italic {
+    font-style: italic;
+}
+
+.form-label {
+    letter-spacing: 0.01em;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+}
+
+.form-label i {
+    width: 20px;
+    text-align: center;
+}
+
+.badge {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }

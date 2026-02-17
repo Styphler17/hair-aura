@@ -14,6 +14,7 @@
     ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="<?= \App\Core\Auth::csrfToken() ?>">
     <title>Admin Panel | Hair Aura</title>
     <link rel="icon" type="image/x-icon" href="<?= asset('/favicon.ico') ?>">
     <link rel="icon" type="image/svg+xml" href="<?= asset('/favicon.svg') ?>">
@@ -120,6 +121,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="<?= url('/admin/faqs') ?>" class="nav-link <?= str_contains($requestUri, '/admin/faqs') ? 'active' : '' ?>">
+                        <i class="fas fa-question-circle"></i>
+                        <span>FAQs</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="<?= url('/admin/contact-info') ?>" class="nav-link <?= str_contains($requestUri, '/admin/contact-info') ? 'active' : '' ?>">
                         <i class="fas fa-address-book"></i>
                         <span>Contact Info</span>
@@ -141,12 +148,6 @@
                     <a href="<?= url('/admin/profile') ?>" class="nav-link <?= str_contains($requestUri, '/admin/profile') ? 'active' : '' ?>">
                         <i class="fas fa-user-shield"></i>
                         <span>Admin Profile</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="<?= url('/') ?>" target="_blank" class="nav-link">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span>View Store</span>
                     </a>
                 </li>
             </ul>
@@ -173,6 +174,10 @@
                 </form>
                 
                 <div class="navbar-right">
+                    <a href="<?= url('/') ?>" target="_blank" class="btn btn-sm btn-outline-secondary me-3 d-none d-md-inline-flex align-items-center">
+                        <i class="fas fa-external-link-alt me-2"></i>
+                        <span>View Store</span>
+                    </a>
                     <a href="<?= url('/admin/profile') ?>" class="navbar-user">
                         <img src="<?= $avatarAsset ?>" alt="<?= htmlspecialchars($user?->getFullName() ?? 'Admin') ?>" class="navbar-avatar">
                         <span class="navbar-user-name"><?= htmlspecialchars($user?->getFullName() ?? 'Admin') ?></span>

@@ -22,12 +22,12 @@ $buildBlogUrl = function(int $page = 1, ?string $category = null, ?string $query
 
 $resolveBlogImage = function(array $post): string {
     if (empty($post['featured_image'])) {
-        return asset('/img/product-placeholder.png');
+        return asset('/img/product-placeholder.webp');
     }
 
     $image = trim((string) $post['featured_image']);
     if ($image === '') {
-        return asset('/img/product-placeholder.png');
+        return asset('/img/product-placeholder.webp');
     }
 
     if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
@@ -121,7 +121,7 @@ $resolveBlogImage = function(array $post): string {
                             <div class="col-md-6">
                                 <article class="card h-100 shadow-sm border-0 blog-card">
                                     <a href="<?= url('/blog/' . $post['slug']) ?>">
-                                        <img src="<?= htmlspecialchars($imagePath) ?>" class="card-img-top blog-card-image" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                        <img src="<?= htmlspecialchars($imagePath) ?>" class="card-img-top blog-card-image" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                     </a>
                                     <div class="card-body d-flex flex-column">
                                         <div class="small text-muted mb-2">

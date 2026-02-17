@@ -2,51 +2,20 @@
 <section class="hero-section">
     <div class="swiper hero-swiper">
         <div class="swiper-wrapper">
-            <!-- Slide 1 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-1.webp');">
+            <?php foreach (($siteSettings['hero_slides'] ?? []) as $slide): ?>
+            <div class="swiper-slide hero-slide" style="background-image: url('<?= asset($slide['image'] ?? '/img/hero-1.webp') ?>');">
                 <div class="hero-overlay"></div>
                 <div class="container">
                     <div class="hero-content">
-                        <span class="hero-subtitle">New Collection 2024</span>
-                        <h1 class="hero-title">Unlock Your Aura with Perfect Wigs</h1>
-                        <p class="hero-text">Premium human hair wigs and extensions for the modern African woman</p>
+                        <h1 class="hero-title"><?= htmlspecialchars($slide['title'] ?? '') ?></h1>
+                        <p class="hero-text"><?= htmlspecialchars($slide['subtitle'] ?? '') ?></p>
                         <div class="hero-buttons">
-                            <a href="/shop" class="btn btn-primary btn-lg">Shop Now</a>
-                            <a href="/about" class="btn btn-outline-light btn-lg">Learn More</a>
+                            <a href="<?= $slide['button_link'] ?? '/shop' ?>" class="btn btn-primary btn-lg"><?= htmlspecialchars($slide['button_text'] ?? 'Shop Now') ?></a>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Slide 2 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-2.webp');">
-                <div class="hero-overlay"></div>
-                <div class="container">
-                    <div class="hero-content">
-                        <span class="hero-subtitle">Premium Quality</span>
-                        <h1 class="hero-title">Brazilian & Peruvian Hair</h1>
-                        <p class="hero-text">100% virgin human hair with natural look and feel</p>
-                        <div class="hero-buttons">
-                            <a href="/shop/human-hair-wigs" class="btn btn-primary btn-lg">Explore Collection</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Slide 3 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-3.webp');">
-                <div class="hero-overlay"></div>
-                <div class="container">
-                    <div class="hero-content">
-                        <span class="hero-subtitle">Special Offer</span>
-                        <h1 class="hero-title">Free Delivery in Accra</h1>
-                        <p class="hero-text">On all orders over GH₵1200. Same-day delivery available!</p>
-                        <div class="hero-buttons">
-                            <a href="/shop" class="btn btn-primary btn-lg">Shop Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <?php endforeach; ?>
         </div>
         
         <!-- Pagination -->
@@ -102,6 +71,15 @@
             <p class="section-subtitle">Find your perfect style</p>
         </div>
         
+        <?php
+        $resolveProductImage = function($path) {
+            if (!$path) return asset('/img/product-placeholder.webp');
+            if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+                return asset('/' . ltrim($path, '/'));
+            }
+            return asset('/uploads/products/' . $path);
+        };
+        ?>
         <?php
         $resolveCategoryImage = static function (array $category): string {
             $image = trim((string) ($category['image'] ?? ''));
@@ -166,9 +144,10 @@
                 <div class="product-card" data-product-id="<?= $product['id'] ?>">
                     <div class="product-image">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>">
-                            <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.webp' ?>" 
+                            <img src="<?= $resolveProductImage($product['primary_image'] ?? '') ?>" 
                                  alt="<?= htmlspecialchars($product['name']) ?>" 
-                                 loading="lazy">
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                         </a>
                         
                         <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
@@ -178,8 +157,8 @@
                         <?php endif; ?>
                         
                         <div class="product-actions">
-                            <button class="btn btn-wishlist" data-product-id="<?= $product['id'] ?>">
-                                <i class="far fa-heart"></i>
+                            <button class="btn btn-wishlist <?= ($product['in_wishlist'] ?? false) ? 'active' : '' ?>" data-product-id="<?= $product['id'] ?>">
+                                <i class="<?= ($product['in_wishlist'] ?? false) ? 'fas' : 'far' ?> fa-heart"></i>
                             </button>
                             <button class="btn btn-quickview" data-product-id="<?= $product['id'] ?>">
                                 <i class="fas fa-eye"></i>
@@ -242,9 +221,10 @@
                             <div class="product-card">
                                 <div class="product-image">
                                     <a href="/product/<?= htmlspecialchars($product['slug']) ?>">
-                                        <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.webp' ?>" 
+                                        <img src="<?= $resolveProductImage($product['primary_image'] ?? '') ?>" 
                                              alt="<?= htmlspecialchars($product['name']) ?>" 
-                                             loading="lazy">
+                                             loading="lazy"
+                                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                     </a>
                                 </div>
                                 <div class="product-info">
@@ -292,7 +272,7 @@
             </div>
             <div class="col-lg-6">
                 <div class="tryon-image">
-                    <img src="/img/virtual-tryon.jpg" alt="Virtual Try-On" loading="lazy">
+                    <img src="<?= asset($siteSettings['virtual_tryon_image'] ?? '/img/product-placeholder.webp') ?>" alt="Virtual Try-On" loading="lazy">
                 </div>
             </div>
         </div>
@@ -336,18 +316,72 @@
     </div>
 </section>
 
-<?php
-$instagramFiles = [];
-$instagramDir = BASE_PATH . '/public/img/instagram';
-if (is_dir($instagramDir)) {
-    $matches = glob($instagramDir . '/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
-    if (is_array($matches)) {
-        sort($matches);
-        $instagramFiles = array_slice($matches, 0, 6);
+<!-- FAQ Section -->
+<?php if (!empty($faqs)): ?>
+<section class="home-faq-section py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="section-header">
+                    <h2 class="section-title">Common Questions</h2>
+                    <p class="section-subtitle">Everything you need to know about our premium wigs in Ghana.</p>
+                    <a href="<?= url('/faq') ?>" class="btn btn-outline-primary mt-3">View All FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-8">
+                <div class="accordion accordion-flush" id="homeFaqAccordion">
+                    <?php foreach ($faqs as $index => $faq): ?>
+                    <div class="accordion-item mb-3 border rounded">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#homeFaq<?= $index ?>">
+                                <?= htmlspecialchars($faq['question']) ?>
+                            </button>
+                        </h2>
+                        <div id="homeFaq<?= $index ?>" class="accordion-collapse collapse" data-bs-parent="#homeFaqAccordion">
+                            <div class="accordion-body text-muted">
+                                <?= htmlspecialchars($faq['answer']) ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+.home-faq-section {
+    background: #fff;
+}
+.home-faq-section .accordion-button:not(.collapsed) {
+    background-color: rgba(212, 165, 116, 0.05);
+    color: var(--primary);
+}
+.home-faq-section .accordion-button:focus {
+    box-shadow: none;
+}
+.home-faq-section .accordion-item {
+    border: 1px solid #eee !important;
+}
+</style>
+<?php endif; ?>
+
+<?php 
+$instagramImages = (array) ($siteSettings['instagram_images'] ?? []);
+if (empty($instagramImages)) {
+    // Fallback to local files if settings is empty
+    $instagramDir = __DIR__ . '/../../../public/img/instagram';
+    if (is_dir($instagramDir)) {
+        $matches = glob($instagramDir . '/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
+        if (is_array($matches)) {
+            sort($matches);
+            $instagramImages = array_map(fn($f) => '/img/instagram/' . basename($f), array_slice($matches, 0, 6));
+        }
     }
 }
 ?>
-<?php if (!empty($instagramFiles)): ?>
+<?php if (!empty($instagramImages)): ?>
 <!-- Instagram Feed -->
 <section class="instagram-section py-5">
     <div class="container">
@@ -357,14 +391,10 @@ if (is_dir($instagramDir)) {
         </div>
         
         <div class="row g-2">
-            <?php foreach ($instagramFiles as $instagramFile): ?>
-                <?php
-                $instagramName = basename($instagramFile);
-                $instagramUrl = asset('/img/instagram/' . $instagramName);
-                ?>
+            <?php foreach ($instagramImages as $img): ?>
                 <div class="col-4 col-md-2">
                     <a href="https://instagram.com/hairaura" target="_blank" rel="noopener" class="instagram-item">
-                        <img src="<?= htmlspecialchars($instagramUrl) ?>" alt="Instagram" loading="lazy">
+                        <img src="<?= asset($img) ?>" alt="Instagram" loading="lazy">
                         <div class="instagram-overlay">
                             <i class="fab fa-instagram"></i>
                         </div>

@@ -46,52 +46,111 @@ unset($_SESSION['old_input']);
                         <input type="text" name="city" class="form-control" value="<?= htmlspecialchars((string) $cityValue) ?>" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">State</label>
-                        <input type="text" name="state" class="form-control" value="<?= htmlspecialchars((string) $stateValue) ?>">
+                        <label class="form-label">Region (Ghana)</label>
+                        <select name="state" class="form-select" required>
+                            <option value="">Select Region</option>
+                            <?php 
+                            $regions = [
+                                'Ahafo', 'Ashanti', 'Bono', 'Bono East', 'Central', 'Eastern', 
+                                'Greater Accra', 'North East', 'Northern', 'Oti', 'Savannah', 
+                                'Upper East', 'Upper West', 'Volta', 'Western', 'Western North'
+                            ];
+                            foreach ($regions as $region): ?>
+                                <option value="<?= $region ?>" <?= $stateValue === $region ? 'selected' : '' ?>><?= $region ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Country</label>
-                        <input type="text" name="country" class="form-control" value="<?= htmlspecialchars((string) $countryValue) ?>">
+                        <input type="text" name="country" class="form-control" value="<?= htmlspecialchars((string) $countryValue) ?>" readonly>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Postal Code</label>
-                        <input type="text" name="postal_code" class="form-control" value="<?= htmlspecialchars((string) $postalValue) ?>">
+                        <label class="form-label">Postal Code / Digital Address</label>
+                        <input type="text" name="postal_code" class="form-control" value="<?= htmlspecialchars((string) $postalValue) ?>" placeholder="e.g. GA-123-4567">
                     </div>
                     <div class="col-12">
                         <label class="form-label">Payment Method</label>
-                        <select name="payment_method" class="form-select" required>
-                            <option value="momo" <?= $paymentValue === 'momo' ? 'selected' : '' ?>>Mobile Money (MoMo) - Recommended</option>
-                            <option value="cash" <?= $paymentValue === 'cash' ? 'selected' : '' ?>>Cash on Delivery</option>
-                            <option value="stripe" <?= $paymentValue === 'stripe' ? 'selected' : '' ?>>Card (Stripe)</option>
-                            <option value="paypal" <?= $paymentValue === 'paypal' ? 'selected' : '' ?>>PayPal</option>
-                        </select>
-                        <small class="text-muted d-block mt-2">
-                            Primary MoMo line: +233508007873
-                        </small>
+                        <div class="payment-methods-grid">
+                            <div class="form-check payment-option">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payMomo" value="momo" <?= $paymentValue === 'momo' ? 'selected' : '' ?>>
+                                <label class="form-check-label w-100" for="payMomo">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Mobile Money (MoMo)</span>
+                                        <span class="momo-badge">MTN/Vodafone/AirtelTigo</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">Pay via your mobile wallet. <strong>Line: +233508007873</strong></small>
+                                </label>
+                            </div>
+                            <div class="form-check payment-option mt-2">
+                                <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" <?= $paymentValue === 'cash' ? 'selected' : '' ?>>
+                                <label class="form-check-label w-100" for="payCash">
+                                    <span>Cash on Delivery</span>
+                                    <small class="text-muted d-block mt-1">Pay when you receive your order.</small>
+                                </label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary">Place Order</button>
+                    <div class="col-12 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 py-3">
+                            <i class="fas fa-check-circle me-2"></i> Confirm & Place Order
+                        </button>
                     </div>
                 </form>
             </div>
             <div class="col-lg-5">
-                <div class="card">
-                    <div class="card-body">
-                        <h5>Order Summary</h5>
+                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4">Order Summary</h4>
                         <?php if (!empty($cartItems)): ?>
-                            <ul class="list-group list-group-flush mb-3">
+                            <div class="checkout-items mb-4">
                                 <?php foreach ($cartItems as $item): ?>
-                                <li class="list-group-item px-0 d-flex justify-content-between">
-                                    <span><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?> x <?= (int) ($item['quantity'] ?? 1) ?></span>
-                                    <strong><?= money((float) ($item['subtotal'] ?? 0)) ?></strong>
-                                </li>
+                                <div class="checkout-summary-item">
+                                    <img src="<?= !empty($item['image']) ? $item['image'] : asset('/img/product-placeholder.webp') ?>" 
+                                         alt="<?= htmlspecialchars((string) $item['name']) ?>" 
+                                         class="item-img"
+                                         onerror="this.src='<?= asset('/img/product-placeholder.webp') ?>'">
+                                    <div class="item-info">
+                                        <span class="item-name"><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?></span>
+                                        <div class="item-meta">
+                                            Qty: <?= (int) ($item['quantity'] ?? 1) ?>
+                                            <?php if (!empty($item['variant_name'])): ?>
+                                                • <?= htmlspecialchars($item['variant_name']) ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="item-price text-end">
+                                        <?= money((float) ($item['subtotal'] ?? 0)) ?>
+                                    </div>
+                                </div>
                                 <?php endforeach; ?>
-                            </ul>
+                            </div>
                         <?php endif; ?>
-                        <p class="mb-1">Subtotal: <?= money((float) ($summary['subtotal'] ?? 0)) ?></p>
-                        <p class="mb-1">Shipping: <?= money((float) ($summary['shipping'] ?? 0)) ?></p>
-                        <p class="mb-3">Tax: <?= money((float) ($summary['tax'] ?? 0)) ?></p>
-                        <h5>Total: <?= money((float) ($summary['total'] ?? 0)) ?></h5>
+                        
+                        <div class="summary-totals">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span><?= money((float) ($summary['subtotal'] ?? 0)) ?></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Shipping</span>
+                                <span><?= $summary['shipping'] > 0 ? money((float) $summary['shipping']) : '<span class="text-success">Free</span>' ?></span>
+                            </div>
+                            <?php if (($summary['tax'] ?? 0) > 0): ?>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Tax</span>
+                                <span><?= money((float) $summary['tax']) ?></span>
+                            </div>
+                            <?php endif; ?>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center mb-0">
+                                <h4 class="mb-0">Total</h4>
+                                <h4 class="mb-0 text-primary"><?= money((float) ($summary['total'] ?? 0)) ?></h4>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 rounded mt-4">
+                            <small class="text-muted"><i class="fas fa-shield-alt me-1"></i> Your personal data will be used to process your order and support your experience throughout this website.</small>
+                        </div>
                     </div>
                 </div>
             </div>

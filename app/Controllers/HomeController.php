@@ -23,13 +23,13 @@ class HomeController extends Controller
     public function index(): void
     {
         // Get featured products
-        $featuredProducts = Product::getFeatured(8);
+        $featuredProducts = $this->injectWishlist(Product::getFeatured(8));
         
         // Get bestsellers
-        $bestsellers = Product::getBestsellers(4);
+        $bestsellers = $this->injectWishlist(Product::getBestsellers(4));
         
         // Get new arrivals
-        $newArrivals = Product::getNewArrivals(4);
+        $newArrivals = $this->injectWishlist(Product::getNewArrivals(4));
         
         // Get categories
         $db = Database::getInstance();
@@ -51,12 +51,18 @@ class HomeController extends Controller
             'og_image' => '/img/og-image.webp'
         ];
         
+        // Get FAQs
+        $faqs = $db->fetchAll(
+            "SELECT * FROM faqs WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 5"
+        );
+        
         $this->render('pages/home', [
             'featuredProducts' => $featuredProducts,
             'bestsellers' => $bestsellers,
             'newArrivals' => $newArrivals,
             'categories' => $categories,
             'testimonials' => $testimonials,
+            'faqs' => $faqs,
             'seo' => $seo
         ]);
     }
@@ -106,8 +112,10 @@ class HomeController extends Controller
             }
 
             if ($searchQuery !== '') {
-                $conditions[] = '(bp.title LIKE :query OR bp.excerpt LIKE :query OR bp.content LIKE :query)';
-                $params['query'] = '%' . $searchQuery . '%';
+                $conditions[] = '(bp.title LIKE :search_q1 OR bp.excerpt LIKE :search_q2 OR bp.content LIKE :search_q3)';
+                $params['search_q1'] = '%' . $searchQuery . '%';
+                $params['search_q2'] = '%' . $searchQuery . '%';
+                $params['search_q3'] = '%' . $searchQuery . '%';
             }
 
             $whereSql = implode(' AND ', $conditions);
@@ -286,10 +294,14 @@ class HomeController extends Controller
                 "SELECT id, title, slug, COALESCE(category, 'General') as category, published_at, created_at
                  FROM blog_posts
                  WHERE is_published = 1
-                   AND (title LIKE :query OR excerpt LIKE :query OR content LIKE :query)
+                   AND (title LIKE :q1 OR excerpt LIKE :q2 OR content LIKE :q3)
                  ORDER BY COALESCE(published_at, created_at) DESC
                  LIMIT {$limit}",
-                ['query' => '%' . $query . '%']
+                [
+                    'q1' => '%' . $query . '%',
+                    'q2' => '%' . $query . '%',
+                    'q3' => '%' . $query . '%'
+                ]
             );
         } catch (\Throwable $e) {
             $posts = [];
@@ -315,9 +327,15 @@ class HomeController extends Controller
             'canonical' => '/contact'
         ];
         
+        $db = Database::getInstance();
+        $faqs = $db->fetchAll(
+            "SELECT * FROM faqs WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 5"
+        );
+        
         $this->render('pages/contact', [
             'seo' => $seo,
-            'contactInfo' => $siteContent['contact']
+            'contactInfo' => $siteContent['contact'],
+            'faqs' => $faqs
         ]);
     }
     
@@ -381,36 +399,58 @@ class HomeController extends Controller
             'canonical' => '/faq'
         ];
         
-        $faqs = [
-            [
-                'question' => 'How do I choose the right wig size?',
-                'answer' => 'Measure your head circumference from hairline to nape and ear to ear. Most wigs come in average size (22-22.5 inches) with adjustable straps for a secure fit.'
-            ],
-            [
-                'question' => 'What is the difference between lace front and full lace wigs?',
-                'answer' => 'Lace front wigs have lace only at the front hairline, while full lace wigs have lace covering the entire cap, allowing for more versatile styling including high ponytails.'
-            ],
-            [
-                'question' => 'How long do human hair wigs last?',
-                'answer' => 'With proper care, our premium human hair wigs can last 1-2 years or more. Synthetic wigs typically last 4-6 months with regular wear.'
-            ],
-            [
-                'question' => 'Can I dye or style my wig?',
-                'answer' => 'Yes! Our human hair wigs can be dyed, bleached, curled, and straightened just like natural hair. Always use heat protectant and professional products.'
-            ],
-            [
-                'question' => 'How long does shipping take?',
-                'answer' => 'We offer same-day delivery in Accra and 1-3 day delivery to other regions in Ghana.'
-            ],
-            [
-                'question' => 'What is your return policy?',
-                'answer' => 'We do not accept returns or exchanges. If there is any order issue, contact our support team with your order number for assistance.'
-            ]
+        $db = Database::getInstance();
+        $faqs = $db->fetchAll("SELECT * FROM faqs WHERE is_active = 1 ORDER BY sort_order ASC, created_at DESC");
+        
+        if (empty($faqs)) {
+            $faqs = [
+                [
+                    'question' => "What types of wigs does Hair Aura sell in Ghana?",
+                    'answer' => "Hair Aura specializes in premium 100% human hair wigs, including lace fronts, closure wigs, and full lace options. We also offer high-quality heat-safe synthetic wigs and premium hair extensions specifically curated for the Ghanaian market."
+                ],
+                [
+                    'question' => "Do you ship across Ghana?",
+                    'answer' => "Yes! We offer nationwide delivery. We provide same-day delivery within Accra and Tema, and 1-3 business days for Kumasi, Takoradi, Tamale, and all other regions across Ghana."
+                ],
+                [
+                    'question' => "How do I choose the right wig size?",
+                    'answer' => "Most of our wigs come in a standard 'Average' size (22-22.5 inches) which fits 95% of customers perfectly thanks to adjustable straps and inner combs. For custom sizing needs, please contact our support."
+                ],
+                [
+                    'question' => "What's the difference between human hair and synthetic wigs?",
+                    'answer' => "Human hair wigs (Brazilian, Peruvian, etc.) offer the most natural look, can be dyed, and last 1-2 years with proper care. Synthetic wigs are more affordable, hold their style even after washing, and are perfect for quick style changes, typically lasting 4-6 months."
+                ],
+                [
+                    'question' => "How do I install a lace front wig?",
+                    'answer' => "To install your lace front, first braid your natural hair flat. Clean your forehead with alcohol, apply a thin layer of lace glue or use a glueless method with a wig grip. Position the wig, press the lace into the adhesive, and style as desired. We also offer installation guides in our blog!"
+                ],
+                [
+                    'question' => "What payment methods do you accept in Ghana?",
+                    'answer' => "We accept all major mobile money (MoMo) payments (MTN, Telecel, AT), bank transfers, and secure card payments (Visa/Mastercard). Cash on delivery is available for verified orders within Accra."
+                ]
+            ];
+        }
+
+        // Generate FAQ Schema
+        $faqSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => array_map(function($f) {
+                return [
+                    '@type' => 'Question',
+                    'name' => $f['question'],
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => $f['answer']
+                    ]
+                ];
+            }, $faqs)
         ];
         
         $this->render('pages/faq', [
             'faqs' => $faqs,
-            'seo' => $seo
+            'seo' => $seo,
+            'faqSchema' => $faqSchema
         ]);
     }
     
@@ -536,7 +576,7 @@ class HomeController extends Controller
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
         
         // Static pages
-        $staticPages = ['', 'about', 'contact', 'faq', 'shipping', 'returns', 'shop', 'blog'];
+        $staticPages = ['', 'about', 'contact', 'faq', 'shipping', 'returns', 'care-guide', 'size-guide', 'privacy', 'terms', 'shop', 'blog'];
         foreach ($staticPages as $page) {
             $xml .= $this->sitemapUrl(($page ? '/' . $page : '/'), '1.0', 'daily');
         }
@@ -634,9 +674,9 @@ class HomeController extends Controller
     {
         $defaults = [
             'about' => [
-                'title' => 'About Hair Aura',
-                'content' => "Hair Aura is a premium wig and hair extensions brand focused on quality, confidence, and everyday beauty.\n\nWe source high-quality products and provide practical support so you can find styles that fit your look and lifestyle.\n\nOur mission is simple: make premium hair accessible, reliable, and elegant.",
-                'button_text' => 'Shop Collection',
+                'title' => 'Empowering Your Aura: Ghana\'s Premium Wig Destination',
+                'content' => "Founded with a passion for quality and elegance, Hair Aura has grown to become Ghana’s premier destination for high-end human hair wigs and extensions. Based in the heart of Accra, we serve thousands of confident women across Ghana, from Kumasi to Tema and beyond.\n\nWhat sets us apart? We meticulously source only 100% authentic human hair (Brazilian, Peruvian, and more), ensuring that every strand meets our high standards for texture, longevity, and shine. Whether you're looking for a sleek lace front for a corporate event or a voluminous curly wig for a night out, we have the perfect fit for your style.\n\nOur mission is simple: To provide premium hair products that are accessible, reliable, and tailored to the unique styles of Ghanaian women. We don't just sell wigs; we help you unlock your best aura through superior quality and unparalleled support.",
+                'button_text' => 'Explore the Collection',
                 'button_url' => '/shop'
             ],
             'contact' => [

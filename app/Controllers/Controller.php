@@ -44,7 +44,36 @@ abstract class Controller
             'isLoggedIn' => $this->isLoggedIn,
             'isAdmin' => Auth::isAdmin(),
             'siteSettings' => $siteSettings,
-            'themeVars' => $this->resolveThemeVars($siteSettings)
+            'themeVars' => $this->resolveThemeVars($siteSettings),
+            'localBusinessSchema' => [
+                '@context' => 'https://schema.org',
+                '@type' => 'LocalBusiness',
+                'name' => 'Hair Aura',
+                'image' => $this->absoluteUrl('/img/logo.webp'),
+                'telephone' => '+233508007873',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => 'Accra',
+                    'addressLocality' => 'Accra',
+                    'addressRegion' => 'Greater Accra',
+                    'addressCountry' => 'GH'
+                ],
+                'geo' => [
+                    '@type' => 'GeoCoordinates',
+                    'latitude' => 5.6037,
+                    'longitude' => -0.1870
+                ],
+                'url' => $this->absoluteUrl('/'),
+                'openingHoursSpecification' => [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                    'opens' => '08:00',
+                    'closes' => '18:00'
+                ],
+                'sameAs' => [
+                    'https://instagram.com/hairaura'
+                ]
+            ]
         ]);
     }
     
@@ -359,9 +388,44 @@ abstract class Controller
         $this->user = $this->isLoggedIn ? Auth::user() : null;
 
         if (!$this->isLoggedIn || !$this->user) {
+            if ($this->isAjax()) {
+                $this->json([
+                    'success' => false,
+                    'message' => 'Please login to use this feature',
+                    'redirect' => $redirect
+                ], 401);
+            }
             $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
             $this->redirect($redirect);
         }
+    }
+    
+    /**
+     * Inject wishlist status into product arrays
+     * 
+     * @param array $products
+     * @return array
+     */
+    protected function injectWishlist(array $products): array
+    {
+        if (!$this->isLoggedIn || !$this->user) {
+            return array_map(function($p) {
+                $p['in_wishlist'] = false;
+                return $p;
+            }, $products);
+        }
+
+        $db = \App\Core\Database::getInstance();
+        $wishlistData = $db->fetchAll(
+            "SELECT product_id FROM wishlists WHERE user_id = :user_id",
+            ['user_id' => $this->user->id]
+        );
+        $wishlistIds = array_column($wishlistData, 'product_id');
+
+        return array_map(function($p) use ($wishlistIds) {
+            $p['in_wishlist'] = in_array((int) ($p['id'] ?? 0), $wishlistIds);
+            return $p;
+        }, $products);
     }
     
     /**
@@ -447,7 +511,32 @@ abstract class Controller
             'theme_primary' => '#D4A574',
             'theme_primary_dark' => '#B8935F',
             'theme_secondary' => '#2C2C2C',
-            'theme_gold' => '#D4AF37'
+            'theme_gold' => '#D4AF37',
+            'virtual_tryon_image' => '/img/product-placeholder.webp',
+            'instagram_images' => [],
+            'hero_slides' => [
+                [
+                    'image' => '/img/hero-1.webp',
+                    'title' => 'Top Human Hair Wigs in Ghana',
+                    'subtitle' => 'Premium 100% human hair wigs, lace fronts, and extensions delivered across Accra, Kumasi, and beyond.',
+                    'button_text' => 'Shop the Collection',
+                    'button_link' => '/shop'
+                ],
+                [
+                    'image' => '/img/hero-2.webp',
+                    'title' => 'Explore Our New Collection',
+                    'subtitle' => 'Handcrafted wigs for a natural look.',
+                    'button_text' => 'Explore Collection',
+                    'button_link' => '/shop/human-hair-wigs'
+                ],
+                [
+                    'image' => '/img/hero-3.webp',
+                    'title' => 'Find Your Perfect Match',
+                    'subtitle' => 'Style tailored to your unique aura.',
+                    'button_text' => 'Shop Now',
+                    'button_link' => '/shop'
+                ]
+            ]
         ];
 
         $path = __DIR__ . '/../../config/site-content.php';

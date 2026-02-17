@@ -8,6 +8,14 @@ if ($shareUrl === '') {
     $siteBaseUrl = $configuredBaseUrl !== '' ? $configuredBaseUrl : rtrim($runtimeBaseUrl, '/');
     $shareUrl = $siteBaseUrl . '/product/' . ltrim((string) ($product->slug ?? ''), '/');
 }
+
+$resolveProductImage = function($path) {
+    if (!$path) return asset('/img/product-placeholder.webp');
+    if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+        return asset('/' . ltrim($path, '/'));
+    }
+    return asset('/uploads/products/' . $path);
+};
 ?>
 <!-- Product Detail -->
 <section class="product-detail-section py-5">
@@ -29,7 +37,10 @@ if ($shareUrl === '') {
             <div class="col-lg-6">
                 <div class="product-images">
                     <div class="main-image">
-                        <img src="<?= $product->getPrimaryImage() ?>" alt="<?= htmlspecialchars($product->name) ?>" id="mainImage">
+                        <img src="<?= $product->getPrimaryImage() ?>" 
+                             alt="<?= htmlspecialchars($product->name) ?>" 
+                             id="mainImage"
+                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                         <?php if ($product->isOnSale()): ?>
                         <span class="product-badge sale">-<?= $product->getDiscountPercent() ?>%</span>
                         <?php endif; ?>
@@ -38,10 +49,12 @@ if ($shareUrl === '') {
                     <?php if (count($images) > 1): ?>
                     <div class="thumbnail-images">
                         <?php foreach ($images as $image): ?>
+                        <?php $imgUrl = $resolveProductImage($image['image_path']); ?>
                         <div class="thumbnail <?= $image['is_primary'] ? 'active' : '' ?>" 
-                             data-image="/uploads/products/<?= htmlspecialchars($image['image_path']) ?>">
-                            <img src="/uploads/products/<?= htmlspecialchars($image['image_path']) ?>" 
-                                 alt="<?= htmlspecialchars($image['alt_text'] ?? $product->name) ?>">
+                             data-image="<?= $imgUrl ?>">
+                            <img src="<?= $imgUrl ?>" 
+                                 alt="<?= htmlspecialchars($image['alt_text'] ?? $product->name) ?>"
+                                 onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                         </div>
                         <?php endforeach; ?>
                     </div>
@@ -358,8 +371,10 @@ if ($shareUrl === '') {
                     <div class="product-card">
                         <div class="product-image">
                             <a href="/product/<?= htmlspecialchars($related['slug']) ?>">
-                                <img src="<?= $related['primary_image'] ? '/uploads/products/' . htmlspecialchars($related['primary_image']) : '/img/product-placeholder.png' ?>" 
-                                     alt="<?= htmlspecialchars($related['name']) ?>" loading="lazy">
+                                <img src="<?= $resolveProductImage($related['primary_image'] ?? '') ?>" 
+                                     alt="<?= htmlspecialchars($related['name']) ?>" 
+                                     loading="lazy"
+                                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                             </a>
                         </div>
                         <div class="product-info">

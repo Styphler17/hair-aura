@@ -14,6 +14,10 @@ function toAppUrl(path) {
     return cleanBase ? `${cleanBase}/${cleanPath}` : `/${cleanPath}`;
 }
 
+function moneyFormat(amount) {
+    return 'GH₵' + Number(amount).toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Swiper sliders
     initSwipers();
@@ -115,47 +119,47 @@ function initSwipers() {
  * Initialize cart functionality
  */
 function initCart() {
-    // Add to cart buttons
-    document.querySelectorAll('.btn-add-cart').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const productId = this.dataset.productId;
-            const form = this.closest('form');
-            
-            let formData = new FormData();
-            formData.append('product_id', productId);
-            formData.append('quantity', form?.querySelector('[name="quantity"]')?.value || 1);
-            
-            const variantSelect = form?.querySelector('[name="variant_id"]');
-            if (variantSelect) {
-                formData.append('variant_id', variantSelect.value);
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-add-cart');
+        if (!btn) return;
+        
+        e.preventDefault();
+        
+        const productId = btn.dataset.productId;
+        const form = btn.closest('form');
+        
+        let formData = new FormData();
+        formData.append('product_id', productId);
+        formData.append('quantity', form?.querySelector('[name="quantity"]')?.value || 1);
+        
+        const variantSelect = form?.querySelector('[name="variant_id"]');
+        if (variantSelect) {
+            formData.append('variant_id', variantSelect.value);
+        }
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                         document.querySelector('[name="csrf_token"]')?.value;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+        
+        fetch(toAppUrl('cart/add'), {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                updateCartCount(data.cart_count);
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
             }
-            
-            // Get CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
-                             document.querySelector('[name="csrf_token"]')?.value;
-            if (csrfToken) {
-                formData.append('csrf_token', csrfToken);
-            }
-            
-            fetch(toAppUrl('cart/add'), {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    updateCartCount(data.cart_count);
-                    showNotification(data.message, 'success');
-                } else {
-                    showNotification(data.message, 'error');
-                }
-            })
-            .catch(err => {
-                console.error('Error:', err);
-                showNotification('Something went wrong', 'error');
-            });
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showNotification('Something went wrong', 'error');
         });
     });
 }
@@ -176,37 +180,65 @@ function updateCartCount(count) {
  * Initialize wishlist functionality
  */
 function initWishlist() {
-    document.querySelectorAll('.btn-wishlist').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const productId = this.dataset.productId;
-            const isActive = this.classList.contains('active');
-            
-            const formData = new FormData();
-            formData.append('product_id', productId);
-            
-            const csrfToken = document.querySelector('[name="csrf_token"]')?.value;
-            if (csrfToken) {
-                formData.append('csrf_token', csrfToken);
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-wishlist');
+        if (!btn || btn.closest('.wishlist-page')) return; // Wishlist page has separate logic
+
+        e.preventDefault();
+
+        if (btn.disabled) return;
+        btn.disabled = true;
+
+        const productId = btn.dataset.productId;
+        const isActive = btn.classList.contains('active');
+        const url = isActive ? toAppUrl('account/wishlist/remove') : toAppUrl('account/wishlist/add');
+
+        let formData = new FormData();
+        formData.append('product_id', productId);
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                         document.querySelector('[name="csrf_token"]')?.value;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => {
+            if (res.status === 401) {
+                showNotification('Please login to use wishlist', 'info');
+                setTimeout(() => window.location.href = toAppUrl('login'), 1500);
+                return;
             }
-            
-            const url = isActive ? toAppUrl('account/wishlist/remove') : toAppUrl('account/wishlist/add');
-            
-            fetch(url, {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    this.classList.toggle('active');
-                    const icon = this.querySelector('i');
-                    icon.classList.toggle('far');
-                    icon.classList.toggle('fas');
-                    showNotification(data.message, 'success');
+            return res.json();
+        })
+        .then(data => {
+            if (data && data.success) {
+                btn.classList.toggle('active');
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    if (btn.classList.contains('active')) {
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
                 }
-            });
+                showNotification(data.message, 'success');
+            } else if (data) {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Wishlist error:', err);
+            showNotification('Could not update wishlist', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
         });
     });
 }
@@ -215,55 +247,61 @@ function initWishlist() {
  * Remove items from wishlist page cards.
  */
 function initWishlistListRemoval() {
-    const removeButtons = document.querySelectorAll('.btn-remove-wishlist');
-    if (!removeButtons.length) {
-        return;
-    }
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-remove-wishlist');
+        if (!btn) return;
 
-    removeButtons.forEach((btn) => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
+        e.preventDefault();
 
-            const productId = this.dataset.productId;
-            if (!productId) {
-                return;
+        const productId = btn.dataset.productId;
+        if (!productId) return;
+
+        if (btn.disabled) return;
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('product_id', productId);
+
+        const csrfToken = document.getElementById('wishlistCsrfToken')?.value ||
+                         document.querySelector('meta[name="csrf-token"]')?.content ||
+                         document.querySelector('[name="csrf_token"]')?.value;
+        if (csrfToken) {
+            formData.append('csrf_token', csrfToken);
+        }
+
+        fetch(toAppUrl('account/wishlist/remove'), {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const item = btn.closest('.wishlist-item');
+                if (item) {
+                    item.style.transition = 'all 0.3s ease';
+                    item.style.opacity = '0';
+                    item.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        item.remove();
+                        const grid = document.getElementById('wishlistGrid');
+                        if (grid && !grid.querySelectorAll('.wishlist-item').length) {
+                            grid.remove();
+                            document.getElementById('wishlistEmptyMessage')?.classList.remove('d-none');
+                        }
+                    }, 300);
+                }
+                showNotification(data.message, 'success');
+            } else {
+                showNotification(data.message, 'error');
             }
-
-            const formData = new FormData();
-            formData.append('product_id', productId);
-
-            const csrfToken = document.getElementById('wishlistCsrfToken')?.value ||
-                document.querySelector('[name="csrf_token"]')?.value;
-            if (csrfToken) {
-                formData.append('csrf_token', csrfToken);
-            }
-
-            fetch(toAppUrl('account/wishlist/remove'), {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-                .then((res) => res.json())
-                .then((data) => {
-                    if (!data.success) {
-                        showNotification(data.message || 'Could not remove from wishlist', 'error');
-                        return;
-                    }
-
-                    const card = this.closest('.wishlist-item');
-                    if (card) {
-                        card.remove();
-                    }
-
-                    const remaining = document.querySelectorAll('.wishlist-item').length;
-                    if (remaining === 0) {
-                        document.getElementById('wishlistGrid')?.classList.add('d-none');
-                        document.getElementById('wishlistEmptyMessage')?.classList.remove('d-none');
-                    }
-
-                    showNotification('Removed from wishlist', 'success');
-                })
-                .catch(() => showNotification('Could not remove from wishlist', 'error'));
+        })
+        .catch(err => {
+            console.error('Wishlist removal error:', err);
+            showNotification('Could not remove item', 'error');
+        })
+        .finally(() => {
+            btn.disabled = false;
         });
     });
 }
@@ -272,38 +310,69 @@ function initWishlistListRemoval() {
  * Initialize quick view modal
  */
 function initQuickView() {
-    document.querySelectorAll('.btn-quickview').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const productId = this.dataset.productId;
-            
-            fetch(toAppUrl(`product/quick-view/${productId}`))
-            .then(res => res.json())
-            .then(data => {
-                const modalContent = document.getElementById('quickViewContent');
-                if (modalContent) {
-                    modalContent.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <img src="${data.image}" alt="${data.name}" class="img-fluid">
-                            </div>
-                            <div class="col-md-6">
-                                <h4>${data.name}</h4>
-                                <div class="price">
-                                    ${data.on_sale ? `<del>GH₵${Number(data.original_price).toFixed(2)}</del>` : ''}
-                                    <span class="current">GH₵${Number(data.price).toFixed(2)}</span>
-                                </div>
-                                <p>${data.description}</p>
-                                <a href="${toAppUrl(`product/${data.slug}`)}" class="btn btn-primary">View Details</a>
+    document.body.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-quickview');
+        if (!btn) return;
+
+        e.preventDefault();
+        
+        const productId = btn.dataset.productId;
+        
+        // Disable button while loading
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        fetch(toAppUrl(`product/quick-view/${productId}`), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Product not found');
+            return res.json();
+        })
+        .then(data => {
+            const modalContent = document.getElementById('quickViewContent');
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="quick-view-image rounded overflow-hidden">
+                                <img src="${toAppUrl(data.image)}" alt="${data.name}" class="img-fluid w-100 h-100 object-fit-cover shadow-sm">
                             </div>
                         </div>
-                    `;
-                    
-                    const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
-                    modal.show();
-                }
-            });
+                        <div class="col-md-6">
+                            <div class="quick-view-info">
+                                <h3 class="mb-2 text-dark">${data.name}</h3>
+                                <div class="mb-3">
+                                    ${data.on_sale ? `<span class="text-muted text-decoration-line-through me-2">${moneyFormat(data.original_price)}</span>` : ''}
+                                    <span class="fs-4 fw-bold text-primary">${moneyFormat(data.price)}</span>
+                                </div>
+                                <p class="text-muted mb-4">${data.description || 'No description available.'}</p>
+                                <div class="d-flex gap-2">
+                                    <a href="${toAppUrl(`product/${data.slug}`)}" class="btn btn-primary px-4 py-2 flex-grow-1">
+                                        <i class="fas fa-search me-2"></i>View Full Details
+                                    </a>
+                                    <button class="btn btn-outline-primary px-3 py-2 btn-add-cart" data-product-id="${data.id}">
+                                        <i class="fas fa-shopping-bag"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const modalEl = document.getElementById('quickViewModal');
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        })
+        .catch(err => {
+            console.error('Quick view error:', err);
+            showNotification('Product details not available', 'error');
+        })
+        .finally(() => {
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
         });
     });
 }

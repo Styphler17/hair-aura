@@ -64,7 +64,7 @@ class ProductController extends Controller
         $query = $this->get('q', '');
         $result = Product::search($query, $filters, $page, $perPage);
         
-        $products = $result['data'];
+        $products = $this->injectWishlist($result['data']);
         $pagination = [
             'current_page' => $result['current_page'],
             'last_page' => $result['last_page'],
@@ -100,15 +100,46 @@ class ProductController extends Controller
             ];
         }
         
+        // Breadcrumb schema
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => $this->absoluteUrl('/')
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Shop',
+                    'item' => $this->absoluteUrl('/shop')
+                ]
+            ]
+        ];
+
+        if ($category) {
+            $breadcrumbSchema['itemListElement'][] = [
+                '@type' => 'ListItem',
+                'position' => 3,
+                'name' => $category['name'],
+                'item' => $this->absoluteUrl('/shop/' . $category['slug'])
+            ];
+        }
+
         $this->render('pages/shop', [
             'products' => $products,
+            'pagination' => $pagination,
             'categories' => $categories,
             'currentCategory' => $category,
-            'pagination' => $pagination,
+            'activeCategory' => $category,
             'filters' => $filters,
             'availableFilters' => $availableFilters,
             'query' => $query,
-            'seo' => $seo
+            'seo' => $seo,
+            'breadcrumbSchema' => $breadcrumbSchema
         ]);
     }
     
@@ -177,6 +208,38 @@ class ProductController extends Controller
         // Product schema
         $productSchema = $this->generateProductSchema($product, $reviews);
         
+        // Breadcrumb schema
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Home',
+                    'item' => $this->absoluteUrl('/')
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Shop',
+                    'item' => $this->absoluteUrl('/shop')
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $category['name'] ?? 'Products',
+                    'item' => $this->absoluteUrl('/shop/' . ($category['slug'] ?? ''))
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 4,
+                    'name' => $product->name,
+                    'item' => $this->absoluteUrl('/product/' . $product->slug)
+                ]
+            ]
+        ];
+        
         $this->render('pages/product', [
             'product' => $product,
             'images' => $images,
@@ -189,7 +252,8 @@ class ProductController extends Controller
             'canReview' => $canReview,
             'shareUrl' => $this->absoluteUrl('/product/' . $product->slug),
             'seo' => $seo,
-            'productSchema' => $productSchema
+            'productSchema' => $productSchema,
+            'breadcrumbSchema' => $breadcrumbSchema
         ]);
     }
     

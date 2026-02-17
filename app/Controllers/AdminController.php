@@ -100,8 +100,9 @@ class AdminController extends Controller
         $params = [];
         
         if ($search) {
-            $where .= " AND (p.name LIKE :search OR p.sku LIKE :search)";
-            $params['search'] = "%{$search}%";
+            $where .= " AND (p.name LIKE :s1 OR p.sku LIKE :s2)";
+            $params['s1'] = "%{$search}%";
+            $params['s2'] = "%{$search}%";
         }
         
         if ($category) {
@@ -322,6 +323,28 @@ class AdminController extends Controller
         
         $this->redirect('/admin/products');
     }
+
+    public function bulkDeleteProducts(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        // We do a soft delete (is_active = 0) to match deleteProduct
+        $db->query("UPDATE products SET is_active = 0 WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' products deleted');
+        $this->redirect('/admin/products');
+    }
     
     /**
      * Upload product images
@@ -398,10 +421,17 @@ class AdminController extends Controller
         ) > 0;
 
         foreach ($libraryPaths as $rawPath) {
-            $resolvedFilename = $this->resolveMediaPathToFolder((string) $rawPath, 'products');
-            if ($resolvedFilename === null || $resolvedFilename === '') {
+            // Library selection: store the path directly (no copying)
+            $cleanPath = ltrim(str_replace('\\', '/', (string) $rawPath), '/');
+            
+            // Validate file exists
+            if (!file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
                 continue;
             }
+            
+            // For product_images table, we need just the filename portion
+            // But we'll store the full relative path from public root
+            $resolvedFilename = $cleanPath;
 
             $alreadyExists = (int) $db->fetchColumn(
                 "SELECT COUNT(*) FROM product_images WHERE product_id = :product_id AND image_path = :image_path",
@@ -615,8 +645,14 @@ class AdminController extends Controller
         }
         
         $status = $this->post('status');
+        $paymentStatus = $this->post('payment_status');
         $trackingNumber = $this->post('tracking_number');
         
+        // Update payment status if provided
+        if ($paymentStatus) {
+            $order->updatePaymentStatus($paymentStatus);
+        }
+
         if ($trackingNumber) {
             $order->addTracking($trackingNumber);
         } else {
@@ -643,8 +679,10 @@ class AdminController extends Controller
         $params = [];
         
         if ($search) {
-            $where .= " AND (first_name LIKE :search OR last_name LIKE :search OR email LIKE :search)";
-            $params['search'] = "%{$search}%";
+            $where .= " AND (first_name LIKE :s1 OR last_name LIKE :s2 OR email LIKE :s3)";
+            $params['s1'] = "%{$search}%";
+            $params['s2'] = "%{$search}%";
+            $params['s3'] = "%{$search}%";
         }
         
         $perPage = 25;
@@ -675,6 +713,73 @@ class AdminController extends Controller
             ],
             'search' => $search
         ], 'layouts/admin');
+    }
+
+    public function bulkDeleteCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        // Soft delete/deactivate
+        $db->query("UPDATE users SET is_active = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers deactivated');
+        $this->redirect('/admin/customers');
+    }
+
+    public function bulkBanCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE users SET is_banned = 1 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers banned');
+        $this->redirect('/admin/customers');
+    }
+
+    public function bulkUnbanCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE users SET is_banned = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers unbanned');
+        $this->redirect('/admin/customers');
     }
     
     /**
@@ -839,18 +944,24 @@ class AdminController extends Controller
         $nextImage = $currentImage;
 
         if ($uploadedImage !== null) {
+            // Direct upload: store relative path
             $nextImage = $uploadedImage;
-            if ($currentImage !== '') {
+            if ($currentImage !== '' && str_contains($currentImage, 'uploads/categories/')) {
+                // Only delete if it's a direct upload (not a library link)
                 $this->deleteCategoryImageFile($currentImage);
             }
         } elseif ($removeImage && $currentImage !== '') {
-            $this->deleteCategoryImageFile($currentImage);
+            if (str_contains($currentImage, 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($currentImage);
+            }
             $nextImage = '';
         } elseif ($libraryImage !== '') {
-            $resolvedImage = $this->resolveMediaPathToFolder($libraryImage, 'categories');
-            if ($resolvedImage !== null) {
-                $nextImage = $resolvedImage;
-                if ($currentImage !== '' && $currentImage !== $nextImage) {
+            // Library selection: store the path directly (no copying)
+            $cleanPath = ltrim(str_replace('\\', '/', $libraryImage), '/');
+            if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
+                $nextImage = $cleanPath;
+                // Don't delete old image if it was also from library
+                if ($currentImage !== '' && str_contains($currentImage, 'uploads/categories/')) {
                     $this->deleteCategoryImageFile($currentImage);
                 }
             }
@@ -875,6 +986,91 @@ class AdminController extends Controller
             $this->flash('success', 'Category created');
         }
         
+        $this->redirect('/admin/categories');
+    }
+
+    /**
+     * Delete category
+     */
+    public function deleteCategory(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        
+        // Check if category exists
+        $category = $db->fetchOne("SELECT id, image FROM categories WHERE id = :id", ['id' => $id]);
+        if (!$category) {
+            $this->flash('error', 'Category not found');
+            $this->redirect('/admin/categories');
+        }
+
+        // Check for products in this category
+        $hasProducts = (int) $db->fetchColumn("SELECT COUNT(*) FROM products WHERE category_id = :id", ['id' => $id]) > 0;
+        if ($hasProducts) {
+            $this->flash('error', 'Cannot delete category that contains products. Please move or delete the products first.');
+            $this->redirect('/admin/categories');
+        }
+
+        try {
+            // Delete image file if exists and is local
+            if (!empty($category['image']) && str_contains($category['image'], 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($category['image']);
+            }
+
+            $db->query("DELETE FROM categories WHERE id = :id", ['id' => $id]);
+            $this->flash('success', 'Category deleted successfully');
+        } catch (\Exception $e) {
+            $this->flash('error', 'Error deleting category: ' . $e->getMessage());
+        }
+
+        $this->redirect('/admin/categories');
+    }
+
+    public function bulkDeleteCategories(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        
+        // We need to check each one for products
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $withProducts = $db->fetchColumn(
+            "SELECT COUNT(*) FROM products WHERE category_id IN ($placeholders) AND is_active = 1",
+            array_values($ids)
+        );
+
+        if ((int) $withProducts > 0) {
+            $this->flash('error', 'Some selected categories contain products and cannot be deleted.');
+            $this->redirect('/admin/categories');
+        }
+
+        $categories = $db->fetchAll(
+            "SELECT image FROM categories WHERE id IN ($placeholders)",
+            array_values($ids)
+        );
+
+        foreach ($categories as $cat) {
+             if (!empty($cat['image']) && str_contains($cat['image'], 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($cat['image']);
+            }
+        }
+
+        $db->query("DELETE FROM categories WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' categories deleted');
         $this->redirect('/admin/categories');
     }
 

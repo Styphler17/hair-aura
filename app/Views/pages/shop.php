@@ -1,12 +1,21 @@
+<?php
+$resolveProductImage = function($path) {
+    if (!$path) return asset('/img/product-placeholder.webp');
+    if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+        return asset('/' . ltrim($path, '/'));
+    }
+    return asset('/uploads/products/' . $path);
+};
+?>
 <!-- Page Header -->
 <section class="page-header">
     <div class="container">
-        <h1><?= $currentCategory ? htmlspecialchars($currentCategory['name']) : 'Shop All Products' ?></h1>
+        <h1><?= ($currentCategory ?? null) ? htmlspecialchars($currentCategory['name']) : 'Shop All Products' ?></h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
                 <li class="breadcrumb-item active">Shop</li>
-                <?php if ($currentCategory): ?>
+                <?php if ($currentCategory ?? null): ?>
                 <li class="breadcrumb-item active"><?= htmlspecialchars($currentCategory['name']) ?></li>
                 <?php endif; ?>
             </ol>
@@ -20,14 +29,14 @@
         <div class="row">
             <!-- Sidebar Filters -->
             <div class="col-lg-3">
-                <?php $filterAction = $currentCategory ? '/shop/' . $currentCategory['slug'] : '/shop'; ?>
+                <?php $filterAction = ($currentCategory ?? null) ? '/shop/' . $currentCategory['slug'] : '/shop'; ?>
                 <div class="shop-sidebar">
                     <!-- Search -->
                     <div class="sidebar-widget">
                         <h4>Search</h4>
                         <form action="<?= url('/shop') ?>" method="get" class="search-form" data-live-search="products">
                             <input type="text" name="q" class="form-control" placeholder="Search products..." 
-                                   value="<?= htmlspecialchars($query) ?>">
+                                   value="<?= htmlspecialchars($query ?? '') ?>">
                             <button type="submit" class="btn"><i class="fas fa-search"></i></button>
                         </form>
                     </div>
@@ -37,7 +46,7 @@
                         <h4>Categories</h4>
                         <ul class="category-list">
                             <li>
-                                <a href="<?= url('/shop') ?>" class="<?= !$currentCategory ? 'active' : '' ?>">
+                                <a href="<?= url('/shop') ?>" class="<?= !($currentCategory ?? null) ? 'active' : '' ?>">
                                     All Products
                                     <span class="count">(<?= array_sum(array_column($categories, 'product_count')) ?>)</span>
                                 </a>
@@ -45,7 +54,7 @@
                             <?php foreach ($categories as $cat): ?>
                             <li>
                                 <a href="<?= url('/shop/' . (string) $cat['slug']) ?>" 
-                                   class="<?= $currentCategory && $currentCategory['id'] == $cat['id'] ? 'active' : '' ?>">
+                                   class="<?= ($currentCategory ?? null) && $currentCategory['id'] == $cat['id'] ? 'active' : '' ?>">
                                     <?= htmlspecialchars($cat['name']) ?>
                                     <span class="count">(<?= $cat['product_count'] ?>)</span>
                                 </a>
@@ -172,9 +181,10 @@
                         <div class="product-card">
                             <div class="product-image">
                                 <a href="<?= url('/product/' . (string) $product['slug']) ?>">
-                                    <img src="<?= $product['primary_image'] ? asset('/uploads/products/' . $product['primary_image']) : asset('/img/product-placeholder.png') ?>" 
+                                    <img src="<?= $resolveProductImage($product['primary_image'] ?? '') ?>" 
                                          alt="<?= htmlspecialchars($product['name']) ?>" 
-                                         loading="lazy">
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                 </a>
                                 
                                 <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
@@ -184,8 +194,8 @@
                                 <?php endif; ?>
                                 
                                 <div class="product-actions">
-                                    <button class="btn btn-wishlist" data-product-id="<?= $product['id'] ?>">
-                                        <i class="far fa-heart"></i>
+                                    <button class="btn btn-wishlist <?= ($product['in_wishlist'] ?? false) ? 'active' : '' ?>" data-product-id="<?= $product['id'] ?>">
+                                        <i class="<?= ($product['in_wishlist'] ?? false) ? 'fas' : 'far' ?> fa-heart"></i>
                                     </button>
                                     <button class="btn btn-quickview" data-product-id="<?= $product['id'] ?>">
                                         <i class="fas fa-eye"></i>

@@ -24,75 +24,15 @@
                     <div class="form-text">Uploading a file will replace <code>/img/logo.webp</code> and set it as active.</div>
                 </div>
 
-                <div class="col-12">
-                    <label class="form-label">Or Pick From Media Library</label>
-                    <div class="border rounded p-3 bg-white">
-                        <div class="d-flex justify-content-between mb-2">
-                            <input type="text" class="form-control w-auto" placeholder="Search library..." onkeyup="filterMediaCheckboxes(this)">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('input[name=library_logo]').forEach(el => el.checked = false)">Clear Selection</button>
-                        </div>
-                        
-                        <div class="d-flex flex-wrap gap-2 media-checkbox-container" style="max-height: 300px; overflow-y: auto;">
-                            <?php foreach (($mediaImages ?? []) as $media): ?>
-                                <?php 
-                                    $mPath = $media['file_path'] ?? '';
-                                    if (str_starts_with($mPath, 'uploads/')) {
-                                        $mPath = '/' . $mPath;
-                                    } elseif (!str_starts_with($mPath, '/')) {
-                                        $mPath = '/' . $mPath;
-                                    }
-                                    
-                                    $mName = $media['file_name'] ?? 'image';
-                                    $mId = $media['id'] ?? uniqid();
-                                    $isSelected = ($settings['logo'] ?? '') === $mPath;
-                                ?>
-                                <div class="media-checkbox-option position-relative" style="width: 100px; height: 100px;" data-name="<?= htmlspecialchars($mName) ?>">
-                                    <input type="radio" name="library_logo" value="<?= htmlspecialchars($mPath) ?>" id="media_<?= $mId ?>" class="btn-check" <?= $isSelected ? 'checked' : '' ?>>
-                                    <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="media_<?= $mId ?>">
-                                        <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
-                                             class="w-100 h-100" style="object-fit: contain; padding: 4px;"
-                                             title="<?= htmlspecialchars($mName) ?>"
-                                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                                    </label>
-                                    <div class="position-absolute top-0 end-0 p-1">
-                                        <i class="fas fa-check-circle text-primary bg-white rounded-circle check-icon" style="opacity: 0; transition: opacity 0.2s;"></i>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <div class="form-text">Selecting a library image sets it as the active logo path.</div>
-                </div>
+                <?php
+                    // Setup for partial
+                    $inputName = 'library_logo';
+                    $isMultiple = false;
+                    $currentValue = $settings['logo'] ?? '';
+                    $label = 'Or Pick From Media Library';
+                    include __DIR__ . '/partials/media_library_selector.php';
+                ?>
             </div>
-            
-            <style>
-                .btn-check:checked + label {
-                    border-color: var(--bs-primary, #0d6efd) !important;
-                    border-width: 3px !important;
-                }
-                .btn-check:checked ~ div .check-icon {
-                    opacity: 1 !important;
-                }
-                .media-checkbox-option label:hover {
-                    border-color: #adb5bd !important;
-                }
-            </style>
-            
-            <script>
-            function filterMediaCheckboxes(input) {
-                const filter = input.value.toLowerCase();
-                const container = input.closest('.border').querySelector('.media-checkbox-container'); 
-                const items = container.querySelectorAll('.media-checkbox-option[data-name]');
-                items.forEach(item => {
-                    const name = item.getAttribute('data-name').toLowerCase();
-                    if (name.includes(filter)) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            }
-            </script>
         </div>
 
         <div class="col-md-6">
@@ -139,8 +79,100 @@
             <input type="text" name="theme_gold" class="form-control" value="<?= htmlspecialchars($settings['theme_gold'] ?? '#D4AF37') ?>" pattern="^#[0-9A-Fa-f]{6}$" required>
         </div>
 
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary">Save Site Settings</button>
+        <div class="col-12 mt-4">
+            <h4>Hero Slider Control</h4>
+            <p class="text-muted">Manage the 3 slides on the homepage hero section.</p>
+            <div class="row g-4">
+                <?php for ($i = 0; $i < 3; $i++): ?>
+                    <?php $slide = $settings['hero_slides'][$i] ?? []; ?>
+                    <div class="col-lg-4">
+                        <div class="card bg-light border-0">
+                            <div class="card-header bg-dark text-white p-2 text-center h6 mb-0">Slide <?= $i + 1 ?></div>
+                            <div class="card-body p-3">
+                                <div class="mb-3">
+                                    <label class="form-label font-monospace small">Title</label>
+                                    <input type="text" name="hero_slides[<?= $i ?>][title]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['title'] ?? '') ?>" placeholder="Main headline">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label font-monospace small">Subtitle</label>
+                                    <textarea name="hero_slides[<?= $i ?>][subtitle]" class="form-control form-control-sm" rows="2" placeholder="Sub headline"><?= htmlspecialchars($slide['subtitle'] ?? '') ?></textarea>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-7">
+                                        <label class="form-label font-monospace small">Button Text</label>
+                                        <input type="text" name="hero_slides[<?= $i ?>][button_text]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['button_text'] ?? '') ?>" placeholder="e.g. Shop Now">
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label font-monospace small">Link</label>
+                                        <input type="text" name="hero_slides[<?= $i ?>][button_link]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['button_link'] ?? '') ?>" placeholder="/shop">
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label font-monospace small mb-1">Slide Image</label>
+                                    <?php
+                                        // Reuse partial for slide image
+                                        $inputName = "hero_slides[$i][image]";
+                                        $isMultiple = false;
+                                        $currentValue = $slide['image'] ?? '';
+                                        $label = ''; // Hide label to save space
+                                        include __DIR__ . '/partials/media_library_selector.php';
+                                    ?>
+                                </div>
+                                <div class="mt-2 text-center">
+                                    <img src="<?= asset($slide['image'] ?? '/img/hero-1.webp') ?>" class="img-thumbnail" style="height: 60px; object-fit: cover;" onerror="this.src='/img/product-placeholder.webp'">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mt-4">
+                <h4>Virtual Try-On</h4>
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <div class="mb-3 text-center">
+                            <img src="<?= asset($settings['virtual_tryon_image'] ?? '/img/product-placeholder.webp') ?>" class="img-thumbnail" style="height: 120px;" onerror="this.src='/img/product-placeholder.webp'">
+                        </div>
+                        <?php
+                            // Setup for partial
+                            $inputName = 'virtual_tryon_image';
+                            $isMultiple = false;
+                            $currentValue = $settings['virtual_tryon_image'] ?? '';
+                            $label = 'Select Try-On Illustration';
+                            include __DIR__ . '/partials/media_library_selector.php';
+                        ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mt-4">
+                <h4>Instagram Feed</h4>
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <p class="small text-muted mb-2">Select up to 6 images to display in the Instagram feed.</p>
+                        <div class="d-flex gap-2 mb-3 overflow-auto pb-2">
+                            <?php foreach (($settings['instagram_images'] ?? []) as $img): ?>
+                                <img src="<?= asset($img) ?>" class="img-thumbnail" style="height: 50px; width: 50px; object-fit: cover;">
+                            <?php endforeach; ?>
+                        </div>
+                        <?php
+                            // Setup for partial
+                            $inputName = 'instagram_images';
+                            $isMultiple = true;
+                            $currentValue = implode(',', (array) ($settings['instagram_images'] ?? []));
+                            $label = 'Pick Instagram Images';
+                            include __DIR__ . '/partials/media_library_selector.php';
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Save Site Settings</button>
         </div>
     </div>
 </form>

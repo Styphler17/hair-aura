@@ -44,14 +44,23 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
                 <span class="navbar-toggler-icon"></span>
             </button>
 
+<?php 
+$currPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH) ?: '';
+$isHome = $currPath === '/' || $currPath === '' || str_ends_with($currPath, '/public/') || str_ends_with($currPath, '/index.php');
+$isShop = str_contains($currPath, '/shop') || str_contains($currPath, '/product');
+$isAbout = str_contains($currPath, '/about');
+$isBlog = str_contains($currPath, '/blog');
+$isContact = str_contains($currPath, '/contact');
+?>
+
             <!-- Navigation -->
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= url('/') ?>">Home</a>
+                        <a class="nav-link <?= $isHome ? 'active' : '' ?>" href="<?= url('/') ?>">Home</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="<?= url('/shop') ?>" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle <?= $isShop ? 'active' : '' ?>" href="<?= url('/shop') ?>" data-bs-toggle="dropdown">
                             Shop
                         </a>
                         <ul class="dropdown-menu">
@@ -68,13 +77,13 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= url('/about') ?>">About</a>
+                        <a class="nav-link <?= $isAbout ? 'active' : '' ?>" href="<?= url('/about') ?>">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= url('/blog') ?>">Blog</a>
+                        <a class="nav-link <?= $isBlog ? 'active' : '' ?>" href="<?= url('/blog') ?>">Blog</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="<?= url('/contact') ?>">Contact</a>
+                        <a class="nav-link <?= $isContact ? 'active' : '' ?>" href="<?= url('/contact') ?>">Contact</a>
                     </li>
                 </ul>
 

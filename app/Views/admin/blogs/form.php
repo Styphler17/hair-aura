@@ -19,45 +19,55 @@ if (!empty($post['published_at'])) {
         <input type="hidden" name="id" value="<?= (int) ($post['id'] ?? 0) ?>">
 
         <div class="col-md-8">
-            <label class="form-label">Title</label>
-            <input type="text" name="title" class="form-control" value="<?= htmlspecialchars($post['title'] ?? '') ?>" required>
+            <label class="form-label text-primary fw-bold"><i class="fas fa-heading me-1"></i> Title</label>
+            <input type="text" name="title" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['title'] ?? '') ?>" required>
         </div>
         <div class="col-md-4">
-            <label class="form-label">Slug</label>
-            <input type="text" name="slug" class="form-control" value="<?= htmlspecialchars($post['slug'] ?? '') ?>" placeholder="auto-generated">
+            <label class="form-label text-primary fw-bold"><i class="fas fa-link me-1"></i> Slug</label>
+            <input type="text" name="slug" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['slug'] ?? '') ?>" placeholder="auto-generated">
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">Category</label>
-            <input type="text" name="category" class="form-control" value="<?= htmlspecialchars($post['category'] ?? 'General') ?>">
+            <label class="form-label text-success fw-bold"><i class="fas fa-folder me-1"></i> Category</label>
+            <input type="text" name="category" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['category'] ?? 'General') ?>">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Tags (comma separated)</label>
-            <input type="text" name="tags" class="form-control" value="<?= htmlspecialchars($post['tags'] ?? '') ?>">
+            <label class="form-label text-success fw-bold"><i class="fas fa-tags me-1"></i> Tags (comma separated)</label>
+            <input type="text" name="tags" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['tags'] ?? '') ?>">
         </div>
 
         <div class="col-12">
-            <label class="form-label">Excerpt</label>
-            <textarea name="excerpt" class="form-control" rows="2"><?= htmlspecialchars($post['excerpt'] ?? '') ?></textarea>
+            <label class="form-label text-info fw-bold"><i class="fas fa-quote-left me-1"></i> Excerpt</label>
+            <textarea name="excerpt" class="form-control hover-shadow transition" rows="2"><?= htmlspecialchars($post['excerpt'] ?? '') ?></textarea>
         </div>
 
         <div class="col-12">
-            <label class="form-label">Content</label>
-            <textarea name="content" class="form-control" rows="10" required><?= htmlspecialchars($post['content'] ?? '') ?></textarea>
+            <label class="form-label text-info fw-bold"><i class="fas fa-align-left me-1"></i> Content</label>
+            <textarea name="content" class="form-control hover-shadow transition" rows="10" required><?= htmlspecialchars($post['content'] ?? '') ?></textarea>
         </div>
 
         <div class="col-12">
-            <label class="form-label">Featured Image</label>
+            <label class="form-label text-warning fw-bold"><i class="fas fa-image me-1"></i> Featured Image</label>
             
             <?php if (!empty($post['featured_image'])): ?>
             <div class="mb-3">
                 <div class="position-relative d-inline-block">
-                    <img src="<?= asset(str_starts_with($post['featured_image'], 'http') ? $post['featured_image'] : '/uploads/blog/' . $post['featured_image']) ?>" 
+                    <?php
+                    $featImg = (string) ($post['featured_image'] ?? '');
+                    if (str_starts_with($featImg, 'http')) {
+                        $featImgPath = $featImg;
+                    } elseif (str_starts_with($featImg, 'uploads/') || str_starts_with($featImg, 'img/')) {
+                        $featImgPath = asset('/' . ltrim($featImg, '/'));
+                    } else {
+                        $featImgPath = asset('/uploads/blog/' . $featImg);
+                    }
+                    ?>
+                    <img src="<?= $featImgPath ?>" 
                          alt="Current Featured Image" 
-                         class="img-thumbnail" 
+                         class="img-thumbnail transition zoom-on-hover" 
                          style="max-height: 200px;"
-                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                    <div class="form-text mt-1">Current: <?= htmlspecialchars($post['featured_image']) ?></div>
+                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp'); ?>';">
+                    <div class="form-text mt-1">Current: <?= htmlspecialchars($featImg) ?></div>
                 </div>
             </div>
             <?php endif; ?>
@@ -66,91 +76,38 @@ if (!empty($post['published_at'])) {
             
             <div class="row g-3">
                 <div class="col-md-6">
-                    <label class="form-label">Upload New Image</label>
-                    <input type="file" name="featured_image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                    <label class="form-label text-warning"><i class="fas fa-upload me-1"></i> Upload New Image</label>
+                    <input type="file" name="featured_image_file" class="form-control hover-shadow transition" accept=".jpg,.jpeg,.png,.webp">
                 </div>
                 
-                <div class="col-12">
-                    <label class="form-label">Or Pick From Media Library</label>
-                    <div class="border rounded p-3 bg-white">
-                        <div class="d-flex justify-content-between mb-2">
-                            <input type="text" class="form-control w-auto" placeholder="Search library..." onkeyup="filterMediaCheckboxes(this)">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.querySelectorAll('input[name=library_image]').forEach(el => el.checked = false)">Clear Selection</button>
-                        </div>
-                        
-                        <div class="d-flex flex-wrap gap-2 media-checkbox-container" style="max-height: 300px; overflow-y: auto;">
-                            <?php foreach ($mediaImages as $media): ?>
-                                <?php 
-                                    $mPath = $media['file_path'] ?? '';
-                                    $mName = $media['file_name'] ?? 'image';
-                                    $mId = $media['id'] ?? uniqid();
-                                ?>
-                                <div class="media-checkbox-option position-relative" style="width: 100px; height: 100px;" data-name="<?= htmlspecialchars($mName) ?>">
-                                    <input type="radio" name="library_image" value="<?= htmlspecialchars($mPath) ?>" id="media_<?= $mId ?>" class="btn-check">
-                                    <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="media_<?= $mId ?>">
-                                        <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
-                                             class="w-100 h-100" style="object-fit: cover;"
-                                             title="<?= htmlspecialchars($mName) ?>"
-                                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
-                                    </label>
-                                    <div class="position-absolute top-0 end-0 p-1">
-                                        <i class="fas fa-check-circle text-primary bg-white rounded-circle check-icon" style="opacity: 0; transition: opacity 0.2s;"></i>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <div class="form-text">Selecting a library image will override the current featured image. Uploading a new file overrides both.</div>
-                </div>
+                <?php
+                    // Setup for partial
+                    $inputName = 'library_image';
+                    $isMultiple = false;
+                    $currentValue = $post['featured_image'] ?? '';
+                    $label = 'Or Pick From Media Library';
+                    include __DIR__ . '/../partials/media_library_selector.php';
+                ?>
             </div>
         </div>
-        
-        <style>
-            .btn-check:checked + label {
-                border-color: var(--bs-primary, #0d6efd) !important;
-                border-width: 3px !important;
-            }
-            .btn-check:checked ~ div .check-icon {
-                opacity: 1 !important;
-            }
-            .media-checkbox-option label:hover {
-                border-color: #adb5bd !important;
-            }
-        </style>
-        
-        <script>
-        function filterMediaCheckboxes(input) {
-            const filter = input.value.toLowerCase();
-            const container = input.closest('.border').querySelector('.media-checkbox-container'); 
-            const items = container.querySelectorAll('.media-checkbox-option[data-name]');
-            items.forEach(item => {
-                const name = item.getAttribute('data-name').toLowerCase();
-                if (name.includes(filter)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-        </script>
 
         <div class="col-md-6">
-            <label class="form-label">Meta Title</label>
-            <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars($post['meta_title'] ?? '') ?>">
+            <label class="form-label text-secondary fw-bold"><i class="fas fa-search me-1"></i> Meta Title</label>
+            <input type="text" name="meta_title" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['meta_title'] ?? '') ?>">
         </div>
         <div class="col-md-6">
-            <label class="form-label">Meta Description</label>
-            <input type="text" name="meta_description" class="form-control" value="<?= htmlspecialchars($post['meta_description'] ?? '') ?>">
+            <label class="form-label text-secondary fw-bold"><i class="fas fa-info-circle me-1"></i> Meta Description</label>
+            <input type="text" name="meta_description" class="form-control hover-shadow transition" value="<?= htmlspecialchars($post['meta_description'] ?? '') ?>">
         </div>
 
         <div class="col-md-6">
-            <label class="form-label">Published At</label>
-            <input type="datetime-local" name="published_at" class="form-control" value="<?= htmlspecialchars($publishedAtValue) ?>">
+            <label class="form-label text-dark fw-bold"><i class="fas fa-calendar-alt me-1"></i> Published At</label>
+            <input type="datetime-local" name="published_at" class="form-control hover-shadow transition" value="<?= htmlspecialchars($publishedAtValue) ?>">
         </div>
         <div class="col-md-6 d-flex align-items-center">
             <div class="form-check mt-4">
                 <input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" <?= !empty($post['is_published']) ? 'checked' : '' ?>>
-                <label class="form-check-label" for="is_published">Published</label>
+                <label class="form-check-label text-dark fw-bold" for="is_published">Published</label>
             </div>
         </div>
 

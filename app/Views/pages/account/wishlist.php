@@ -11,14 +11,21 @@
                     $productName = (string) ($item['name'] ?? $item->name ?? 'Wishlist Item');
                     $productPrice = (float) ($item['sale_price'] ?? $item->sale_price ?? $item['price'] ?? $item->price ?? 0);
                     $productId = (int) ($item['id'] ?? $item->id ?? 0);
-                    $image = !empty($item['primary_image'])
-                        ? asset('/uploads/products/' . ltrim((string) $item['primary_image'], '/'))
-                        : asset('/img/product-placeholder.png');
+                    $imagePath = (string) ($item['primary_image'] ?? '');
+                    if ($imagePath !== '') {
+                        if (str_starts_with($imagePath, 'uploads/') || str_starts_with($imagePath, 'img/')) {
+                            $image = asset('/' . ltrim($imagePath, '/'));
+                        } else {
+                            $image = asset('/uploads/products/' . ltrim($imagePath, '/'));
+                        }
+                    } else {
+                        $image = asset('/img/product-placeholder.webp');
+                    }
                     ?>
                     <div class="col-md-6 col-lg-4 wishlist-item" data-product-id="<?= $productId ?>">
                         <div class="card h-100 shadow-sm">
                             <a href="<?= $slug !== '' ? url('/product/' . $slug) : '#' ?>">
-                                <img src="<?= htmlspecialchars($image) ?>" class="card-img-top" alt="<?= htmlspecialchars($productName) ?>" style="height:240px;object-fit:cover;" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                <img src="<?= htmlspecialchars($image) ?>" class="card-img-top" alt="<?= htmlspecialchars($productName) ?>" style="height:240px;object-fit:cover;" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                             </a>
                             <div class="card-body">
                                 <h5 class="card-title"><?= htmlspecialchars($productName) ?></h5>

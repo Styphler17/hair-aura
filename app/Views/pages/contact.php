@@ -61,3 +61,53 @@
         </div>
     </div>
 </section>
+
+<?php if (!empty($faqs)): ?>
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="text-center mb-5">
+                    <h2 class="fw-bold">Frequently Asked Questions</h2>
+                    <p class="text-muted">Quick answers to common inquiries</p>
+                </div>
+                
+                <div class="accordion accordion-flush" id="contactFaqAccordion">
+                    <?php foreach ($faqs as $index => $faq): ?>
+                    <div class="accordion-item mb-3 border rounded">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#contactFaq<?= $index ?>">
+                                <?= htmlspecialchars($faq['question']) ?>
+                            </button>
+                        </h2>
+                        <div id="contactFaq<?= $index ?>" class="accordion-collapse collapse" data-bs-parent="#contactFaqAccordion">
+                            <div class="accordion-body text-muted">
+                                <?= htmlspecialchars($faq['answer']) ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="<?= url('/faq') ?>" class="btn btn-outline-primary">View All Questions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+#contactFaqAccordion .accordion-button:not(.collapsed) {
+    background-color: rgba(212, 165, 116, 0.05);
+    color: var(--primary);
+}
+#contactFaqAccordion .accordion-button:focus {
+    box-shadow: none;
+}
+#contactFaqAccordion .accordion-item {
+    border: 1px solid #eee !important;
+    background: #fff;
+}
+</style>
+<?php endif; ?>

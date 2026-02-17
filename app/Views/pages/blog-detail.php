@@ -4,12 +4,12 @@ $relatedPosts = $relatedPosts ?? [];
 
 $resolveBlogImage = function(?string $rawImage): string {
     if (empty($rawImage)) {
-        return asset('/img/product-placeholder.png');
+        return asset('/img/product-placeholder.webp');
     }
 
     $image = trim((string) $rawImage);
     if ($image === '') {
-        return asset('/img/product-placeholder.png');
+        return asset('/img/product-placeholder.webp');
     }
 
     if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
@@ -47,7 +47,7 @@ $featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
                 </div>
 
                 <figure class="mb-4">
-                    <img src="<?= htmlspecialchars($featuredImagePath) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid rounded blog-detail-image" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                    <img src="<?= htmlspecialchars($featuredImagePath) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid rounded blog-detail-image" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                 </figure>
 
                 <article class="blog-content mb-5">
@@ -63,7 +63,7 @@ $featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
                         <div class="col-md-6">
                             <article class="card border-0 shadow-sm h-100">
                                 <a href="<?= url('/blog/' . $related['slug']) ?>">
-                                    <img src="<?= htmlspecialchars($relatedImage) ?>" class="card-img-top blog-related-image" alt="<?= htmlspecialchars($related['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                    <img src="<?= htmlspecialchars($relatedImage) ?>" class="card-img-top blog-related-image" alt="<?= htmlspecialchars($related['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                 </a>
                                 <div class="card-body">
                                     <div class="small text-muted mb-2">

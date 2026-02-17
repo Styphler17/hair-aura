@@ -55,11 +55,11 @@
                 <h5 class="mb-0">Update Order</h5>
             </div>
             <div class="card-body">
-                <form method="post" action="<?= url('/admin/orders/' . (int) ($order->id ?? 0) . '/status') ?>" class="row g-2">
+                <form method="post" action="<?= url('/admin/orders/' . (int) ($order->id ?? 0) . '/status') ?>" class="row g-3">
                     <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
                     <div class="col-12">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
+                        <label class="form-label fw-bold">Order Status</label>
+                        <select name="status" class="form-select border-start-0 shadow-none border-bottom-2">
                             <?php foreach (['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as $statusOption): ?>
                                 <option value="<?= $statusOption ?>" <?= ((string) ($order->status ?? '') === $statusOption) ? 'selected' : '' ?>>
                                     <?= ucfirst($statusOption) ?>
@@ -68,11 +68,30 @@
                         </select>
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Tracking Number</label>
+                        <label class="form-label fw-bold">Payment Status</label>
+                        <?php 
+                            $payStatus = (string) ($order->payment_status ?? 'pending');
+                            $payClass = match($payStatus) {
+                                'paid' => 'bg-success-subtle text-success border-success',
+                                'failed' => 'bg-danger-subtle text-danger border-danger',
+                                default => 'bg-warning-subtle text-warning-emphasis border-warning'
+                            };
+                        ?>
+                        <select name="payment_status" class="form-select <?= $payClass ?>">
+                            <option value="pending" <?= $payStatus === 'pending' ? 'selected' : '' ?>>Pending</option>
+                            <option value="paid" <?= $payStatus === 'paid' ? 'selected' : '' ?>>Paid</option>
+                            <option value="failed" <?= $payStatus === 'failed' ? 'selected' : '' ?>>Failed</option>
+                            <option value="refunded" <?= $payStatus === 'refunded' ? 'selected' : '' ?>>Refunded</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Tracking Number</label>
                         <input type="text" name="tracking_number" class="form-control" placeholder="Optional" value="<?= htmlspecialchars((string) ($order->tracking_number ?? '')) ?>">
                     </div>
                     <div class="col-12 d-grid">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary py-2">
+                            <i class="fas fa-save me-2"></i> Update Order
+                        </button>
                     </div>
                 </form>
             </div>
@@ -108,9 +127,21 @@
                 <div class="d-flex justify-content-between"><span>Tax</span><strong><?= money((float) ($order->tax_amount ?? 0)) ?></strong></div>
                 <div class="d-flex justify-content-between"><span>Discount</span><strong>-<?= money((float) ($order->discount_amount ?? 0)) ?></strong></div>
                 <hr>
-                <div class="d-flex justify-content-between"><span>Total</span><strong><?= money((float) ($order->total ?? 0)) ?></strong></div>
                 <hr>
-                <div class="small text-muted">Payment: <?= htmlspecialchars((string) ($order->payment_method ?? 'momo')) ?> (<?= htmlspecialchars((string) ($order->payment_status ?? 'pending')) ?>)</div>
+                <div class="d-flex justify-content-between"><span>Total</span><strong class="text-primary fs-5"><?= money((float) ($order->total ?? 0)) ?></strong></div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center small mt-2">
+                    <span>Payment: <strong><?= strtoupper((string) ($order->payment_method ?? 'momo')) ?></strong></span>
+                    <?php 
+                        $badgeClass = match($order->payment_status ?? 'pending') {
+                            'paid' => 'bg-success',
+                            'failed' => 'bg-danger',
+                            'refunded' => 'bg-secondary',
+                            default => 'bg-warning text-dark'
+                        };
+                    ?>
+                    <span class="badge <?= $badgeClass ?>"><?= ucfirst((string) ($order->payment_status ?? 'pending')) ?></span>
+                </div>
                 <?php if (!empty($order->notes)): ?>
                     <div class="small mt-2"><strong>Notes:</strong> <?= nl2br(htmlspecialchars((string) $order->notes)) ?></div>
                 <?php endif; ?>

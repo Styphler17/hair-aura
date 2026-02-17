@@ -151,7 +151,11 @@ class Product extends Model
         );
         
         if ($image) {
-            return '/uploads/products/' . $image['image_path'];
+            $path = $image['image_path'];
+            if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+                return '/' . ltrim($path, '/');
+            }
+            return '/uploads/products/' . $path;
         }
         
         return '/img/product-placeholder.webp';
@@ -446,8 +450,10 @@ class Product extends Model
         
         // Search query
         if (!empty($query)) {
-            $where .= " AND (p.name LIKE :query OR p.description LIKE :query OR p.meta_keywords LIKE :query)";
-            $params['query'] = "%{$query}%";
+            $where .= " AND (p.name LIKE :q1 OR p.description LIKE :q2 OR p.meta_keywords LIKE :q3)";
+            $params['q1'] = "%{$query}%";
+            $params['q2'] = "%{$query}%";
+            $params['q3'] = "%{$query}%";
         }
         
         // Category filter

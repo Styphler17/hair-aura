@@ -163,7 +163,7 @@
                     <div class="payment-info">
                         <p><i class="fas fa-lock"></i> Secure checkout</p>
                         <div class="payment-icons">
-                            <span class="momo-badge" title="Mobile Money">MoMo</span>
+                            <span class="momo-badge" title="MTN Mobile Money">MoMo</span>
                             <i class="fab fa-cc-visa" title="Visa"></i>
                             <i class="fab fa-cc-mastercard" title="Mastercard"></i>
                             <i class="fab fa-cc-paypal" title="PayPal"></i>
