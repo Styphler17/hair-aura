@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Feb 17, 2026 at 04:56 AM
+-- Generation Time: Feb 17, 2026 at 06:41 AM
 -- Server version: 11.8.3-MariaDB-log
 -- PHP Version: 7.2.34
 
@@ -67,7 +67,12 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_i
 (21, 1, 'logout', NULL, NULL, NULL, '185.132.176.139', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 01:35:24'),
 (22, 1, 'login', NULL, NULL, NULL, '185.132.176.139', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 01:35:31'),
 (23, 1, 'logout', NULL, NULL, NULL, '185.132.176.139', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 02:32:30'),
-(24, 1, 'login', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 04:15:30');
+(24, 1, 'login', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 04:15:30'),
+(25, 1, 'logout', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 05:16:46'),
+(26, 1, 'login', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 05:16:53'),
+(27, 1, 'logout', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 06:19:02'),
+(28, 1, 'login', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 06:19:38'),
+(29, 1, 'logout', NULL, NULL, NULL, '62.235.28.237', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36', '2026-02-17 06:33:12');
 
 -- --------------------------------------------------------
 
@@ -152,7 +157,6 @@ INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `image`, `parent_
 (4, 'Hair Extensions', 'hair-extensions', 'Premium hair extensions - weaves, bundles, clip-ins. 100% virgin human hair.', 'category-extensions.jpg', NULL, 4, 1, 'Hair Extensions Ghana | Virgin Hair Bundles', 'Buy virgin hair extensions in Ghana. Brazilian, Peruvian bundles. Wholesale available.', '2026-02-11 20:33:35'),
 (5, 'Hair Toppers', 'hair-toppers', 'Hair toppers and closures for added volume. Perfect for thinning hair solutions.', 'category-toppers.jpg', NULL, 5, 1, 'Hair Toppers Ghana | Volume Solutions', 'Hair toppers for volume and coverage. Closures, frontals, and crown toppers.', '2026-02-11 20:33:35'),
 (6, 'Hair Accessories', 'hair-accessories', 'Wig care products, caps, adhesives, and styling tools.', 'category-accessories.jpg', NULL, 6, 1, 'Wig Accessories Ghana | Care Products', 'Wig care products, adhesives, caps, and styling tools. Everything for wig maintenance.', '2026-02-11 20:33:35'),
-(10, 'Testhddueheh', 'Testdhfhddh', 'Test', 'IMG_0245-1771290057-a3a44b-1771302729.webp', NULL, 0, 1, 'Whatsoever', '', '2026-02-17 01:07:53'),
 (17, 'Bone straight hair ', 'bone-straight-hair', 'Bone straight hair', NULL, NULL, 0, 1, 'Bone Straight Hair', 'Bone straight hair ', '2026-02-17 01:25:26'),
 (18, 'Body wave', 'Body-wave-hair', '100% human hair body wave', 'IMG_0248-1771290057-340e2f-1771302729.webp', NULL, 0, 1, 'Body wave hair', NULL, '2026-02-17 01:27:09');
 
@@ -225,12 +229,12 @@ CREATE TABLE `faqs` (
 --
 
 INSERT INTO `faqs` (`id`, `question`, `answer`, `sort_order`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'What types of wigs does Hair Aura sell in Ghana?', 'Hair Aura specializes in premium 100% human hair wigs, including lace fronts, closure wigs, and full lace options. We also offer high-quality heat-safe synthetic wigs and premium hair extensions specifically curated for the Ghanaian market.', 1, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
-(2, 'Do you ship across Ghana?', 'Yes! We offer nationwide delivery. We provide same-day delivery within Accra and Tema, and 1-3 business days for Kumasi, Takoradi, Tamale, and all other regions across Ghana.', 2, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
 (3, 'How do I choose the right wig size?', 'Most of our wigs come in a standard \'Average\' size (22-22.5 inches) which fits 95% of customers perfectly thanks to adjustable straps and inner combs. For custom sizing needs, please contact our support.', 3, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
 (4, 'What\'s the difference between human hair and synthetic wigs?', 'Human hair wigs (Brazilian, Peruvian, etc.) offer the most natural look, can be dyed, and last 1-2 years with proper care. Synthetic wigs are more affordable, hold their style even after washing, and are perfect for quick style changes, typically lasting 4-6 months.', 4, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
 (5, 'How do I install a lace front wig?', 'To install your lace front, first braid your natural hair flat. Clean your forehead with alcohol, apply a thin layer of lace glue or use a glueless method with a wig grip. Position the wig, press the lace into the adhesive, and style as desired. We also offer installation guides in our blog!', 5, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
-(6, 'What payment methods do you accept in Ghana?', 'We accept all major mobile money (MoMo) payments (MTN, Telecel, AT), bank transfers, and secure card payments (Visa/Mastercard). Cash on delivery is available for verified orders within Accra.', 6, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38');
+(6, 'What payment methods do you accept in Ghana?', 'We accept all major mobile money (MoMo) payments (MTN, Telecel, AT), bank transfers, and secure card payments (Visa/Mastercard). Cash on delivery is available for verified orders within Accra.', 6, 1, '2026-02-17 04:55:38', '2026-02-17 04:55:38'),
+(7, 'What types of wigs does Hair Aura sell in Ghana?', 'Hair Aura specializes in premium 100% human hair wigs, including lace fronts, closure wigs, and full lace options. We also offer high-quality heat-safe synthetic wigs and premium hair extensions specifically curated for the Ghanaian market.', 1, 1, '2026-02-17 04:58:17', '2026-02-17 04:58:17'),
+(14, 'Do you ship across Ghana?', 'Yes! We offer nationwide delivery including Accra, Kumasi, and Tema...', 2, 1, '2026-02-17 05:05:03', '2026-02-17 05:05:03');
 
 -- --------------------------------------------------------
 
@@ -334,7 +338,8 @@ INSERT INTO `media_library` (`id`, `file_name`, `original_name`, `file_path`, `f
 (74, 'IMG_0253-1771290057-a36826-1771302729.jpeg', 'IMG_0253-1771290057-a36826-1771302729.jpeg', 'uploads/products/IMG_0253-1771290057-a36826-1771302729.jpeg', 'products', 'image/jpeg', 'jpeg', 49944, NULL, 'synced', 1, '2026-02-17 04:32:09'),
 (75, 'IMG_0252-1771290057-e127d8-1771302729.webp', 'IMG_0252-1771290057-e127d8-1771302729.webp', 'uploads/products/IMG_0252-1771290057-e127d8-1771302729.webp', 'products', 'image/webp', 'webp', 41440, NULL, 'synced', 1, '2026-02-17 04:32:09'),
 (76, 'IMG_0260-1771290057-e1c76e-1771302729.webp', 'IMG_0260-1771290057-e1c76e-1771302729.webp', 'uploads/products/IMG_0260-1771290057-e1c76e-1771302729.webp', 'products', 'image/webp', 'webp', 71030, NULL, 'synced', 1, '2026-02-17 04:32:09'),
-(77, 'web-app-manifest-512x512.webp', '../../img/web-app-manifest-512x512.webp', 'uploads/avatars/../../img/web-app-manifest-512x512.webp', 'avatars', 'image/webp', 'webp', 6966, NULL, 'synced', 1, '2026-02-17 04:32:09');
+(77, 'web-app-manifest-512x512.webp', '../../img/web-app-manifest-512x512.webp', 'uploads/avatars/../../img/web-app-manifest-512x512.webp', 'avatars', 'image/webp', 'webp', 6966, NULL, 'synced', 1, '2026-02-17 04:32:09'),
+(78, 'web-app-manifest-512x512-1771309983.webp', 'web-app-manifest-512x512-1771309983.webp', 'uploads/avatars/web-app-manifest-512x512-1771309983.webp', 'avatars', 'image/webp', 'webp', 6966, NULL, 'synced', 1, '2026-02-17 06:33:03');
 
 -- --------------------------------------------------------
 
@@ -416,6 +421,13 @@ CREATE TABLE `orders` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `order_number`, `user_id`, `guest_email`, `guest_phone`, `status`, `payment_status`, `payment_method`, `payment_reference`, `subtotal`, `shipping_cost`, `tax_amount`, `discount_amount`, `total`, `currency`, `shipping_first_name`, `shipping_last_name`, `shipping_address`, `shipping_city`, `shipping_state`, `shipping_country`, `shipping_postal_code`, `shipping_phone`, `billing_same_as_shipping`, `notes`, `tracking_number`, `shipped_at`, `delivered_at`, `created_at`, `updated_at`) VALUES
+(1, 'HA-20260217-C4A0', 1, 'admin@hair-aura.debesties.com', '+233508007873', 'delivered', 'paid', 'momo', NULL, 499.99, 0.00, 0.00, 0.00, 499.99, 'GHS', 'Hair', 'Aura', 'avenue de l\'europe 11', 'Herstal', 'wallonie', 'Ghana', '4040', '+233508007873', 1, NULL, NULL, NULL, '2026-02-17 05:46:30', '2026-02-17 05:43:52', '2026-02-17 06:08:47');
+
 -- --------------------------------------------------------
 
 --
@@ -435,6 +447,15 @@ CREATE TABLE `order_items` (
   `total_price` decimal(10,2) NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `variant_id`, `product_name`, `variant_name`, `sku`, `quantity`, `unit_price`, `total_price`, `created_at`) VALUES
+(1, 1, 1, NULL, 'Brazilian Body Wave Lace Front Wig', NULL, 'BW-BODY-18', 1, 159.99, 159.99, '2026-02-17 05:43:52'),
+(2, 1, 2, NULL, 'Peruvian Straight Lace Front Wig', NULL, 'PW-STRAIGHT-20', 1, 165.00, 165.00, '2026-02-17 05:43:52'),
+(3, 1, 3, NULL, 'Deep Curly Human Hair Wig', NULL, 'BW-CURLY-22', 1, 175.00, 175.00, '2026-02-17 05:43:52');
 
 -- --------------------------------------------------------
 
@@ -483,9 +504,9 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `name`, `slug`, `description`, `short_description`, `price`, `sale_price`, `cost_price`, `sku`, `stock_quantity`, `stock_status`, `category_id`, `brand`, `hair_type`, `texture`, `length_inches`, `weight_grams`, `cap_size`, `lace_type`, `density`, `color`, `featured`, `bestseller`, `new_arrival`, `rating_avg`, `review_count`, `virtual_try_on`, `meta_title`, `meta_description`, `meta_keywords`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Brazilian Body Wave Lace Front Wig', 'brazilian-body-wave-lace-front', '<p>Experience the luxury of 100% Brazilian virgin hair with our Body Wave Lace Front Wig. This stunning wig features:</p>\r\n<ul>\r\n<li>100% unprocessed Brazilian human hair</li>\r\n<li>Natural body wave pattern</li>\r\n<li>13x4 HD transparent lace frontal</li>\r\n<li>Pre-plucked hairline with baby hairs</li>\r\n<li>180% density for full, voluminous look</li>\r\n<li>Can be dyed, bleached, and heat styled</li>\r\n<li>Natural black color (1B)</li>\r\n<li>Adjustable straps and combs for secure fit</li>\r\n</ul>\r\n<p>Perfect for everyday wear or special occasions. The body wave texture gives you that glamorous, red-carpet look while maintaining a natural appearance. Our HD lace melts into any skin tone for an undetectable finish.</p>\r\n<p><strong>Care Instructions:</strong> Wash with sulfate-free shampoo, condition regularly, and air dry for best results. Use heat protectant when styling.</p>', '100% Brazilian virgin hair body wave wig with HD lace frontal. 180% density, pre-plucked hairline.', 185.00, 159.99, NULL, 'BW-BODY-18', 25, 'in_stock', 1, 'Hair Aura', 'human_hair', 'body_wave', 18, 250, 'medium', 'hd_lace', '180%', '1B Natural Black', 1, 1, 0, 0.0, 0, 0, 'Brazilian Body Wave Wig Ghana | HD Lace Front', 'Buy Brazilian body wave lace front wig in Ghana. 100% virgin hair, HD lace, 180% density. Free delivery in Accra.', '', 1, '2026-02-11 20:33:35', '2026-02-17 01:29:12'),
-(2, 'Peruvian Straight Lace Front Wig', 'peruvian-straight-lace-front', '<p>Achieve sleek, sophisticated style with our Peruvian Straight Lace Front Wig. Features include:</p>\r\n<ul>\r\n<li>100% Peruvian virgin human hair</li>\r\n<li>Silky straight texture</li>\r\n<li>13x6 deep part lace frontal</li>\r\n<li>Pre-plucked with natural baby hairs</li>\r\n<li>150% density</li>\r\n<li>Tangle-free and minimal shedding</li>\r\n<li>Can be flat ironed and curled</li>\r\n<li>Medium cap size with adjustable bands</li>\r\n</ul>\r\n<p>The Peruvian straight texture is known for its softness and natural shine. This wig is perfect for professional settings or when you want a polished, elegant look.</p>', 'Sleek Peruvian straight wig with 13x6 deep part lace. Silky, soft, and tangle-free.', 165.00, NULL, NULL, 'PW-STRAIGHT-20', 18, 'in_stock', 1, 'Hair Aura', 'human_hair', 'straight', 20, 280, 'medium', 'transparent_lace', '150%', '1B Natural Black', 1, 0, 1, 0.0, 0, 0, 'Peruvian Straight Wig Ghana | Deep Part Lace', 'Shop Peruvian straight lace front wig in Ghana. 13x6 deep part, silky texture. Premium quality hair.', NULL, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35'),
-(3, 'Deep Curly Human Hair Wig', 'deep-curly-human-hair-wig', '<p>Embrace your curls with our gorgeous Deep Curly Human Hair Wig:</p>\r\n<ul>\r\n<li>100% Brazilian virgin hair</li>\r\n<li>Deep curly/water wave pattern</li>\r\n<li>4x4 lace closure</li>\r\n<li>200% density for maximum volume</li>\r\n<li>Bleached knots for natural scalp appearance</li>\r\n<li>Can be straightened and will return to curl</li>\r\n<li>Free parting for versatile styling</li>\r\n</ul>\r\n<p>This wig is perfect for those who love big, beautiful curls. The deep curly pattern gives you that tropical, beach-ready look all year round.</p>', 'Voluminous deep curly wig with 4x4 lace closure. 200% density for maximum curl definition.', 195.00, 175.00, NULL, 'BW-CURLY-22', 15, 'in_stock', 1, 'Hair Aura', 'human_hair', 'deep_curly', 22, 320, 'medium', 'lace_closure', '200%', '1B Natural Black', 1, 1, 0, 0.0, 0, 0, 'Deep Curly Wig Ghana | 200% Density', 'Buy deep curly human hair wig in Ghana. 200% density, 4x4 closure. Big, beautiful curls.', NULL, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35'),
+(1, 'Brazilian Body Wave Lace Front Wig', 'brazilian-body-wave-lace-front', '<p>Experience the luxury of 100% Brazilian virgin hair with our Body Wave Lace Front Wig. This stunning wig features:</p>\r\n<ul>\r\n<li>100% unprocessed Brazilian human hair</li>\r\n<li>Natural body wave pattern</li>\r\n<li>13x4 HD transparent lace frontal</li>\r\n<li>Pre-plucked hairline with baby hairs</li>\r\n<li>180% density for full, voluminous look</li>\r\n<li>Can be dyed, bleached, and heat styled</li>\r\n<li>Natural black color (1B)</li>\r\n<li>Adjustable straps and combs for secure fit</li>\r\n</ul>\r\n<p>Perfect for everyday wear or special occasions. The body wave texture gives you that glamorous, red-carpet look while maintaining a natural appearance. Our HD lace melts into any skin tone for an undetectable finish.</p>\r\n<p><strong>Care Instructions:</strong> Wash with sulfate-free shampoo, condition regularly, and air dry for best results. Use heat protectant when styling.</p>', '100% Brazilian virgin hair body wave wig with HD lace frontal. 180% density, pre-plucked hairline.', 185.00, 159.99, NULL, 'BW-BODY-18', 24, 'in_stock', 1, 'Hair Aura', 'human_hair', 'body_wave', 18, 250, 'medium', 'hd_lace', '180%', '1B Natural Black', 1, 1, 0, 0.0, 0, 0, 'Brazilian Body Wave Wig Ghana | HD Lace Front', 'Buy Brazilian body wave lace front wig in Ghana. 100% virgin hair, HD lace, 180% density. Free delivery in Accra.', '', 1, '2026-02-11 20:33:35', '2026-02-17 05:43:52'),
+(2, 'Peruvian Straight Lace Front Wig', 'peruvian-straight-lace-front', '<p>Achieve sleek, sophisticated style with our Peruvian Straight Lace Front Wig. Features include:</p>\r\n<ul>\r\n<li>100% Peruvian virgin human hair</li>\r\n<li>Silky straight texture</li>\r\n<li>13x6 deep part lace frontal</li>\r\n<li>Pre-plucked with natural baby hairs</li>\r\n<li>150% density</li>\r\n<li>Tangle-free and minimal shedding</li>\r\n<li>Can be flat ironed and curled</li>\r\n<li>Medium cap size with adjustable bands</li>\r\n</ul>\r\n<p>The Peruvian straight texture is known for its softness and natural shine. This wig is perfect for professional settings or when you want a polished, elegant look.</p>', 'Sleek Peruvian straight wig with 13x6 deep part lace. Silky, soft, and tangle-free.', 165.00, NULL, NULL, 'PW-STRAIGHT-20', 17, 'in_stock', 1, 'Hair Aura', 'human_hair', 'straight', 20, 280, 'medium', 'transparent_lace', '150%', '1B Natural Black', 1, 0, 1, 0.0, 0, 0, 'Peruvian Straight Wig Ghana | Deep Part Lace', 'Shop Peruvian straight lace front wig in Ghana. 13x6 deep part, silky texture. Premium quality hair.', NULL, 1, '2026-02-11 20:33:35', '2026-02-17 05:43:52'),
+(3, 'Deep Curly Human Hair Wig', 'deep-curly-human-hair-wig', '<p>Embrace your curls with our gorgeous Deep Curly Human Hair Wig:</p>\r\n<ul>\r\n<li>100% Brazilian virgin hair</li>\r\n<li>Deep curly/water wave pattern</li>\r\n<li>4x4 lace closure</li>\r\n<li>200% density for maximum volume</li>\r\n<li>Bleached knots for natural scalp appearance</li>\r\n<li>Can be straightened and will return to curl</li>\r\n<li>Free parting for versatile styling</li>\r\n</ul>\r\n<p>This wig is perfect for those who love big, beautiful curls. The deep curly pattern gives you that tropical, beach-ready look all year round.</p>', 'Voluminous deep curly wig with 4x4 lace closure. 200% density for maximum curl definition.', 195.00, 175.00, NULL, 'BW-CURLY-22', 14, 'in_stock', 1, 'Hair Aura', 'human_hair', 'deep_curly', 22, 320, 'medium', 'lace_closure', '200%', '1B Natural Black', 1, 1, 0, 0.0, 0, 0, 'Deep Curly Wig Ghana | 200% Density', 'Buy deep curly human hair wig in Ghana. 200% density, 4x4 closure. Big, beautiful curls.', NULL, 1, '2026-02-11 20:33:35', '2026-02-17 05:43:52'),
 (4, 'Kinky Straight Lace Wig', 'kinky-straight-lace-wig', '<p>Get that blown-out natural look with our Kinky Straight Lace Wig:</p>\r\n<ul>\r\n<li>100% human hair with kinky straight texture</li>\r\n<li>Mimics natural Afro hair when blow-dried</li>\r\n<li>13x4 lace frontal</li>\r\n<li>180% density</li>\r\n<li>Pre-plucked hairline</li>\r\n<li>Can be curled for versatile styling</li>\r\n</ul>\r\n<p>Perfect for those who want a natural, textured look that blends seamlessly with African hair types.</p>', 'Natural kinky straight texture wig. Mimics blown-out Afro hair. 13x4 lace frontal.', 175.00, NULL, NULL, 'BW-KINKY-16', 20, 'in_stock', 1, 'Hair Aura', 'human_hair', 'kinky_straight', 16, 240, 'medium', 'hd_lace', '180%', '1B Natural Black', 0, 1, 0, 0.0, 0, 0, 'Kinky Straight Wig Ghana | Natural Texture', 'Shop kinky straight lace wig in Ghana. Natural blown-out look. Perfect for African hair texture.', NULL, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35'),
 (5, 'Blonde Highlight Body Wave Wig', 'blonde-highlight-body-wave', '<p>Make a statement with our Blonde Highlight Body Wave Wig:</p>\r\n<ul>\r\n<li>100% Brazilian human hair</li>\r\n<li>Beautiful blonde highlights on brown base</li>\r\n<li>13x4 lace frontal</li>\r\n<li>150% density</li>\r\n<li>Pre-colored, ready to wear</li>\r\n<li>Can be restyled with heat tools</li>\r\n</ul>\r\n<p>This stunning highlighted wig is perfect for those who want to experiment with color without damaging their natural hair.</p>', 'Stunning blonde highlight wig with body wave texture. Pre-colored and ready to wear.', 210.00, 189.99, NULL, 'BW-HIGHLIGHT-18', 12, 'in_stock', 1, 'Hair Aura', 'human_hair', 'body_wave', 18, 260, 'medium', 'transparent_lace', '150%', 'P4/27 Highlight', 1, 0, 1, 0.0, 0, 0, 'Blonde Highlight Wig Ghana | Colored Hair', 'Buy blonde highlight body wave wig in Ghana. Pre-colored, no damage to natural hair.', NULL, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35'),
 (6, 'HD Transparent Lace Frontal Wig', 'hd-transparent-lace-frontal', '<p>The ultimate in undetectable wigs - our HD Transparent Lace Frontal:</p>\r\n<ul>\r\n<li>HD lace that melts into any skin tone</li>\r\n<li>100% virgin human hair</li>\r\n<li>13x6 frontal for deep parting</li>\r\n<li>200% density</li>\r\n<li>Invisible knots</li>\r\n<li>Can be parted anywhere</li>\r\n</ul>\r\n<p>Our HD lace is the most advanced lace technology, virtually invisible on all skin tones.</p>', 'HD transparent lace wig that melts into any skin tone. 13x6 frontal, 200% density.', 1800.00, 219.99, NULL, 'HD-FRONTAL-20', 10, 'in_stock', 2, 'Hair Aura', 'human_hair', 'straight', 20, 300, 'medium', 'hd_lace', '200%', '1B Natural Black', 1, 0, 1, 0.0, 0, 0, 'HD Lace Wig Ghana | Transparent Lace', 'Shop HD transparent lace frontal wig in Ghana. Melts into any skin tone. Undetectable lace.', '', 1, '2026-02-11 20:33:35', '2026-02-17 01:20:29'),
@@ -655,6 +676,7 @@ CREATE TABLE `users` (
   `avatar` varchar(255) DEFAULT NULL,
   `role` enum('customer','admin') DEFAULT 'customer',
   `is_active` tinyint(1) DEFAULT 1,
+  `is_banned` tinyint(1) DEFAULT 0,
   `email_verified` tinyint(1) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -667,12 +689,12 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `phone`, `avatar`, `role`, `is_active`, `email_verified`, `created_at`, `updated_at`, `last_login`, `remember_token`, `remember_expires`) VALUES
-(1, 'admin@hair-aura.debesties.com', '$2y$10$9hrn/d49Ei2OmTgSilnPPu7DoDi2qfyapg9A3/PY7LlaqCiQQmzHq', 'Hair', 'Aura', '+233508007873', '../../img/web-app-manifest-512x512.webp', 'admin', 1, 1, '2026-02-11 20:33:35', '2026-02-17 04:32:09', '2026-02-17 04:15:30', NULL, NULL),
-(2, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
-(3, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
-(4, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
-(5, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', NULL, 'customer', 1, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL);
+INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `phone`, `avatar`, `role`, `is_active`, `is_banned`, `email_verified`, `created_at`, `updated_at`, `last_login`, `remember_token`, `remember_expires`) VALUES
+(1, 'admin@hair-aura.debesties.com', '$2y$10$9hrn/d49Ei2OmTgSilnPPu7DoDi2qfyapg9A3/PY7LlaqCiQQmzHq', 'Hair', 'Aura', '+233508007873', 'web-app-manifest-512x512-1771309983.webp', 'admin', 1, 0, 1, '2026-02-11 20:33:35', '2026-02-17 06:33:03', '2026-02-17 06:19:38', NULL, NULL),
+(2, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Ama', 'Owusu', '+233241234567', NULL, 'customer', 1, 0, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
+(3, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Kwasi', 'Mensah', '+233551234567', NULL, 'customer', 1, 0, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
+(4, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Abena', 'Darko', '+233201234568', NULL, 'customer', 1, 0, 1, '2026-02-11 20:33:35', '2026-02-11 20:33:35', NULL, NULL, NULL),
+(5, NULL, '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Yaa', 'Asantewaa', '+233501234567', NULL, 'customer', 0, 1, 1, '2026-02-11 20:33:35', '2026-02-17 05:37:10', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -697,6 +719,13 @@ CREATE TABLE `user_addresses` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_addresses`
+--
+
+INSERT INTO `user_addresses` (`id`, `user_id`, `label`, `first_name`, `last_name`, `phone`, `address_line1`, `address_line2`, `city`, `state`, `country`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Shipping', 'Hair', 'Aura', '+233508007873', 'avenue de l\'europe 11', '', 'Herstal', 'wallonie', 'Ghana', '4040', 1, '2026-02-17 05:43:52', '2026-02-17 05:43:52');
 
 -- --------------------------------------------------------
 
@@ -919,7 +948,7 @@ ALTER TABLE `wishlists`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `blog_posts`
@@ -931,7 +960,7 @@ ALTER TABLE `blog_posts`
 -- AUTO_INCREMENT for table `cart_items`
 --
 ALTER TABLE `cart_items`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -955,13 +984,13 @@ ALTER TABLE `coupons`
 -- AUTO_INCREMENT for table `faqs`
 --
 ALTER TABLE `faqs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `media_library`
 --
 ALTER TABLE `media_library`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=78;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- AUTO_INCREMENT for table `newsletter_subscribers`
@@ -979,13 +1008,13 @@ ALTER TABLE `notes`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -1033,7 +1062,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_addresses`
 --
 ALTER TABLE `user_addresses`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `wishlists`

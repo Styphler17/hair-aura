@@ -567,7 +567,7 @@ class HomeController extends Controller
         $products = $db->fetchAll("SELECT slug, updated_at FROM products WHERE is_active = 1");
         
         // Get all categories
-        $categories = $db->fetchAll("SELECT slug, updated_at FROM categories WHERE is_active = 1");
+        $categories = $db->fetchAll("SELECT slug, created_at as updated_at FROM categories WHERE is_active = 1");
         
         // Get all blog posts
         $posts = $db->fetchAll("SELECT slug, updated_at FROM blog_posts WHERE is_published = 1");

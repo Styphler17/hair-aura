@@ -224,6 +224,7 @@ $router->get('/care-guide', ['HomeController', 'careGuide']);
 $router->get('/size-guide', ['HomeController', 'sizeGuide']);
 $router->get('/privacy', ['HomeController', 'privacy']);
 $router->get('/terms', ['HomeController', 'terms']);
+$router->get('/sitemap', ['HomeController', 'sitemap']);
 $router->get('/sitemap.xml', ['HomeController', 'sitemap']);
 $router->get('/robots.txt', ['HomeController', 'robots']);
 
@@ -425,6 +426,15 @@ try {
     }
     
     // Dispatch the request
+    if ($uri === '/sitemap.xml' || $uri === '/sitemap') {
+        (new \App\Controllers\HomeController())->sitemap();
+        exit;
+    }
+    if ($uri === '/robots.txt') {
+        (new \App\Controllers\HomeController())->robots();
+        exit;
+    }
+
     $router->dispatch($uri, $method);
     
 } catch (Exception $e) {
