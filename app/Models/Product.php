@@ -154,7 +154,7 @@ class Product extends Model
             return '/uploads/products/' . $image['image_path'];
         }
         
-        return '/img/product-placeholder.png';
+        return '/img/product-placeholder.webp';
     }
     
     /**

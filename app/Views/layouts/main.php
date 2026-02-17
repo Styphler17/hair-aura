@@ -13,6 +13,7 @@
     $mainJsVersion = is_file($publicRoot . '/js/main.js') ? (string) filemtime($publicRoot . '/js/main.js') : (string) time();
     $passwordJsVersion = is_file($publicRoot . '/js/password-toggle.js') ? (string) filemtime($publicRoot . '/js/password-toggle.js') : (string) time();
 
+    // Resolve public asset helper
     $resolvePublicAsset = static function (array $candidates) use ($publicRoot): string {
         foreach ($candidates as $candidate) {
             $path = '/' . ltrim((string) $candidate, '/');
@@ -20,8 +21,8 @@
                 return $path;
             }
         }
-
-        return '/' . ltrim((string) ($candidates[0] ?? '/img/logo.png'), '/');
+        // Fallback to the first candidate if none exist, so at least we have a path
+        return '/' . ltrim((string) ($candidates[0] ?? 'img/logo.png'), '/');
     };
 
     $canonicalRaw = (string) ($seo['canonical'] ?? '/');
@@ -29,14 +30,28 @@
         ? $canonicalRaw
         : $siteBaseUrl . '/' . ltrim($canonicalRaw, '/');
 
-    $faviconIco = $resolvePublicAsset(['/img/favicon.ico', '/favicon.ico']);
-    $faviconSvg = $resolvePublicAsset(['/img/favicon.svg', '/favicon.svg']);
-    $faviconPng96 = $resolvePublicAsset(['/img/favicon-96x96.png', '/favicon-96x96.png']);
-    $appleTouchIcon = $resolvePublicAsset(['/img/apple-touch-icon.png', '/apple-touch-icon.png']);
-    $webManifest = $resolvePublicAsset(['/img/site.webmanifest', '/site.webmanifest']);
-    $defaultOgImage = $resolvePublicAsset(['/img/og-image.png', '/img/og-image.jpg', '/img/logo.jpg', '/img/logo.png', '/img/hero-1.jpg']);
+    $faviconIco = $resolvePublicAsset(['/img/favicon.webp']);
+    // SVG is scalable and good for modern browsers, keeping it or preferring webp if available
+    $faviconSvg = $resolvePublicAsset(['/img/favicon.svg']); 
+    $faviconPng96 = $resolvePublicAsset(['/img/favicon-96x96.webp']);
+    $appleTouchIcon = $resolvePublicAsset(['/img/apple-touch-icon.webp']);
+    $webManifest = $resolvePublicAsset(['/img/site.webmanifest']);
 
-    $ogImageRaw = (string) ($seo['og_image'] ?? $defaultOgImage);
+    // Define preferred default images in order (WebP only)
+    $defaultImages = [
+        '/img/og-image.webp',
+        '/img/logo.webp',
+        '/img/hero-1.webp'
+    ];
+
+    // Determine the raw image path
+    if (!empty($seo['og_image'])) {
+        $ogImageRaw = $seo['og_image'];
+    } else {
+        $ogImageRaw = $resolvePublicAsset($defaultImages);
+    }
+
+    // Ensure it's a full URL
     $ogImageUrl = preg_match('#^https?://#i', $ogImageRaw)
         ? $ogImageRaw
         : $siteBaseUrl . '/' . ltrim($ogImageRaw, '/');

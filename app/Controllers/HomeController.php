@@ -48,7 +48,7 @@ class HomeController extends Controller
             'description' => 'Shop premium human hair wigs, lace fronts, synthetic wigs & hair extensions in Ghana. Unlock your aura with perfect wigs. Free delivery in Accra.',
             'keywords' => 'wigs Ghana, human hair wigs, lace front wigs, synthetic wigs, hair extensions, Brazilian hair, Peruvian hair',
             'canonical' => '/',
-            'og_image' => '/img/og-image.png'
+            'og_image' => '/img/og-image.webp'
         ];
         
         $this->render('pages/home', [

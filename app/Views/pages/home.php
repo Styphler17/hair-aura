@@ -3,7 +3,7 @@
     <div class="swiper hero-swiper">
         <div class="swiper-wrapper">
             <!-- Slide 1 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-1.jpg');">
+            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-1.webp');">
                 <div class="hero-overlay"></div>
                 <div class="container">
                     <div class="hero-content">
@@ -19,7 +19,7 @@
             </div>
             
             <!-- Slide 2 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-2.jpeg');">
+            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-2.webp');">
                 <div class="hero-overlay"></div>
                 <div class="container">
                     <div class="hero-content">
@@ -34,7 +34,7 @@
             </div>
             
             <!-- Slide 3 -->
-            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-3.jpeg');">
+            <div class="swiper-slide hero-slide" style="background-image: url('/img/hero-3.webp');">
                 <div class="hero-overlay"></div>
                 <div class="container">
                     <div class="hero-content">
@@ -124,10 +124,10 @@
             }
 
             if ($slug !== '') {
-                return asset('/img/categories/' . $slug . '.jpg');
+                return asset('/img/categories/' . $slug . '.webp');
             }
 
-            return asset('/img/product-placeholder.png');
+            return asset('/img/product-placeholder.webp');
         };
         ?>
 
@@ -139,7 +139,7 @@
                         <img src="<?= htmlspecialchars($resolveCategoryImage((array) $category)) ?>" 
                              alt="<?= htmlspecialchars($category['name']) ?>" 
                              loading="lazy"
-                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                         <div class="category-overlay"></div>
                     </div>
                     <div class="category-content">
@@ -168,7 +168,7 @@
                 <div class="product-card" data-product-id="<?= $product['id'] ?>">
                     <div class="product-image">
                         <a href="/product/<?= htmlspecialchars($product['slug']) ?>">
-                            <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.png' ?>" 
+                            <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.webp' ?>" 
                                  alt="<?= htmlspecialchars($product['name']) ?>" 
                                  loading="lazy">
                         </a>
@@ -244,7 +244,7 @@
                             <div class="product-card">
                                 <div class="product-image">
                                     <a href="/product/<?= htmlspecialchars($product['slug']) ?>">
-                                        <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.png' ?>" 
+                                        <img src="<?= $product['primary_image'] ? '/uploads/products/' . htmlspecialchars($product['primary_image']) : '/img/product-placeholder.webp' ?>" 
                                              alt="<?= htmlspecialchars($product['name']) ?>" 
                                              loading="lazy">
                                     </a>

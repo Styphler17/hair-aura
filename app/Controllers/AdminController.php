@@ -296,27 +296,52 @@ class AdminController extends Controller
      */
     private function uploadProductImages(int $productId): void
     {
-        $uploadDir = __DIR__ . '/../../public/uploads/products/';
-        
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        $files = $_FILES['images'];
+        if (!isset($files['name'][0])) {
+            return;
         }
+
+        $count = count($files['name']);
         
-        foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-            if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-                $filename = uniqid() . '_' . $_FILES['images']['name'][$key];
-                $filepath = $uploadDir . $filename;
-                
-                if (move_uploaded_file($tmpName, $filepath)) {
-                    $db = Database::getInstance();
-                    $db->insert('product_images', [
-                        'product_id' => $productId,
-                        'image_path' => $filename,
-                        'alt_text' => $_FILES['images']['name'][$key],
-                        'is_primary' => $key === 0 ? 1 : 0,
-                        'sort_order' => $key
-                    ]);
-                }
+        for ($i = 0; $i < $count; $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            // Construct single file array for ImageManager
+            $file = [
+                'name' => $files['name'][$i],
+                'type' => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error' => $files['error'][$i],
+                'size' => $files['size'][$i]
+            ];
+
+            // Use ImageManager to upload and convert
+            // Prefix filename to ensure uniqueness
+            $filename = \App\Core\ImageManager::upload($file, 'uploads/products/', null);
+
+            if ($filename) {
+                // Determine sort order
+                $db = Database::getInstance();
+                $sort = (int) $db->fetchColumn(
+                    "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM product_images WHERE product_id = :pid", 
+                    ['pid' => $productId]
+                );
+
+                // Determine if primary (first image uploaded for this product?)
+                $hasPrimary = (int) $db->fetchColumn(
+                    "SELECT COUNT(*) FROM product_images WHERE product_id = :pid AND is_primary = 1",
+                    ['pid' => $productId]
+                );
+
+                $db->insert('product_images', [
+                    'product_id' => $productId,
+                    'image_path' => $filename, // Now a .webp file usually
+                    'alt_text' => pathinfo($files['name'][$i], PATHINFO_FILENAME),
+                    'is_primary' => ($hasPrimary === 0 && $i === 0) ? 1 : 0,
+                    'sort_order' => $sort
+                ]);
             }
         }
     }
@@ -805,40 +830,13 @@ class AdminController extends Controller
         }
 
         $file = $_FILES[$inputName];
-        $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
-        if ($error === UPLOAD_ERR_NO_FILE) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
             return null;
         }
 
-        if ($error !== UPLOAD_ERR_OK) {
-            return null;
-        }
-
-        $tmp = (string) ($file['tmp_name'] ?? '');
-        $original = (string) ($file['name'] ?? '');
-        if ($tmp === '' || $original === '') {
-            return null;
-        }
-
-        $extension = strtolower(pathinfo($original, PATHINFO_EXTENSION));
-        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-        if (!in_array($extension, $allowed, true)) {
-            return null;
-        }
-
-        $uploadDir = __DIR__ . '/../../public/uploads/categories/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $filename = uniqid('cat_', true) . '.' . $extension;
-        $target = $uploadDir . $filename;
-
-        if (!move_uploaded_file($tmp, $target)) {
-            return null;
-        }
-
-        return $filename;
+        // Use ImageManager to upload and convert
+        // Prefix with 'cat_'
+        return \App\Core\ImageManager::upload($file, 'uploads/categories/', 'cat_');
     }
 
     private function deleteCategoryImageFile(string $image): void

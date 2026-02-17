@@ -245,7 +245,7 @@ class ProductController extends Controller
                 'name' => $p['name'],
                 'slug' => $p['slug'],
                 'price' => $p['sale_price'] ?: $p['price'],
-                'image' => $p['primary_image'] ? '/uploads/products/' . $p['primary_image'] : '/img/product-placeholder.png',
+                'image' => $p['primary_image'] ? '/uploads/products/' . $p['primary_image'] : '/img/product-placeholder.webp',
                 'category' => $p['category_name']
             ];
         }, $result['data']);

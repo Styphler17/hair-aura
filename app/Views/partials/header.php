@@ -36,7 +36,7 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
         <nav class="navbar navbar-expand-lg">
             <!-- Logo -->
             <a class="navbar-brand" href="<?= url('/') ?>">
-                <img src="<?= asset('/img/logo.png') ?>" alt="Hair Aura" class="brand-logo-img">
+                <img src="<?= asset('/img/logo.webp') ?>" alt="Hair Aura" class="brand-logo-img">
             </a>
 
             <!-- Mobile Toggle -->
