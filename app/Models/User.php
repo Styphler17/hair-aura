@@ -209,6 +209,9 @@ class User extends Model
     public function getAvatarUrl(): string
     {
         if ($this->avatar) {
+            if (str_contains($this->avatar, '/')) {
+                return '/' . ltrim($this->avatar, '/');
+            }
             return '/uploads/avatars/' . $this->avatar;
         }
         return '/img/default-avatar.svg';

@@ -393,9 +393,11 @@ class AdminManagementController extends Controller
     public function settings(): void
     {
         $content = $this->loadSiteContent();
+        $mediaImages = $this->getMediaImageOptions(Database::getInstance());
 
         $this->render('admin/settings', [
-            'settings' => $content['site']
+            'settings' => $content['site'],
+            'mediaImages' => $mediaImages
         ], 'layouts/admin');
     }
 
@@ -411,6 +413,29 @@ class AdminManagementController extends Controller
         $content['site']['tagline'] = trim((string) $this->post('tagline', $content['site']['tagline']));
         $content['site']['meta_description'] = trim((string) $this->post('meta_description', $content['site']['meta_description']));
         $content['site']['meta_keywords'] = trim((string) $this->post('meta_keywords', $content['site']['meta_keywords']));
+
+        // Handle Logo Upload or Library Selection
+        $uploaded = false;
+        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+            $success = \App\Core\ImageManager::replace($_FILES['logo'], 'img/logo.webp');
+            if (!$success) {
+                $this->flash('error', 'Failed to update logo. Please try a different image.');
+                $this->redirect('/admin/settings');
+            }
+            $content['site']['logo'] = '/img/logo.webp';
+            $uploaded = true;
+        }
+
+        if (!$uploaded) {
+            $libraryLogo = trim((string) $this->post('library_logo', ''));
+            if ($libraryLogo !== '') {
+                $cleanPath = ltrim(str_replace('\\', '/', $libraryLogo), '/');
+                if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
+                    $content['site']['logo'] = '/' . $cleanPath;
+                }
+            }
+        }
+
         $colorInputs = [
             'theme_primary' => '#D4A574',
             'theme_primary_dark' => '#B8935F',
@@ -803,6 +828,115 @@ class AdminManagementController extends Controller
         $this->redirect('/admin/media');
     }
 
+    public function renameMedia(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/media');
+        }
+
+        $id = (int) $this->post('id');
+        $newName = trim((string) $this->post('new_name'));
+
+        // Basic validation
+        if ($id <= 0 || $newName === '' || preg_match('/[^a-z0-9\.\-_]/i', $newName)) {
+            $this->flash('error', 'Invalid filename. Use alphanumeric, dash, underscore, and dot.');
+            $this->redirect('/admin/media');
+        }
+
+        $db = Database::getInstance();
+        $media = $db->fetchOne("SELECT * FROM media_library WHERE id = :id LIMIT 1", ['id' => $id]);
+        if (!$media) {
+            $this->flash('error', 'Media file not found');
+            $this->redirect('/admin/media');
+        }
+
+        $oldName = $media['file_name'];
+        if ($oldName === $newName) {
+            $this->flash('info', 'Name unchanged');
+            $this->redirect('/admin/media');
+        }
+        
+        // Ensure extension matches
+        $oldExt = pathinfo($oldName, PATHINFO_EXTENSION);
+        $newExt = pathinfo($newName, PATHINFO_EXTENSION);
+        if (strtolower($oldExt) !== strtolower($newExt)) {
+             $newName = preg_replace('/\.' . preg_quote($newExt, '/') . '$/', '', $newName) . '.' . $oldExt;
+        }
+
+        $folder = $media['folder']; 
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        $oldRelPath = $media['file_path'];
+        $oldAbsPath = $publicRoot . $oldRelPath;
+        
+        $dir = dirname($oldRelPath); 
+        $newRelPath = ($dir === '.' ? '' : $dir . '/') . $newName;
+        $newAbsPath = $publicRoot . $newRelPath;
+        
+        // Normalize slashes
+        $newRelPath = str_replace('\\', '/', $newRelPath);
+
+        if (!is_file($oldAbsPath)) {
+            $this->flash('error', 'File does not exist on disk');
+            $this->redirect('/admin/media');
+        }
+
+        if (file_exists($newAbsPath)) {
+            $this->flash('error', 'Destination file already exists');
+            $this->redirect('/admin/media');
+        }
+
+        if (rename($oldAbsPath, $newAbsPath)) {
+            // Update media_library
+            $db->update('media_library', [
+                'file_name' => $newName,
+                'file_path' => $newRelPath
+            ], 'id = :id', ['id' => $id]);
+
+            // references
+            
+            // 1. Direct filename match (files conceptually inside products folder)
+            if ($folder === 'products' || str_contains($oldRelPath, 'products/')) {
+                $db->query(
+                    "UPDATE product_images SET image_path = :new_name WHERE image_path = :old_name",
+                    ['new_name' => $newName, 'old_name' => $oldName]
+                );
+            }
+
+            // 2. Relative path match (files referenced via ../ or similar)
+            // Replace '/oldNAME' with '/newNAME' to avoid partial matches on prefixes
+            $db->query(
+                "UPDATE product_images SET image_path = REPLACE(image_path, :old_suffix, :new_suffix) WHERE image_path LIKE :pattern",
+                [
+                    'old_suffix' => '/' . $oldName, 
+                    'new_suffix' => '/' . $newName,
+                    'pattern' => '%/' . $oldName
+                ]
+            );
+
+            $db->query(
+                "UPDATE categories SET image = REPLACE(image, :old_path, :new_path)",
+                ['old_path' => $oldRelPath, 'new_path' => $newRelPath]
+            );
+            $db->query(
+                "UPDATE categories SET image = :new_name WHERE image = :old_name",
+                ['new_name' => $newName, 'old_name' => $oldName]
+            );
+
+            $db->query(
+                "UPDATE blog_posts SET featured_image = REPLACE(featured_image, :old_path, :new_path)",
+                ['old_path' => $oldRelPath, 'new_path' => $newRelPath]
+            );
+
+            $this->flash('success', 'File renamed to ' . htmlspecialchars($newName));
+        } else {
+            $this->flash('error', 'Failed to rename file');
+        }
+
+        $this->redirect('/admin/media');
+    }
+
     public function deleteMedia(int $id): void
     {
         if (!$this->validateCsrf()) {
@@ -952,8 +1086,10 @@ class AdminManagementController extends Controller
 
     public function profile(): void
     {
+        $mediaImages = $this->getMediaImageOptions(Database::getInstance());
         $this->render('admin/profile', [
-            'adminUser' => $this->user
+            'adminUser' => $this->user,
+            'mediaImages' => $mediaImages
         ], 'layouts/admin');
     }
 
@@ -1001,6 +1137,13 @@ class AdminManagementController extends Controller
         }
 
         $avatarFilename = $this->uploadAvatar('avatar', (string) ($this->user->avatar ?? ''));
+
+        if ($avatarFilename === null) {
+            $libraryAvatar = trim((string) $this->post('library_avatar', ''));
+            if ($libraryAvatar !== '') {
+               $avatarFilename = ltrim(str_replace('\\', '/', $libraryAvatar), '/');
+            }
+        }
 
         $profileData = [
             'first_name' => $firstName,
@@ -1076,6 +1219,7 @@ class AdminManagementController extends Controller
             'site' => [
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
+                'logo' => '/img/logo.webp',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
                 'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
                 'theme_primary' => '#D4A574',
@@ -1199,6 +1343,67 @@ class AdminManagementController extends Controller
         }
     }
 
+    private function resolveMediaPathToFolder(string $rawPath, string $targetFolder): ?string
+    {
+        $value = trim($rawPath);
+        if ($value === '' || preg_match('#^https?://#i', $value)) {
+            return null;
+        }
+
+        $clean = ltrim(str_replace('\\', '/', $value), '/');
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        // 1. If file exists at exact path (e.g. 'uploads/media/file.webp'), link to it relatively
+        if (is_file($publicRoot . $clean)) {
+            $folder = trim($targetFolder, '/\\');
+            $targetPrefix = 'uploads/' . $folder . '/';
+            
+            // If strictly inside target folder, return basename
+            if (str_starts_with($clean, $targetPrefix)) {
+                return substr($clean, strlen($targetPrefix));
+            }
+            
+            // Calculate relative path from target folder
+            // From 'uploads/products/' (or 'uploads/blog/') to root is '../../'
+            if (str_starts_with($clean, 'uploads/')) {
+                // e.g. 'uploads/media/foo.webp' -> '../media/foo.webp'
+                return '../' . substr($clean, 8); 
+            }
+            
+            return '../../' . $clean;
+        }
+
+        // 2. Fallback: Copy logic (for legacy inputs or bare filenames)
+        $basename = basename($clean);
+        if ($basename === '') {
+            return null;
+        }
+
+        $folder = trim($targetFolder, '/\\');
+        $targetDir = $publicRoot . 'uploads/' . $folder . '/';
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $sourceCandidates = [
+            $publicRoot . 'uploads/media/' . $basename,
+            $publicRoot . 'img/' . $basename,
+            $publicRoot . $clean
+        ];
+
+        foreach ($sourceCandidates as $source) {
+            if (is_file($source)) {
+                $ext = pathinfo($basename, PATHINFO_EXTENSION);
+                $newFilename = pathinfo($basename, PATHINFO_FILENAME) . '-' . time() . '.' . $ext;
+                if (copy($source, $targetDir . $newFilename)) {
+                    return $newFilename;
+                }
+            }
+        }
+
+        return null; // File not found in library
+    }
+
     private function sanitizeMediaFolder(string $folder): string
     {
         $normalized = strtolower(trim($folder));
@@ -1295,49 +1500,7 @@ class AdminManagementController extends Controller
         return true;
     }
 
-    private function resolveMediaPathToFolder(string $rawPath, string $targetFolder): ?string
-    {
-        $value = trim($rawPath);
-        if ($value === '' || preg_match('#^https?://#i', $value)) {
-            return null;
-        }
 
-        $clean = ltrim(str_replace('\\', '/', $value), '/');
-        $basename = basename($clean);
-        if ($basename === '') {
-            return null;
-        }
-
-        $folder = $this->sanitizeMediaFolder($targetFolder);
-        $targetDir = __DIR__ . '/../../public/uploads/' . $folder . '/';
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
-        }
-
-        $sourceCandidates = [
-            __DIR__ . '/../../public/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $basename,
-            __DIR__ . '/../../public/uploads/' . $folder . '/' . $basename
-        ];
-
-        $sourcePath = null;
-        foreach ($sourceCandidates as $candidate) {
-            if (is_file($candidate)) {
-                $sourcePath = $candidate;
-                break;
-            }
-        }
-
-        $targetPath = $targetDir . $basename;
-        if (!is_file($targetPath)) {
-            if ($sourcePath === null || !@copy($sourcePath, $targetPath)) {
-                return null;
-            }
-        }
-
-        return $basename;
-    }
 
     private function syncMediaFromTableColumn(
         Database $db,

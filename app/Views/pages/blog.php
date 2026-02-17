@@ -38,10 +38,12 @@ $resolveBlogImage = function(array $post): string {
         return $image;
     }
 
-    if (str_contains($image, '/')) {
-        return asset('/uploads/' . ltrim($image, '/'));
+    // If explicit path from root (e.g. uploads/ or img/)
+    if (str_starts_with($image, 'uploads/') || str_starts_with($image, 'img/')) {
+        return asset('/' . ltrim($image, '/'));
     }
 
+    // Otherwise, treat as relative to blog uploads folder (supporting ../)
     return asset('/uploads/blog/' . ltrim($image, '/'));
 };
 ?>

@@ -271,6 +271,38 @@ class AdminController extends Controller
         $this->redirect('/admin/products/edit/' . (int) $product->id);
     }
     
+    public function deleteProductImage(int $imageId): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+        $image = $db->fetchOne("SELECT * FROM product_images WHERE id = :id LIMIT 1", ['id' => $imageId]);
+
+        if ($image) {
+            $productId = $image['product_id'];
+            $db->delete('product_images', 'id = :id', ['id' => $imageId]);
+            
+            // If primary image was deleted, promote another one
+            if ($image['is_primary']) {
+                $nextImage = $db->fetchOne(
+                    "SELECT id FROM product_images WHERE product_id = :product_id ORDER BY sort_order ASC LIMIT 1",
+                    ['product_id' => $productId]
+                );
+                if ($nextImage) {
+                    $db->update('product_images', ['is_primary' => 1], 'id = :id', ['id' => $nextImage['id']]);
+                }
+            }
+
+            $this->flash('success', 'Image removed');
+            $this->redirect('/admin/products/edit/' . $productId);
+        }
+
+        $this->redirect('/admin/products');
+    }
+
     /**
      * Delete product
      */
@@ -411,22 +443,45 @@ class AdminController extends Controller
         }
 
         $clean = ltrim(str_replace('\\', '/', $value), '/');
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        // 1. If file exists at exact path (e.g. 'uploads/media/file.webp'), link to it relatively
+        if (is_file($publicRoot . $clean)) {
+            $folder = trim($targetFolder, '/\\'); // e.g. 'products'
+            $targetPrefix = 'uploads/' . $folder . '/'; // e.g. 'uploads/products/'
+            
+            // If strictly inside target folder, return basename
+            if (str_starts_with($clean, $targetPrefix)) {
+                return substr($clean, strlen($targetPrefix));
+            }
+            
+            // Calculate relative path from target folder
+            // From 'uploads/products/' to root is '../../'
+            if (str_starts_with($clean, 'uploads/')) {
+                // e.g. 'uploads/media/foo.webp' -> '../media/foo.webp'
+                return '../' . substr($clean, 8); 
+            }
+            
+            return '../../' . $clean;
+        }
+
+        // 2. Fallback: Copy logic (for legacy inputs or bare filenames)
         $basename = basename($clean);
         if ($basename === '') {
             return null;
         }
 
         $folder = trim($targetFolder, '/\\');
-        $targetDir = __DIR__ . '/../../public/uploads/' . $folder . '/';
+        $targetDir = $publicRoot . 'uploads/' . $folder . '/';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
 
         $sourceCandidates = [
-            __DIR__ . '/../../public/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $basename,
-            __DIR__ . '/../../public/uploads/' . $folder . '/' . $basename
+            $publicRoot . $clean,
+            $publicRoot . 'uploads/' . $clean,
+            $publicRoot . 'uploads/' . $basename,
+            $publicRoot . 'uploads/' . $folder . '/' . $basename
         ];
 
         $sourcePath = null;
@@ -440,7 +495,7 @@ class AdminController extends Controller
         $targetPath = $targetDir . $basename;
         if (!is_file($targetPath)) {
             if ($sourcePath === null || !@copy($sourcePath, $targetPath)) {
-                return null;
+                return null; // File not found anywhere
             }
         }
 

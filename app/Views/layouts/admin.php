@@ -48,7 +48,7 @@
         <nav class="admin-sidebar">
             <div class="sidebar-header">
                 <a href="<?= url('/admin') ?>" class="sidebar-brand">
-                    <img src="<?= asset('/img/logo.png') ?>" alt="Hair Aura" class="brand-logo-img">
+                    <img src="<?= asset($siteSettings['logo'] ?? '/img/logo.webp') ?>" alt="<?= htmlspecialchars($siteSettings['name'] ?? 'Hair Aura') ?>" class="brand-logo-img">
                 </a>
             </div>
             

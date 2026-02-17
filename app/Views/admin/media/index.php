@@ -140,7 +140,8 @@ $isImage = static function (array $item): bool {
                     <div class="media-actions">
                         <button type="button" class="btn btn-sm btn-outline-secondary js-copy-media-path" data-copy="<?= htmlspecialchars($relativePath) ?>">Copy Path</button>
                         <a href="<?= htmlspecialchars($url) ?>" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">Open</a>
-                        <form method="post" action="<?= url('/admin/media/delete/' . (int) ($item['id'] ?? 0)) ?>" class="d-inline">
+                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="renameMedia(<?= (int)($item['id'] ?? 0) ?>, '<?= htmlspecialchars(addslashes((string)($item['file_name'] ?? ''))) ?>')">Rename</button>
+                        <form method="post" action="<?= url('/admin/media/delete/' . (int) ($item['id'] ?? 0)) ?>" class="d-inline" onsubmit="return confirm('Delete this file?');">
                             <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
                             <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">Delete</button>
                         </form>
@@ -150,3 +151,35 @@ $isImage = static function (array $item): bool {
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
+
+<script>
+function renameMedia(id, currentName) {
+    const newName = prompt('New filename (keep extension):', currentName);
+    if (newName && newName !== currentName) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '<?= url('/admin/media/rename') ?>';
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrf_token';
+        csrf.value = '<?= \App\Core\Auth::csrfToken() ?>';
+        form.appendChild(csrf);
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'id';
+        idInput.value = id;
+        form.appendChild(idInput);
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'hidden';
+        nameInput.name = 'new_name';
+        nameInput.value = newName;
+        form.appendChild(nameInput);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>

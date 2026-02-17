@@ -20,6 +20,42 @@ class ImageManager
      * @param int $quality WebP quality (0-100)
      * @return string|null The resulting filename including extension, or null on failure
      */
+    /**
+     * Replace a specific file with an uploaded image (converted to WebP)
+     * 
+     * @param array $file The $_FILES item
+     * @param string $relativePath Destination path from public root (e.g. 'img/logo.webp')
+     * @param int $quality WebP quality
+     * @return bool Success
+     */
+    public static function replace(array $file, string $relativePath, int $quality = 85): bool
+    {
+        if (!isset($file['error']) || $file['error'] !== UPLOAD_ERR_OK) {
+            return false;
+        }
+
+        $finfo = new \finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+        if (!in_array($mimeType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp'])) {
+            return false;
+        }
+
+        $publicRoot = __DIR__ . '/../../public/';
+        $targetPath = $publicRoot . ltrim($relativePath, '/');
+        
+        $dir = dirname($targetPath);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // If target exists, delete it first to ensure clean write
+        if (file_exists($targetPath)) {
+            @unlink($targetPath);
+        }
+
+        return self::convertToWebP($file['tmp_name'], $targetPath, $mimeType, $quality);
+    }
+
     public static function upload(array $file, string $destinationFolder, ?string $filenamePrefix = null, int $quality = 85): ?string
     {
         // Check for upload errors

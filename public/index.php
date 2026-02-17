@@ -295,6 +295,7 @@ $router->group('/admin', function($router) {
     $router->get('/products/edit/{id:\d+}', ['AdminController', 'editProduct']);
     $router->post('/products/save', ['AdminController', 'saveProduct']);
     $router->post('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->post('/products/images/delete/{id:\d+}', ['AdminController', 'deleteProductImage']);
     
     // Orders
     $router->get('/orders', ['AdminController', 'orders']);
@@ -340,6 +341,7 @@ $router->group('/admin', function($router) {
     $router->post('/notes/delete/{id:\d+}', ['AdminManagementController', 'deleteNote']);
     $router->get('/media', ['AdminManagementController', 'mediaLibrary']);
     $router->post('/media/upload', ['AdminManagementController', 'uploadMedia']);
+    $router->post('/media/rename', ['AdminManagementController', 'renameMedia']);
     $router->post('/media/delete/{id:\d+}', ['AdminManagementController', 'deleteMedia']);
     $router->post('/media/sync', ['AdminManagementController', 'syncMedia']);
     $router->get('/search', ['AdminManagementController', 'search']);

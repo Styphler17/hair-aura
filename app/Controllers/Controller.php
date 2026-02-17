@@ -437,6 +437,7 @@ abstract class Controller
         $defaults = [
             'name' => 'Hair Aura',
             'tagline' => 'Unlock Your Aura with Perfect Wigs',
+            'logo' => '/img/logo.webp',
             'meta_description' => 'Premium wigs and hair extensions in Ghana.',
             'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
             'email' => 'support@example.com',

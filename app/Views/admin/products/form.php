@@ -119,15 +119,45 @@ $mediaImages = $mediaImages ?? [];
 
         <div class="col-12">
             <label class="form-label">Or Pick Images From Media Library</label>
-            <select name="library_images[]" class="form-select" multiple size="6">
-                <?php foreach ($mediaImages as $media): ?>
-                    <option value="<?= htmlspecialchars((string) ($media['file_path'] ?? '')) ?>">
-                        <?= htmlspecialchars((string) ($media['file_name'] ?? 'image')) ?> (<?= htmlspecialchars((string) ($media['folder'] ?? 'media')) ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-            <div class="form-text">Hold Ctrl/Cmd to select multiple images. You can also open <a href="<?= url('/admin/media') ?>" target="_blank" rel="noopener">Media Library</a>.</div>
+            <div class="border rounded p-3 bg-white">
+                <input type="text" class="form-control mb-2" placeholder="Search library..." onkeyup="filterMediaCheckboxes(this)">
+                <div class="d-flex flex-wrap gap-2 media-checkbox-container" style="max-height: 300px; overflow-y: auto;">
+                    <?php foreach ($mediaImages as $media): ?>
+                        <?php 
+                            $mPath = $media['file_path'] ?? '';
+                            $mName = $media['file_name'] ?? 'image';
+                            $mId = $media['id'] ?? uniqid();
+                        ?>
+                        <div class="media-checkbox-option position-relative" style="width: 100px; height: 100px;" data-name="<?= htmlspecialchars($mName) ?>">
+                            <input type="checkbox" name="library_images[]" value="<?= htmlspecialchars($mPath) ?>" id="media_<?= $mId ?>" class="btn-check">
+                            <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="media_<?= $mId ?>">
+                                <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
+                                     class="w-100 h-100" style="object-fit: cover;"
+                                     title="<?= htmlspecialchars($mName) ?>"
+                                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                            </label>
+                            <div class="position-absolute top-0 end-0 p-1">
+                                <i class="fas fa-check-circle text-primary bg-white rounded-circle check-icon" style="opacity: 0; transition: opacity 0.2s;"></i>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="form-text">Select multiple images if needed. Use the search box to find images quickly.</div>
         </div>
+        
+        <style>
+            .btn-check:checked + label {
+                border-color: var(--bs-primary, #0d6efd) !important;
+                border-width: 3px !important;
+            }
+            .btn-check:checked ~ div .check-icon {
+                opacity: 1 !important;
+            }
+            .media-checkbox-option label:hover {
+                border-color: #adb5bd !important;
+            }
+        </style>
 
         <div class="col-12 d-flex flex-wrap gap-3">
             <div class="form-check">
@@ -157,11 +187,48 @@ $mediaImages = $mediaImages ?? [];
 
 <?php if (!empty($images)): ?>
 <div class="card mt-3">
-    <div class="card-header"><h5 class="mb-0">Current Images</h5></div>
-    <div class="card-body d-flex flex-wrap gap-2">
+    <div class="card-header"><h5 class="mb-0">Current Product Images</h5></div>
+    <div class="card-body d-flex flex-wrap gap-3">
         <?php foreach ($images as $image): ?>
-            <img src="<?= asset('/uploads/products/' . $image['image_path']) ?>" alt="<?= htmlspecialchars($image['alt_text'] ?? '') ?>" style="width:90px;height:90px;object-fit:cover;border-radius:8px;">
+            <div class="position-relative" style="width: 120px; height: 120px;">
+                <img src="<?= asset('/uploads/products/' . $image['image_path']) ?>" 
+                     alt="<?= htmlspecialchars($image['alt_text'] ?? '') ?>" 
+                     class="w-100 h-100 rounded border shadow-sm" 
+                     style="object-fit: cover;"
+                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                
+                <form action="<?= url('/admin/products/images/delete/' . $image['id']) ?>" method="post" 
+                      onsubmit="return confirm('Are you sure you want to remove this image?');" 
+                      class="position-absolute top-0 end-0 m-1">
+                    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                    <button type="submit" class="btn btn-sm btn-danger p-0 d-flex align-items-center justify-content-center rounded-circle shadow" style="width: 28px; height: 28px;" title="Remove Image">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </form>
+                
+                <?php if (!empty($image['is_primary'])): ?>
+                    <div class="position-absolute bottom-0 start-0 w-100 p-1 text-center">
+                        <span class="badge bg-primary shadow-sm">Main Image</span>
+                    </div>
+                <?php endif; ?>
+            </div>
         <?php endforeach; ?>
     </div>
 </div>
 <?php endif; ?>
+
+<script>
+function filterMediaCheckboxes(input) {
+    const filter = input.value.toLowerCase();
+    const container = input.nextElementSibling; 
+    const items = container.querySelectorAll('.media-checkbox-option[data-name]');
+    items.forEach(item => {
+        const name = item.getAttribute('data-name').toLowerCase();
+        if (name.includes(filter)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>

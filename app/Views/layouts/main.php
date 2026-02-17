@@ -40,7 +40,7 @@
     // Define preferred default images in order (WebP only)
     $defaultImages = [
         '/img/og-image.webp',
-        '/img/logo.webp',
+        $siteSettings['logo'] ?? '/img/logo.webp',
         '/img/hero-1.webp'
     ];
 

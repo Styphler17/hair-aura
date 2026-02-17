@@ -112,14 +112,12 @@
                     return $image;
                 }
 
-                if (str_starts_with($image, '/')) {
-                    return asset($image);
-                }
-
-                if (str_contains($image, '/')) {
+                // If it starts with 'uploads/' or 'img/', assumes it's from root
+                if (str_starts_with($image, 'uploads/') || str_starts_with($image, 'img/')) {
                     return asset('/' . ltrim($image, '/'));
                 }
 
+                // Otherwise, treat as relative to categories folder (even if it has ..)
                 return asset('/uploads/categories/' . $image);
             }
 

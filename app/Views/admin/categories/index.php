@@ -9,14 +9,12 @@ $resolveCategoryImage = static function (?string $image): string {
         return $name;
     }
 
-    if (str_starts_with($name, '/')) {
-        return asset($name);
-    }
-
-    if (str_contains($name, '/')) {
+    // If it starts with 'uploads/' or 'img/', assumes it's from root
+    if (str_starts_with($name, 'uploads/') || str_starts_with($name, 'img/')) {
         return asset('/' . ltrim($name, '/'));
     }
 
+    // Otherwise, treat as relative to categories folder (even if it has ..)
     return asset('/uploads/categories/' . $name);
 };
 $mediaImages = $mediaImages ?? [];
@@ -53,14 +51,35 @@ $mediaImages = $mediaImages ?? [];
             </div>
             <div class="col-md-6">
                 <label class="form-label">Or Pick From Media Library</label>
-                <select name="library_image" class="form-select">
-                    <option value="">Choose image from library</option>
-                    <?php foreach ($mediaImages as $media): ?>
-                        <option value="<?= htmlspecialchars((string) ($media['file_path'] ?? '')) ?>">
-                            <?= htmlspecialchars((string) ($media['file_name'] ?? 'image')) ?> (<?= htmlspecialchars((string) ($media['folder'] ?? 'media')) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="dropdown">
+                    <input type="hidden" name="library_image" id="library_image_new">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="btn_library_image_new" data-bs-toggle="dropdown" aria-expanded="false">
+                        Choose image from library
+                    </button>
+                    <div class="dropdown-menu p-2 shadow" style="width: 100%; min-width: 300px;">
+                        <input type="text" class="form-control mb-2 form-control-sm" placeholder="Search..." onkeyup="filterMedia(this)">
+                        <div class="d-flex flex-wrap gap-2 media-grid-container" style="max-height: 250px; overflow-y: auto;">
+                            <div class="media-option" style="width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #dee2e6;" 
+                                 onclick="setMediaImage('library_image_new', '', 'btn_library_image_new', 'Choose image from library')" title="None">
+                                <i class="fas fa-ban text-muted"></i>
+                            </div>
+                            <?php foreach ($mediaImages as $media): ?>
+                                <?php 
+                                    $mPath = $media['file_path'] ?? ''; 
+                                    $mName = $media['file_name'] ?? 'image';
+                                ?>
+                                <div class="media-option" style="width: 60px; height: 60px; cursor: pointer;" 
+                                     onclick="setMediaImage('library_image_new', '<?= htmlspecialchars($mPath) ?>', 'btn_library_image_new', '<?= htmlspecialchars($mName) ?>')"
+                                     data-name="<?= htmlspecialchars(strtolower($mName)) ?>">
+                                    <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
+                                         class="img-thumbnail w-100 h-100" style="object-fit: cover;"
+                                         title="<?= htmlspecialchars($mName) ?>"
+                                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="col-12">
                 <label class="form-label">Description</label>
@@ -151,14 +170,35 @@ $mediaImages = $mediaImages ?? [];
                                             <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
                                         </div>
                                         <div class="col-md-4">
-                                            <select name="library_image" class="form-select">
-                                                <option value="">Pick from media library</option>
-                                                <?php foreach ($mediaImages as $media): ?>
-                                                    <option value="<?= htmlspecialchars((string) ($media['file_path'] ?? '')) ?>">
-                                                        <?= htmlspecialchars((string) ($media['file_name'] ?? 'image')) ?> (<?= htmlspecialchars((string) ($media['folder'] ?? 'media')) ?>)
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <div class="dropdown">
+                                                <input type="hidden" name="library_image" id="library_image_<?= $category['id'] ?>">
+                                                <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="btn_library_image_<?= $category['id'] ?>" data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Pick from media library
+                                                </button>
+                                                <div class="dropdown-menu p-2 shadow" style="width: 100%; min-width: 300px;">
+                                                    <input type="text" class="form-control mb-2 form-control-sm" placeholder="Search..." onkeyup="filterMedia(this)">
+                                                    <div class="d-flex flex-wrap gap-2 media-grid-container" style="max-height: 250px; overflow-y: auto;">
+                                                        <div class="media-option" style="width: 60px; height: 60px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #f8f9fa; border: 1px solid #dee2e6;" 
+                                                             onclick="setMediaImage('library_image_<?= $category['id'] ?>', '', 'btn_library_image_<?= $category['id'] ?>', 'Pick from media library')" title="None">
+                                                            <i class="fas fa-ban text-muted"></i>
+                                                        </div>
+                                                        <?php foreach ($mediaImages as $media): ?>
+                                                            <?php 
+                                                                $mPath = $media['file_path'] ?? ''; 
+                                                                $mName = $media['file_name'] ?? 'image';
+                                                            ?>
+                                                            <div class="media-option" style="width: 60px; height: 60px; cursor: pointer;" 
+                                                                 onclick="setMediaImage('library_image_<?= $category['id'] ?>', '<?= htmlspecialchars($mPath) ?>', 'btn_library_image_<?= $category['id'] ?>', '<?= htmlspecialchars($mName) ?>')"
+                                                                 data-name="<?= htmlspecialchars(strtolower($mName)) ?>">
+                                                                <img src="<?= asset($mPath) ?>" alt="<?= htmlspecialchars($mName) ?>" 
+                                                                     class="img-thumbnail w-100 h-100" style="object-fit: cover;"
+                                                                     title="<?= htmlspecialchars($mName) ?>"
+                                                                     onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="col-md-2 d-flex align-items-center">
                                             <div class="form-check">
@@ -197,3 +237,25 @@ $mediaImages = $mediaImages ?? [];
         </div>
     </div>
 </div>
+
+<script>
+function setMediaImage(inputId, value, buttonId, label) {
+    document.getElementById(inputId).value = value;
+    const btn = document.getElementById(buttonId);
+    if(btn) btn.innerText = label ? label.substring(0, 20) + (label.length > 20 ? '...' : '') : 'Select Image';
+}
+
+function filterMedia(input) {
+    const filter = input.value.toLowerCase();
+    const container = input.nextElementSibling; 
+    const items = container.querySelectorAll('.media-option[data-name]');
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        if (name.includes(filter)) {
+            item.style.display = 'block';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
