@@ -27,7 +27,12 @@ class AdminManagementController extends Controller
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ['1=1'];
+        $where = [];
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $where[] = 'bp.deleted_at IS NULL';
+        } else {
+            $where[] = '1=1';
+        }
         $params = [];
 
         if ($search !== '') {
@@ -55,9 +60,11 @@ class AdminManagementController extends Controller
         );
 
         $total = (int) $db->fetchColumn("SELECT COUNT(*) FROM blog_posts bp WHERE {$whereSql}", $params);
+        $catWhere = $db->hasColumn('blog_posts', 'deleted_at') ? "WHERE deleted_at IS NULL" : "";
         $categories = $db->fetchAll(
             "SELECT DISTINCT COALESCE(category, 'General') as category
              FROM blog_posts
+             $catWhere
              ORDER BY category ASC"
         );
 
@@ -86,7 +93,11 @@ class AdminManagementController extends Controller
     public function editBlog(int $id): void
     {
         $db = Database::getInstance();
-        $post = $db->fetchOne("SELECT * FROM blog_posts WHERE id = :id LIMIT 1", ['id' => $id]);
+        $query = "SELECT * FROM blog_posts WHERE id = :id";
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $query .= " AND deleted_at IS NULL";
+        }
+        $post = $db->fetchOne("$query LIMIT 1", ['id' => $id]);
 
         if (!$post) {
             $this->flash('error', 'Blog post not found');
@@ -124,7 +135,7 @@ class AdminManagementController extends Controller
         }
 
         $existingSlug = $db->fetchOne(
-            'SELECT id FROM blog_posts WHERE slug = :slug AND id != :id LIMIT 1',
+            'SELECT id FROM blog_posts WHERE slug = :slug AND id != :id AND deleted_at IS NULL LIMIT 1',
             ['slug' => $slug, 'id' => $id]
         );
         if ($existingSlug) {
@@ -192,9 +203,13 @@ class AdminManagementController extends Controller
         }
 
         $db = Database::getInstance();
-        $db->delete('blog_posts', 'id = :id', ['id' => $id]);
-
-        $this->flash('success', 'Blog post deleted');
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $db->update('blog_posts', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Blog post moved to trash');
+        } else {
+            $db->delete('blog_posts', 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Blog post permanently deleted');
+        }
         $this->redirect('/admin/blogs');
     }
 
@@ -212,10 +227,24 @@ class AdminManagementController extends Controller
         }
 
         $db = Database::getInstance();
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        $db->query("DELETE FROM blog_posts WHERE id IN ($placeholders)", array_values($ids));
+        $successCount = 0;
+        $hasTrashColumn = $db->hasColumn('blog_posts', 'deleted_at');
 
-        $this->flash('success', count($ids) . ' blog posts deleted');
+        foreach ($ids as $id) {
+            if ($hasTrashColumn) {
+                $db->update('blog_posts', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => (int) $id]);
+            } else {
+                $db->delete('blog_posts', 'id = :id', ['id' => (int) $id]);
+            }
+            $successCount++;
+        }
+
+        if ($successCount > 0) {
+            $msg = $hasTrashColumn ? "$successCount blog posts moved to trash" : "$successCount blog posts deleted";
+            $this->flash('success', $msg);
+        } else {
+            $this->flash('error', 'Failed to delete selected posts');
+        }
         $this->redirect('/admin/blogs');
     }
 
@@ -597,6 +626,19 @@ class AdminManagementController extends Controller
             $content['site']['instagram_images'] = $cleanInstagram;
         }
 
+        // Handle Social Links
+        $social = (array) $this->post('social', []);
+        $processedSocial = [];
+        $platforms = ['facebook', 'instagram', 'tiktok', 'whatsapp', 'twitter', 'youtube'];
+        foreach ($platforms as $platform) {
+            $data = $social[$platform] ?? [];
+            $processedSocial[$platform] = [
+                'url' => trim((string) ($data['url'] ?? '')),
+                'enabled' => !empty($data['enabled'])
+            ];
+        }
+        $content['site']['social'] = $processedSocial;
+
         $this->saveSiteContent($content);
 
         $this->flash('success', 'Site settings updated');
@@ -737,6 +779,9 @@ class AdminManagementController extends Controller
         $editId = max(0, (int) $this->get('edit', 0));
 
         $where = ['n.admin_id = :admin_id', 'n.is_archived = 0'];
+        if ($db->hasColumn('notes', 'deleted_at')) {
+            $where[] = 'n.deleted_at IS NULL';
+        }
         $params = ['admin_id' => (int) $this->user->id];
 
         if ($search !== '') {
@@ -831,12 +876,18 @@ class AdminManagementController extends Controller
         $db = Database::getInstance();
         $this->ensureNotesTable($db);
 
+        $payload = [
+            'is_archived' => 1,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if ($db->hasColumn('notes', 'deleted_at')) {
+            $payload['deleted_at'] = date('Y-m-d H:i:s');
+        }
+
         $db->update(
             'notes',
-            [
-                'is_archived' => 1,
-                'updated_at' => date('Y-m-d H:i:s')
-            ],
+            $payload,
             'id = :id AND admin_id = :admin_id',
             [
                 'id' => $id,
@@ -844,7 +895,7 @@ class AdminManagementController extends Controller
             ]
         );
 
-        $this->flash('success', 'Note archived');
+        $this->flash('success', 'Note moved to trash');
         $this->redirect('/admin/notes');
     }
 
@@ -963,7 +1014,12 @@ class AdminManagementController extends Controller
         $mime = trim((string) $this->get('mime', 'images'));
         $sort = trim((string) $this->get('sort', 'newest'));
 
-        $where = ['1=1'];
+        $where = [];
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $where[] = 'deleted_at IS NULL';
+        } else {
+            $where[] = '1=1';
+        }
         $params = [];
 
         if ($search !== '') {
@@ -1006,9 +1062,11 @@ class AdminManagementController extends Controller
             $params
         );
 
+        $folderWhere = $db->hasColumn('media_library', 'deleted_at') ? "WHERE deleted_at IS NULL" : "";
         $folderStats = $db->fetchAll(
             "SELECT folder, COUNT(*) as total
              FROM media_library
+             $folderWhere
              GROUP BY folder
              ORDER BY folder ASC"
         );
@@ -1210,16 +1268,20 @@ class AdminManagementController extends Controller
             $this->redirect('/admin/media');
         }
 
-        $relative = ltrim((string) ($item['file_path'] ?? ''), '/');
-        if ($relative !== '') {
-            $absolute = __DIR__ . '/../../public/' . $relative;
-            if (is_file($absolute)) {
-                @unlink($absolute);
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $db->update('media_library', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Media file moved to trash');
+        } else {
+            // Revert to hard delete (unlink file)
+            $item = $db->fetchOne('SELECT file_path FROM media_library WHERE id = :id', ['id' => $id]);
+            if ($item) {
+                $relative = ltrim((string) $item['file_path'], '/');
+                $absolute = __DIR__ . '/../../public/' . $relative;
+                if (is_file($absolute)) @unlink($absolute);
             }
+            $db->delete('media_library', 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Media file permanently deleted');
         }
-
-        $db->delete('media_library', 'id = :id', ['id' => $id]);
-        $this->flash('success', 'Media file deleted');
         $this->redirect('/admin/media');
     }
 
@@ -1237,27 +1299,24 @@ class AdminManagementController extends Controller
         }
 
         $db = Database::getInstance();
-        $this->ensureMediaLibraryTable($db);
-
-        $items = $db->fetchAll(
-            "SELECT file_path FROM media_library WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
-            array_values($ids)
-        );
-
-        $deletedCount = 0;
-        foreach ($items as $item) {
-            $relative = ltrim((string) ($item['file_path'] ?? ''), '/');
-            if ($relative !== '') {
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $db->query(
+                "UPDATE media_library SET deleted_at = NOW() WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
+                array_values($ids)
+            );
+            $this->flash('success', count($ids) . ' media files moved to trash');
+        } else {
+            // Permanent bulk delete fallback
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $items = $db->fetchAll("SELECT file_path FROM media_library WHERE id IN ($placeholders)", array_values($ids));
+            foreach ($items as $item) {
+                $relative = ltrim((string) $item['file_path'], '/');
                 $absolute = __DIR__ . '/../../public/' . $relative;
-                if (is_file($absolute)) {
-                    @unlink($absolute);
-                }
+                if (is_file($absolute)) @unlink($absolute);
             }
+            $db->query("DELETE FROM media_library WHERE id IN ($placeholders)", array_values($ids));
+            $this->flash('success', count($ids) . ' media files permanently deleted');
         }
-
-        $db->query("DELETE FROM media_library WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")", array_values($ids));
-
-        $this->flash('success', count($ids) . ' media files deleted');
         $this->redirect('/admin/media');
     }
 
@@ -1307,6 +1366,7 @@ class AdminManagementController extends Controller
 
     public function search(): void
     {
+        // Keep existing search page logic
         $db = Database::getInstance();
         $query = trim((string) $this->get('q', ''));
 
@@ -1377,6 +1437,58 @@ class AdminManagementController extends Controller
             'query' => $query,
             'results' => $results
         ], 'layouts/admin');
+    }
+
+    public function searchApi(): void
+    {
+        $db = Database::getInstance();
+        $query = trim((string) $this->get('q', ''));
+        
+        $results = [];
+        
+        if ($query !== '' && strlen($query) >= 2) {
+            $params = ['q' => '%' . $query . '%'];
+            
+            // Products
+            $products = $db->fetchAll("SELECT id, name, sku, price FROM products WHERE name LIKE :q OR sku LIKE :q LIMIT 5", $params);
+            foreach ($products as $p) {
+                $results[] = [
+                    'type' => 'Product',
+                    'title' => $p['name'],
+                    'detail' => $p['sku'],
+                    'url' => url('/admin/products/edit/' . $p['id']),
+                    'icon' => 'fas fa-box'
+                ];
+            }
+            
+            // Orders
+            $orders = $db->fetchAll("SELECT id, order_number, total FROM orders WHERE order_number LIKE :q LIMIT 5", $params);
+            foreach ($orders as $o) {
+                $results[] = [
+                    'type' => 'Order',
+                    'title' => $o['order_number'],
+                    'detail' => 'Total: GH₵ ' . number_format((float)$o['total'], 2),
+                    'url' => url('/admin/orders/' . $o['id']),
+                    'icon' => 'fas fa-shopping-cart'
+                ];
+            }
+            
+            // Users
+            $users = $db->fetchAll("SELECT id, first_name, last_name, email FROM users WHERE first_name LIKE :q OR last_name LIKE :q OR email LIKE :q LIMIT 5", $params);
+            foreach ($users as $u) {
+                $results[] = [
+                    'type' => 'User',
+                    'title' => $u['first_name'] . ' ' . $u['last_name'],
+                    'detail' => $u['email'],
+                    'url' => url('/admin/users/edit/' . $u['id']),
+                    'icon' => 'fas fa-user'
+                ];
+            }
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($results);
+        exit;
     }
 
     public function profile(): void
@@ -1523,6 +1635,14 @@ class AdminManagementController extends Controller
                 'theme_gold' => '#D4AF37',
                 'virtual_tryon_image' => '/img/product-placeholder.webp',
                 'instagram_images' => [],
+                'social' => [
+                    'facebook' => ['url' => 'https://facebook.com/hairaura', 'enabled' => true],
+                    'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
+                    'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
+                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true],
+                    'twitter' => ['url' => '', 'enabled' => false],
+                    'youtube' => ['url' => '', 'enabled' => false]
+                ],
                 'hero_slides' => [
                     [
                         'image' => '/img/hero-1.webp',
@@ -1579,8 +1699,16 @@ class AdminManagementController extends Controller
             'site' => (array) ($content['site'] ?? [])
         ];
 
-        $export = "<?php\nreturn " . var_export($payload, true) . ";\n";
-        file_put_contents($this->siteContentPath(), $export);
+        $export = "<?php\n/**\n * Auto-generated site content configuration\n * Last modified: " . date('Y-m-d H:i:s') . "\n */\nreturn " . var_export($payload, true) . ";\n";
+        
+        $path = $this->siteContentPath();
+        if (file_put_contents($path, $export, LOCK_EX) !== false) {
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($path, true);
+            }
+        } else {
+            error_log("Failed to write site content to: " . $path);
+        }
     }
 
     private function tableExists(Database $db, string $table): bool
@@ -1946,13 +2074,19 @@ class AdminManagementController extends Controller
                 content TEXT NOT NULL,
                 is_pinned TINYINT(1) NOT NULL DEFAULT 0,
                 is_archived TINYINT(1) NOT NULL DEFAULT 0,
+                deleted_at TIMESTAMP NULL DEFAULT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP NULL DEFAULT NULL,
                 INDEX idx_notes_admin (admin_id),
                 INDEX idx_notes_archived (is_archived),
+                INDEX idx_notes_deleted (deleted_at),
                 CONSTRAINT fk_notes_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+
+        if (!$db->hasColumn('notes', 'deleted_at')) {
+            $db->query("ALTER TABLE notes ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER is_archived, ADD INDEX idx_notes_deleted (deleted_at)");
+        }
     }
 
     private function slugify(string $value): string

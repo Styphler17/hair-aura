@@ -81,7 +81,8 @@
                                 </td>
                                 <td data-label="Date"><?= !empty($order['created_at']) ? htmlspecialchars(date('Y-m-d H:i', strtotime($order['created_at']))) : '-' ?></td>
                                 <td data-label="Action" class="text-end">
-                                    <a href="<?= url('/admin/orders/' . (int) $order['id']) ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                    <a href="<?= url('/admin/orders/' . (int) $order['id']) ?>" class="btn btn-sm btn-outline-primary" title="View Order"><i class="fas fa-eye"></i></a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" onclick="confirmDelete(<?= $order['id'] ?>, '<?= htmlspecialchars($order['order_number']) ?>')" title="Delete Order"><i class="fas fa-trash-alt"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -107,3 +108,55 @@
     </ul>
 </nav>
 <?php endif; ?>
+
+<!-- Delete Order Modal -->
+<div class="modal fade" id="deleteOrderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 pt-0 text-center">
+                <div class="mb-3 text-danger" style="font-size: 4rem; opacity: 0.8;">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h4 class="mb-2 fw-bold text-danger">Delete Order?</h4>
+                <p class="text-muted mb-4">
+                    Are you sure you want to permanently delete order <strong id="deleteOrderNumberText" class="text-dark"></strong>? 
+                    <br><span class="small text-danger fw-bold">This action cannot be undone.</span>
+                </p>
+                
+                <form id="deleteOrderForm" action="" method="post">
+                    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light px-4 border" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-danger px-4">Delete Permanently</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(id, orderNumber) {
+    const modalEl = document.getElementById('deleteOrderModal');
+    // Check if bootstrap is defined, otherwise fallback or error gracefully
+    if (typeof bootstrap !== 'undefined') {
+        const modal = new bootstrap.Modal(modalEl);
+        const form = document.getElementById('deleteOrderForm');
+        const numberText = document.getElementById('deleteOrderNumberText');
+        
+        form.action = "<?= url('/admin/orders/delete/') ?>" + id;
+        if (numberText) numberText.textContent = '#' + orderNumber;
+        
+        modal.show();
+    } else {
+        if (confirm('Are you sure you want to delete order #' + orderNumber + '?')) {
+            const form = document.getElementById('deleteOrderForm');
+            form.action = "<?= url('/admin/orders/delete/') ?>" + id;
+            form.submit();
+        }
+    }
+}
+</script>

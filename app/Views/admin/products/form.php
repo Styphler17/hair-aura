@@ -6,7 +6,17 @@ $mediaImages = $mediaImages ?? [];
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2 class="mb-0"><?= $title ?></h2>
-    <a href="<?= url('/admin/products') ?>" class="btn btn-outline-secondary">Back to Products</a>
+    <div>
+        <?php if ($isEdit): ?>
+            <form action="<?= url('/admin/products/duplicate/' . (int) $product->id) ?>" method="POST" class="d-inline me-2">
+                <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                <button type="submit" class="btn btn-outline-info" onclick="return confirm('Duplicate this product?');">
+                    <i class="fas fa-copy me-1"></i> Duplicate
+                </button>
+            </form>
+        <?php endif; ?>
+        <a href="<?= url('/admin/products') ?>" class="btn btn-outline-secondary">Back to Products</a>
+    </div>
 </div>
 
 <form method="post" action="<?= url('/admin/products/save') ?>" enctype="multipart/form-data" class="card">
@@ -145,12 +155,199 @@ $mediaImages = $mediaImages ?? [];
             </div>
         </div>
 
+        <!-- Product Variants Section -->
+        <div class="col-12 mt-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary"><i class="fas fa-list me-2"></i>Product Variants</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnShowGenerator" data-bs-toggle="collapse" data-bs-target="#variantGenerator">
+                        <i class="fas fa-magic me-1"></i> Quick Generator
+                    </button>
+                </div>
+                
+                <!-- Generator Panel -->
+                <div class="collapse p-3 bg-light border-bottom" id="variantGenerator">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Variation Type</label>
+                            <select id="genType" class="form-select form-select-sm">
+                                <option value="Length">Length (inches)</option>
+                                <option value="Color">Color</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Values (comma separated)</label>
+                            <input type="text" id="genValues" class="form-control form-control-sm" placeholder="e.g. 10, 12, 14, 16, 18">
+                            <div class="form-text x-small">For Length, use numbers. For Color, use names.</div>
+                        </div>
+                        <div class="col-md-2">
+                             <label class="form-label small fw-bold">Price Increment</label>
+                             <input type="number" id="genIncrement" class="form-control form-control-sm" value="10" step="0.01">
+                        </div>
+                         <div class="col-md-2">
+                            <button type="button" class="btn btn-sm btn-primary w-100" id="btnGenerate">Generate</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="variantsTable">
+                            <thead class="bg-light text-secondary">
+                                <tr>
+                                    <th style="width: 15%">Name</th>
+                                    <th style="width: 20%">Value</th>
+                                    <th style="width: 20%">SKU Suffix</th>
+                                    <th style="width: 15%">Price (+/-)</th>
+                                    <th style="width: 15%">Stock</th>
+                                    <th style="width: 5%">Active</th>
+                                    <th style="width: 10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="variantsBody">
+                                <?php 
+                                $variants = isset($product) ? $product->getVariants() : [];
+                                foreach ($variants as $index => $variant): 
+                                ?>
+                                    <tr class="variant-row">
+                                        <td>
+                                            <input type="hidden" name="variants[<?= $index ?>][id]" value="<?= $variant['id'] ?>">
+                                            <input type="text" name="variants[<?= $index ?>][variant_name]" class="form-control form-control-sm" value="<?= htmlspecialchars($variant['variant_name']) ?>" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="variants[<?= $index ?>][variant_value]" class="form-control form-control-sm" value="<?= htmlspecialchars($variant['variant_value']) ?>" required>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="variants[<?= $index ?>][sku]" class="form-control form-control-sm" value="<?= htmlspecialchars($variant['sku']) ?>">
+                                        </td>
+                                        <td>
+                                            <input type="number" step="0.01" name="variants[<?= $index ?>][price_adjustment]" class="form-control form-control-sm" value="<?= htmlspecialchars($variant['price_adjustment']) ?>">
+                                        </td>
+                                        <td>
+                                            <input type="number" name="variants[<?= $index ?>][stock_quantity]" class="form-control form-control-sm" value="<?= htmlspecialchars($variant['stock_quantity']) ?>">
+                                        </td>
+                                        <td class="text-center align-middle">
+                                            <input type="hidden" name="variants[<?= $index ?>][is_active]" value="0">
+                                            <input type="checkbox" name="variants[<?= $index ?>][is_active]" value="1" class="form-check-input" <?= $variant['is_active'] ? 'checked' : '' ?>>
+                                        </td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-sm btn-outline-danger remove-variant" title="Remove"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 border-top bg-light">
+                        <button type="button" class="btn btn-sm btn-outline-success" id="btnAddVariant">
+                            <i class="fas fa-plus me-1"></i> Add Single Variant
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="col-12 d-flex gap-2">
             <button type="submit" class="btn btn-primary">Save Product</button>
             <a href="<?= url('/admin/products') ?>" class="btn btn-outline-secondary">Cancel</a>
         </div>
     </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tableBody = document.getElementById('variantsBody');
+    const btnAdd = document.getElementById('btnAddVariant');
+    const btnGenerate = document.getElementById('btnGenerate');
+    let variantIndex = <?= count($variants ?? []) ?>;
+
+    // Add Single Variant
+    btnAdd.addEventListener('click', function() {
+        addVariantRow();
+    });
+
+    // Remove Variant
+    tableBody.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-variant')) {
+            e.target.closest('tr').remove();
+        }
+    });
+
+    // Generate Variants
+    btnGenerate.addEventListener('click', function() {
+        const type = document.getElementById('genType').value;
+        const valuesStr = document.getElementById('genValues').value;
+        const increment = parseFloat(document.getElementById('genIncrement').value) || 0;
+        
+        if (!valuesStr) return;
+
+        const values = valuesStr.split(',').map(v => v.trim()).filter(v => v);
+        let currentIncrement = 0;
+
+        values.forEach((val, i) => {
+            // For length, try to extract number for smart incremental pricing
+           let valNum = parseFloat(val);
+            
+            // If it's the first one, maybe 0 increment? Or start with base? 
+            // Logic: each subsequent item gets +increment
+            let priceAdj = (i * increment).toFixed(2);
+            
+            addVariantRow({
+                name: type,
+                value: type === 'Length' ? val + '"' : val, // Append " if length
+                sku: (document.querySelector('input[name="sku"]').value || 'SKU') + '-' + val.replace(/[^a-zA-Z0-9]/g, ''),
+                price: priceAdj,
+                stock: 10
+            });
+        });
+
+        // Hide generator
+        const bsCollapse = new bootstrap.Collapse(document.getElementById('variantGenerator'), {
+            toggle: true
+        });
+    });
+
+    function addVariantRow(data = null) {
+        const tr = document.createElement('tr');
+        tr.className = 'variant-row';
+        
+        const idx = variantIndex++;
+        
+        const name = data ? data.name : 'Size';
+        const value = data ? data.value : '';
+        const sku = data ? data.sku : '';
+        const price = data ? data.price : '0.00';
+        const stock = data ? data.stock : '0';
+
+        tr.innerHTML = `
+            <td>
+                <input type="text" name="variants[\${idx}][variant_name]" class="form-control form-control-sm" value="\${name}" required>
+            </td>
+            <td>
+                <input type="text" name="variants[\${idx}][variant_value]" class="form-control form-control-sm" value="\${value}" required>
+            </td>
+             <td>
+                <input type="text" name="variants[\${idx}][sku]" class="form-control form-control-sm" value="\${sku}">
+            </td>
+            <td>
+                <input type="number" step="0.01" name="variants[\${idx}][price_adjustment]" class="form-control form-control-sm" value="\${price}">
+            </td>
+            <td>
+                <input type="number" name="variants[\${idx}][stock_quantity]" class="form-control form-control-sm" value="\${stock}">
+            </td>
+            <td class="text-center align-middle">
+                <input type="hidden" name="variants[\${idx}][is_active]" value="0">
+                <input type="checkbox" name="variants[\${idx}][is_active]" value="1" class="form-check-input" checked>
+            </td>
+            <td class="text-end">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-variant" title="Remove"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        
+        tableBody.appendChild(tr);
+    }
+});
+</script>
 
 <?php if (!empty($images)): ?>
 <div class="card mt-3">

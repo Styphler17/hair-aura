@@ -302,13 +302,16 @@ $router->group('/admin', function($router) {
     $router->get('/products/edit/{id:\d+}', ['AdminController', 'editProduct']);
     $router->post('/products/save', ['AdminController', 'saveProduct']);
     $router->post('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->post('/products/duplicate/{id:\d+}', ['AdminController', 'duplicateProduct']);
     $router->post('/products/bulk-delete', ['AdminController', 'bulkDeleteProducts']);
+    $router->post('/products/update-stock', ['AdminController', 'updateStock']);
     $router->post('/products/images/delete/{id:\d+}', ['AdminController', 'deleteProductImage']);
     
     // Orders
     $router->get('/orders', ['AdminController', 'orders']);
     $router->get('/orders/{id:\d+}', ['AdminController', 'orderDetail']);
     $router->post('/orders/{id:\d+}/status', ['AdminController', 'updateOrderStatus']);
+    $router->post('/orders/delete/{id:\d+}', ['AdminController', 'deleteOrder']);
     
     // Customers
     $router->get('/customers', ['AdminController', 'customers']);
@@ -326,6 +329,7 @@ $router->group('/admin', function($router) {
     $router->get('/categories', ['AdminController', 'categories']);
     $router->post('/categories/save', ['AdminController', 'saveCategory']);
     $router->post('/categories/delete/{id:\d+}', ['AdminController', 'deleteCategory']);
+    $router->post('/categories/update-order', ['AdminController', 'updateCategoryOrder']);
     $router->post('/categories/bulk-delete', ['AdminController', 'bulkDeleteCategories']);
 
     // Blog CRUD
@@ -367,6 +371,7 @@ $router->group('/admin', function($router) {
     $router->post('/media/bulk-delete', ['AdminManagementController', 'bulkDeleteMedia']);
     $router->post('/media/sync', ['AdminManagementController', 'syncMedia']);
     $router->get('/search', ['AdminManagementController', 'search']);
+    $router->get('/api/search', ['AdminManagementController', 'searchApi']);
     $router->get('/settings', ['AdminManagementController', 'settings']);
     $router->post('/settings', ['AdminManagementController', 'saveSettings']);
 
@@ -374,6 +379,12 @@ $router->group('/admin', function($router) {
     $router->get('/profile', ['AdminManagementController', 'profile']);
     $router->post('/profile', ['AdminManagementController', 'saveProfile']);
     $router->post('/profile/password', ['AdminManagementController', 'saveProfilePassword']);
+
+    // Trash Management
+    $router->get('/trash', ['TrashController', 'index']);
+    $router->post('/trash/restore/{type}/{id:\d+}', ['TrashController', 'restore']);
+    $router->post('/trash/delete-permanent/{type}/{id:\d+}', ['TrashController', 'permanentDelete']);
+    $router->post('/trash/empty', ['TrashController', 'emptyTrash']);
 });
 
 // ==================== ERROR HANDLING ====================
@@ -432,6 +443,21 @@ try {
     }
     if ($uri === '/robots.txt') {
         (new \App\Controllers\HomeController())->robots();
+        exit;
+    }
+
+    if ($uri === '/test-db') {
+        try {
+            $db = \App\Core\Database::getInstance();
+            $cats = $db->fetchAll("SELECT id, name FROM categories");
+            echo "<h1>Database Connection Successful</h1>";
+            echo "<pre>";
+            print_r($cats);
+            echo "</pre>";
+        } catch (Exception $e) {
+            echo "<h1>Database Error</h1>";
+            echo "<p>" . $e->getMessage() . "</p>";
+        }
         exit;
     }
 

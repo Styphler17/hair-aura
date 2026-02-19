@@ -150,6 +150,26 @@
                         <span>Admin Profile</span>
                     </a>
                 </li>
+                <li class="nav-item mt-3">
+                    <hr class="dropdown-divider bg-secondary opacity-25">
+                </li>
+                <li class="nav-item">
+                    <a href="<?= url('/admin/trash') ?>" class="nav-link <?= str_contains($requestUri, '/admin/trash') ? 'active' : '' ?> text-danger">
+                        <i class="fas fa-trash-can"></i>
+                        <span>Trash</span>
+                        <?php 
+                            $db = \App\Core\Database::getInstance();
+                            $pCount = $db->hasColumn('products', 'deleted_at') ? (int)$db->fetchColumn("SELECT COUNT(*) FROM products WHERE deleted_at IS NOT NULL") : 0;
+                            $bCount = $db->hasColumn('blog_posts', 'deleted_at') ? (int)$db->fetchColumn("SELECT COUNT(*) FROM blog_posts WHERE deleted_at IS NOT NULL") : 0;
+                            $mCount = $db->hasColumn('media_library', 'deleted_at') ? (int)$db->fetchColumn("SELECT COUNT(*) FROM media_library WHERE deleted_at IS NOT NULL") : 0;
+                            $trashedCount = $pCount + $bCount + $mCount;
+                            
+                            if ($trashedCount > 0): 
+                        ?>
+                            <span class="badge rounded-pill bg-danger ms-auto"><?= $trashedCount ?></span>
+                        <?php endif; ?>
+                    </a>
+                </li>
             </ul>
         </nav>
         <div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
@@ -168,15 +188,18 @@
                     </div>
                 </div>
 
-                <form action="<?= url('/admin/search') ?>" method="get" class="admin-top-search search-form">
+                <form action="<?= url('/admin/search') ?>" method="get" class="admin-top-search search-form d-none d-lg-flex">
                     <input type="text" name="q" class="form-control" placeholder="Search products, orders, users, blogs..." value="<?= htmlspecialchars((string) ($_GET['q'] ?? '')) ?>">
                     <button type="submit" class="btn" aria-label="Search"><i class="fas fa-search"></i></button>
                 </form>
                 
                 <div class="navbar-right">
-                    <a href="<?= url('/') ?>" target="_blank" class="btn btn-sm btn-outline-secondary me-3 d-none d-md-inline-flex align-items-center">
-                        <i class="fas fa-external-link-alt me-2"></i>
-                        <span>View Store</span>
+                    <button class="btn btn-sm btn-outline-secondary d-flex d-lg-none me-2" data-bs-toggle="modal" data-bs-target="#adminSearchModal">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <a href="<?= url('/') ?>" target="_blank" class="btn btn-sm btn-outline-secondary me-2 d-inline-flex align-items-center" title="View Store">
+                        <i class="fas fa-external-link-alt"></i>
+                        <span class="d-none d-md-inline ms-2">View Store</span>
                     </a>
                     <a href="<?= url('/admin/profile') ?>" class="navbar-user">
                         <img src="<?= $avatarAsset ?>" alt="<?= htmlspecialchars($user?->getFullName() ?? 'Admin') ?>" class="navbar-avatar">
@@ -214,5 +237,107 @@
     <!-- Admin JS -->
     <script src="<?= asset('/js/admin.js') ?>?v=<?= htmlspecialchars($adminJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/admin.js') ?>?v=<?= htmlspecialchars($adminJsVersion) ?>';"></script>
     <script src="<?= asset('/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>" onerror="this.onerror=null;this.src='<?= url('/public/js/password-toggle.js') ?>?v=<?= htmlspecialchars($passwordJsVersion) ?>';"></script>
+    <!-- Admin Search Modal -->
+    <div class="modal fade" id="adminSearchModal" tabindex="-1" aria-labelledby="adminSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg border-0">
+            <div class="modal-content shadow-lg border-0 overflow-hidden">
+                <div class="modal-header border-0 pb-0">
+                    <div class="input-group input-group-lg border rounded shadow-sm">
+                        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="adminLiveSearchInput" class="form-control border-0 px-1" placeholder="Search everything..." autocomplete="off">
+                        <button type="button" class="btn btn-white border-0" data-bs-dismiss="modal" aria-label="Close"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="adminLiveSearchResults" class="list-group list-group-flush" style="max-height: 400px; overflow-y: auto;">
+                        <div class="py-4 text-center text-muted">
+                            <i class="fas fa-keyboard fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0 small">Start typing to search products, orders, and users...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Admin Live Search
+        const searchInput = document.getElementById('adminLiveSearchInput');
+        const resultsContainer = document.getElementById('adminLiveSearchResults');
+        let searchTimeout = null;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    resultsContainer.innerHTML = `
+                        <div class="py-4 text-center text-muted">
+                            <i class="fas fa-keyboard fa-2x mb-2 opacity-50"></i>
+                            <p class="mb-0 small">Start typing to search products, orders, and users...</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                resultsContainer.innerHTML = `
+                    <div class="py-4 text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="mt-2 mb-0 small text-muted">Searching for "${query}"...</p>
+                    </div>
+                `;
+
+                searchTimeout = setTimeout(() => {
+                    fetch('<?= url("/admin/api/search?q=") ?>' + encodeURIComponent(query))
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                resultsContainer.innerHTML = `
+                                    <div class="py-4 text-center text-muted">
+                                        <i class="fas fa-search-minus fa-2x mb-2 opacity-50"></i>
+                                        <p class="mb-0 small">No results found for "${query}"</p>
+                                    </div>
+                                `;
+                                return;
+                            }
+
+                            let html = '';
+                            data.forEach(item => {
+                                html += `
+                                    <a href="${item.url}" class="list-group-item list-group-item-action py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-light rounded p-2 me-3 text-secondary" style="width: 40px; text-align: center;">
+                                                <i class="${item.icon}"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold text-dark">${item.title}</div>
+                                                <div class="small text-muted">${item.type} &bull; ${item.detail}</div>
+                                            </div>
+                                            <div class="ms-auto">
+                                                <i class="fas fa-chevron-right text-muted small"></i>
+                                            </div>
+                                        </div>
+                                    </a>
+                                `;
+                            });
+                            resultsContainer.innerHTML = html;
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                            resultsContainer.innerHTML = '<div class="p-3 text-danger small text-center">Error fetching results</div>';
+                        });
+                }, 300);
+            });
+
+            // Focus search input when modal opens
+            const searchModal = document.getElementById('adminSearchModal');
+            searchModal.addEventListener('shown.bs.modal', function () {
+                searchInput.focus();
+            });
+        }
+    });
+    </script>
 </body>
 </html>

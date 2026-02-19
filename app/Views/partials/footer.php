@@ -13,13 +13,37 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
             <div class="col-lg-4 col-md-6">
                 <div class="footer-brand mb-4">
                     <img src="<?= asset($site['logo'] ?? '/img/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="footer-logo mb-3" style="max-height: 50px;">
-                    <p class="footer-tagline text-muted">Unlock Your Aura with Perfect Wigs. Premium quality human hair, synthetic wigs, and extensions for the modern woman in Ghana.</p>
+                    <p class="footer-description text-muted small mb-3">
+                        Hair Aura is Ghana's premier destination for luxury human hair wigs and extensions. Based in the heart of Accra, we specialize in 100% authentic Vietnamese and Cambodian hair. Our mission is to provide every woman with the confidence she deserves through premium, long-lasting hair units tailored for the modern African woman.
+                    </p>
+                    <p class="footer-tagline fw-bold" style="color: var(--primary); font-size: 0.85rem;">Unlock Your Aura with Perfect Wigs.</p>
                 </div>
                 <div class="social-links d-flex gap-3">
-                    <a href="https://instagram.com/hairaura" target="_blank" rel="noopener" class="social-link" title="Instagram"><i class="fab fa-instagram"></i></a>
-                    <a href="https://facebook.com/hairaura" target="_blank" rel="noopener" class="social-link" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener" class="social-link" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
-                    <a href="https://tiktok.com/@hairaura" target="_blank" rel="noopener" class="social-link" title="TikTok"><i class="fab fa-tiktok"></i></a>
+                    <?php 
+                    $socialLinks = $site['social'] ?? [];
+                    $platforms = [
+                        'instagram' => ['icon' => 'fab fa-instagram', 'title' => 'Instagram'],
+                        'facebook' => ['icon' => 'fab fa-facebook-f', 'title' => 'Facebook'],
+                        'whatsapp' => ['icon' => 'fab fa-whatsapp', 'title' => 'WhatsApp'],
+                        'tiktok' => ['icon' => 'fab fa-tiktok', 'title' => 'TikTok'],
+                        'twitter' => ['icon' => 'fab fa-x-twitter', 'title' => 'Twitter'],
+                        'youtube' => ['icon' => 'fab fa-youtube', 'title' => 'YouTube'],
+                    ];
+
+                    foreach ($platforms as $key => $p):
+                        $link = $socialLinks[$key] ?? null;
+                        if (!$link || empty($link['enabled']) || empty($link['url'])) continue;
+                        
+                        $href = $link['url'];
+                        if ($key === 'whatsapp') {
+                            $digits = preg_replace('/\D+/', '', $href);
+                            $href = "https://wa.me/" . $digits;
+                        }
+                    ?>
+                        <a href="<?= htmlspecialchars($href) ?>" target="_blank" rel="noopener" class="social-link" title="<?= $p['title'] ?>">
+                            <i class="<?= $p['icon'] ?>"></i>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
             </div>
 
@@ -52,19 +76,19 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
                 <h5 class="footer-title text-uppercase mb-4">Contact Us</h5>
                 <ul class="list-unstyled contact-info">
                     <li class="mb-3 d-flex gap-3 align-items-start">
-                        <i class="fas fa-location-dot mt-1 text-primary"></i>
+                        <i class="fas fa-location-dot mt-1 theme-icon"></i>
                         <span><?= htmlspecialchars($supportLocation) ?></span>
                     </li>
                     <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fas fa-phone text-primary"></i>
+                        <i class="fas fa-phone theme-icon"></i>
                         <a href="tel:<?= htmlspecialchars($supportPhone) ?>" class="footer-link"><?= htmlspecialchars($supportPhone) ?></a>
                     </li>
                     <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fab fa-whatsapp text-primary"></i>
+                        <i class="fab fa-whatsapp theme-icon"></i>
                         <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener" class="footer-link">WhatsApp Chat</a>
                     </li>
                     <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fas fa-envelope text-primary"></i>
+                        <i class="fas fa-envelope theme-icon"></i>
                         <a href="mailto:<?= htmlspecialchars($supportEmail) ?>" class="footer-link"><?= htmlspecialchars($supportEmail) ?></a>
                     </li>
                 </ul>
@@ -79,11 +103,7 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
             </div>
             <div class="col-md-6 text-md-end">
                 <div class="payment-methods d-flex gap-3 justify-content-md-end align-items-center">
-                    <span class="momo-badge bg-white text-dark rounded px-2 py-0 border fw-bold small" title="Mobile Money">MoMo</span>
-                    <i class="fab fa-cc-visa fa-2x" title="Visa"></i>
-                    <i class="fab fa-cc-mastercard fa-2x" title="Mastercard"></i>
-                    <i class="fab fa-cc-paypal fa-2x" title="PayPal"></i>
-                    <i class="fab fa-cc-stripe fa-2x" title="Stripe"></i>
+                    <span class="momo-badge bg-white text-dark rounded px-2 py-0 border fw-bold small" title="Mobile Money">MoMo Only</span>
                 </div>
             </div>
         </div>
@@ -145,5 +165,12 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
 }
 .contact-info .fas, .contact-info .fab {
     font-size: 1.1rem;
+}
+.theme-icon {
+    color: var(--primary, #D4A574) !important;
+}
+.footer-description {
+    line-height: 1.6;
+    color: #adb5bd !important;
 }
 </style>

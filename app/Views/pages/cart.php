@@ -47,44 +47,73 @@
             <!-- Cart Items -->
             <div class="col-lg-8">
                 <div class="cart-items">
-                    <div class="cart-header">
-                        <div class="row">
-                            <div class="col-6">Product</div>
-                            <div class="col-2 text-center">Price</div>
-                            <div class="col-2 text-center">Quantity</div>
-                            <div class="col-2 text-end">Total</div>
-                        </div>
-                    </div>
                     
                     <?php foreach ($cartItems as $item): ?>
-                    <div class="cart-item" data-product-id="<?= $item['product_id'] ?>" data-variant-id="<?= $item['variant_id'] ?? '' ?>">
-                        <div class="row align-items-center">
-                            <div class="col-6">
-                                <div class="product-info">
-                                    <img src="<?= $item['image'] ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="product-image">
-                                    <div class="product-details">
-                                        <h4><a href="/product/<?= $item['product']->slug ?>"><?= htmlspecialchars($item['name']) ?></a></h4>
-                                        <?php if ($item['variant_id']): ?>
-                                        <span class="variant">Variant: <?= htmlspecialchars($item['variant_name'] ?? '') ?></span>
+                    <div class="cart-item-modern mb-4" data-product-id="<?= $item['product_id'] ?>" data-variant-id="<?= $item['variant_id'] ?? '' ?>">
+                        <div class="cart-item-body">
+                            <!-- Left: Image & Qty -->
+                            <div class="cart-item-left">
+                                <div class="cart-image-container">
+                                    <img src="<?= $item['image'] ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="img-fluid rounded">
+                                </div>
+                                <div class="cart-qty-pill-wrapper">
+                                    <div class="cart-qty-pill">
+                                        <?php if ($item['quantity'] > 1): ?>
+                                            <button type="button" class="qty-btn" onclick="updateQuantity(<?= $item['product_id'] ?>, <?= ($item['quantity'] - 1) ?>, <?= $item['variant_id'] ?? 'null' ?>)">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        <?php else: ?>
+                                            <button type="button" class="qty-btn remove-trigger" onclick="removeFromCart(<?= $item['product_id'] ?>, <?= $item['variant_id'] ?? 'null' ?>)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
                                         <?php endif; ?>
-                                        <button class="btn btn-remove" onclick="removeFromCart(<?= $item['product_id'] ?>, <?= $item['variant_id'] ?? 'null' ?>)">
-                                            <i class="fas fa-trash"></i> Remove
+                                        <span class="qty-value"><?= $item['quantity'] ?></span>
+                                        <button type="button" class="qty-btn" onclick="updateQuantity(<?= $item['product_id'] ?>, <?= ($item['quantity'] + 1) ?>, <?= $item['variant_id'] ?? 'null' ?>)" <?= $item['quantity'] >= $item['stock'] ? 'disabled' : '' ?>>
+                                            <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-2 text-center">
-                                <span class="price"><?= money($item['price']) ?></span>
-                            </div>
-                            <div class="col-2 text-center">
-                                <div class="quantity-selector">
-                                    <button type="button" class="btn btn-minus" onclick="updateQuantity(<?= $item['product_id'] ?>, <?= ($item['quantity'] - 1) ?>, <?= $item['variant_id'] ?? 'null' ?>)">-</button>
-                                    <input type="number" value="<?= $item['quantity'] ?>" min="1" max="<?= $item['stock'] ?>" class="form-control" readonly>
-                                    <button type="button" class="btn btn-plus" onclick="updateQuantity(<?= $item['product_id'] ?>, <?= ($item['quantity'] + 1) ?>, <?= $item['variant_id'] ?? 'null' ?>)">+</button>
+
+                            <!-- Middle: Product Info -->
+                            <div class="cart-item-center">
+                                <h4 class="cart-item-title">
+                                    <a href="/product/<?= $item['product']->slug ?>"><?= htmlspecialchars($item['name']) ?></a>
+                                </h4>
+                                <div class="cart-item-meta">
+                                    <div class="cart-item-price fw-bold mb-1">
+                                        <?= money($item['price']) ?>
+                                    </div>
+                                    <p class="mb-1 small text-muted">Ships from <span class="text-dark fw-medium">Hair Aura</span></p>
+                                    <p class="mb-1 small text-muted">Sold by <span class="text-dark fw-medium">Hair Aura</span></p>
+                                    
+                                    <?php if ($item['variant_id']): ?>
+                                        <p class="mb-1 small">
+                                            <span class="text-muted">Size:</span> 
+                                            <span class="fw-medium"><?= htmlspecialchars($item['variant_name'] ?? '') ?></span>
+                                        </p>
+                                    <?php endif; ?>
+                                    
+                                    <div class="stock-badge in-stock small mt-2">
+                                        <i class="fas fa-check-circle"></i> In Stock
+                                    </div>
+                                </div>
+                                <div class="cart-item-actions d-md-none mt-3">
+                                    <button class="btn btn-link btn-sm text-danger p-0 text-decoration-none" onclick="removeFromCart(<?= $item['product_id'] ?>, <?= $item['variant_id'] ?? 'null' ?>)">
+                                        <i class="fas fa-trash-alt me-1"></i> Remove
+                                    </button>
                                 </div>
                             </div>
-                            <div class="col-2 text-end">
-                                <span class="subtotal"><?= money($item['subtotal']) ?></span>
+
+                            <!-- Right: Total (Desktop) -->
+                            <div class="cart-item-right d-none d-md-flex">
+                                <div class="text-end">
+                                    <span class="d-block small text-muted mb-1">Item Total</span>
+                                    <div class="fw-bold fs-5"><?= money($item['subtotal']) ?></div>
+                                    <button class="btn btn-link btn-sm text-muted p-0 mt-3 text-decoration-none hover-danger" onclick="removeFromCart(<?= $item['product_id'] ?>, <?= $item['variant_id'] ?? 'null' ?>)">
+                                        Remove
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -106,68 +135,59 @@
             
             <!-- Cart Summary -->
             <div class="col-lg-4">
-                <div class="cart-summary">
-                    <h3>Order Summary</h3>
-                    
-                    <!-- Coupon -->
-                    <div class="coupon-section">
-                        <form id="couponForm" class="input-group">
-                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                            <input type="text" name="code" class="form-control" placeholder="Enter coupon code">
-                            <button type="submit" class="btn btn-outline-primary">Apply</button>
-                        </form>
-                        <div id="couponMessage"></div>
-                    </div>
+                <div class="cart-summary-modern p-4 rounded shadow-sm bg-white">
+                    <h3 class="fs-5 fw-bold mb-4">Order Summary</h3>
                     
                     <div class="summary-details">
-                        <div class="summary-row">
-                            <span>Subtotal</span>
-                            <span id="cartSubtotal"><?= money($summary['subtotal']) ?></span>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Subtotal (<?= count($cartItems) ?> items)</span>
+                            <span class="fw-medium"><?= money($summary['subtotal']) ?></span>
                         </div>
                         
                         <?php if (isset($_SESSION['applied_coupon'])): ?>
-                        <div class="summary-row discount">
+                        <div class="d-flex justify-content-between mb-2 text-success">
                             <span>Discount (<?= $_SESSION['applied_coupon']['code'] ?>)</span>
                             <span>-<?= money($_SESSION['applied_coupon']['discount']) ?></span>
                         </div>
                         <?php endif; ?>
                         
-                        <div class="summary-row">
-                            <span>Shipping</span>
-                            <span id="cartShipping">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Shipping</span>
+                            <span class="text-success fw-medium">
                                 <?php if ($summary['shipping'] == 0): ?>
-                                <span class="text-success">Free</span>
+                                Free
                                 <?php else: ?>
                                 <?= money($summary['shipping']) ?>
                                 <?php endif; ?>
                             </span>
                         </div>
                         
-                        <?php if ($summary['tax'] > 0): ?>
-                        <div class="summary-row">
-                            <span>Tax</span>
-                            <span><?= money($summary['tax']) ?></span>
-                        </div>
-                        <?php endif; ?>
+                        <hr class="my-3">
                         
-                        <div class="summary-row total">
-                            <span>Total</span>
-                            <span id="cartTotal"><?= money($summary['total']) ?></span>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fs-5 fw-bold">Order Total</span>
+                            <span class="fs-4 fw-bold text-dark"><?= money($summary['total']) ?></span>
                         </div>
                     </div>
                     
-                    <a href="/checkout" class="btn btn-primary btn-lg btn-checkout">
-                        Proceed to Checkout <i class="fas fa-arrow-right"></i>
+                    <a href="/checkout" class="btn btn-primary btn-lg w-100 rounded-pill mb-3 py-2 fw-bold">
+                        Proceed to Checkout
                     </a>
                     
-                    <div class="payment-info">
-                        <p><i class="fas fa-lock"></i> Secure checkout</p>
-                        <div class="payment-icons">
-                            <span class="momo-badge" title="MTN Mobile Money">MoMo</span>
-                            <i class="fab fa-cc-visa" title="Visa"></i>
-                            <i class="fab fa-cc-mastercard" title="Mastercard"></i>
-                            <i class="fab fa-cc-paypal" title="PayPal"></i>
-                            <i class="fab fa-cc-amex" title="American Express"></i>
+                    <!-- Coupon -->
+                    <div class="coupon-section mb-4">
+                        <form id="couponForm" class="input-group input-group-sm">
+                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                            <input type="text" name="code" class="form-control" placeholder="Coupon code">
+                            <button type="submit" class="btn btn-outline-secondary">Apply</button>
+                        </form>
+                        <div id="couponMessage" class="mt-2 small"></div>
+                    </div>
+
+                    <div class="payment-trust text-center">
+                        <p class="small text-muted mb-3"><i class="fas fa-lock me-1"></i> Secure Transaction</p>
+                        <div class="d-flex justify-content-center align-items-center gap-3 fs-3 text-muted">
+                            <span class="momo-badge fw-bold border rounded px-1" style="font-size: 0.8rem; color: #333; height: 1.5rem; display: flex; align-items: center;">MoMo Only</span>
                         </div>
                     </div>
                 </div>

@@ -72,20 +72,13 @@ unset($_SESSION['old_input']);
                         <label class="form-label">Payment Method</label>
                         <div class="payment-methods-grid">
                             <div class="form-check payment-option">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payMomo" value="momo" <?= $paymentValue === 'momo' ? 'selected' : '' ?>>
+                                <input class="form-check-input" type="radio" name="payment_method" id="payMomo" value="momo" checked>
                                 <label class="form-check-label w-100" for="payMomo">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span>Mobile Money (MoMo)</span>
                                         <span class="momo-badge">MTN/Vodafone/AirtelTigo</span>
                                     </div>
                                     <small class="text-muted d-block mt-1">Pay via your mobile wallet. <strong>Line: +233508007873</strong></small>
-                                </label>
-                            </div>
-                            <div class="form-check payment-option mt-2">
-                                <input class="form-check-input" type="radio" name="payment_method" id="payCash" value="cash" <?= $paymentValue === 'cash' ? 'selected' : '' ?>>
-                                <label class="form-check-label w-100" for="payCash">
-                                    <span>Cash on Delivery</span>
-                                    <small class="text-muted d-block mt-1">Pay when you receive your order.</small>
                                 </label>
                             </div>
                         </div>
@@ -100,25 +93,28 @@ unset($_SESSION['old_input']);
             <div class="col-lg-5">
                 <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-body p-4">
-                        <h4 class="mb-4">Order Summary</h4>
+                        <h4 class="checkout-section-title">Order Summary</h4>
                         <?php if (!empty($cartItems)): ?>
                             <div class="checkout-items mb-4">
                                 <?php foreach ($cartItems as $item): ?>
-                                <div class="checkout-summary-item">
-                                    <img src="<?= !empty($item['image']) ? $item['image'] : asset('/img/product-placeholder.webp') ?>" 
-                                         alt="<?= htmlspecialchars((string) $item['name']) ?>" 
-                                         class="item-img"
-                                         onerror="this.src='<?= asset('/img/product-placeholder.webp') ?>'">
-                                    <div class="item-info">
-                                        <span class="item-name"><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?></span>
-                                        <div class="item-meta">
-                                            Qty: <?= (int) ($item['quantity'] ?? 1) ?>
-                                            <?php if (!empty($item['variant_name'])): ?>
-                                                • <?= htmlspecialchars($item['variant_name']) ?>
-                                            <?php endif; ?>
-                                        </div>
+                                <div class="checkout-summary-item d-flex align-items-center mb-3">
+                                    <div class="item-img-wrapper position-relative me-3">
+                                        <img src="<?= !empty($item['image']) ? $item['image'] : asset('/img/product-placeholder.webp') ?>" 
+                                             alt="<?= htmlspecialchars((string) $item['name']) ?>" 
+                                             class="item-img rounded border"
+                                             style="width: 64px; height: 64px; object-fit: cover;"
+                                             onerror="this.src='<?= asset('/img/product-placeholder.webp') ?>'">
+                                        <span class="item-quantity-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-secondary border border-white" style="font-size: 0.7rem;">
+                                            <?= (int) ($item['quantity'] ?? 1) ?>
+                                        </span>
                                     </div>
-                                    <div class="item-price text-end">
+                                    <div class="item-info flex-grow-1">
+                                        <div class="item-name fw-semibold" style="font-size: 0.95rem; line-height: 1.2;"><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?></div>
+                                        <?php if (!empty($item['variant_name'])): ?>
+                                            <div class="item-variant text-muted small mt-1"><?= htmlspecialchars($item['variant_name']) ?></div>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="item-price text-end fw-medium ms-3">
                                         <?= money((float) ($item['subtotal'] ?? 0)) ?>
                                     </div>
                                 </div>

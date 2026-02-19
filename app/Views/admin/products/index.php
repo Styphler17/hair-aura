@@ -5,19 +5,27 @@
 
 <form method="get" action="<?= url('/admin/products') ?>" class="card mb-3">
     <div class="card-body row g-2 align-items-end">
-        <div class="col-md-7">
+        <div class="col-md-5">
             <label class="form-label">Search</label>
             <input type="text" name="search" class="form-control" value="<?= htmlspecialchars($search ?? '') ?>" placeholder="Name or SKU">
         </div>
         <div class="col-md-3">
             <label class="form-label">Category</label>
-            <select name="category" class="form-select">
+            <select name="category" class="form-select" onchange="this.form.submit()">
                 <option value="">All Categories</option>
                 <?php foreach (($categories ?? []) as $category): ?>
                     <option value="<?= (int) $category['id'] ?>" <?= ((string) ($categoryFilter ?? '') === (string) $category['id']) ? 'selected' : '' ?>>
                         <?= htmlspecialchars($category['name']) ?>
                     </option>
                 <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select" onchange="this.form.submit()">
+                <option value="">All Statuses</option>
+                <option value="active" <?= ($statusFilter ?? '') === 'active' ? 'selected' : '' ?>>Active</option>
+                <option value="inactive" <?= ($statusFilter ?? '') === 'inactive' ? 'selected' : '' ?>>Inactive</option>
             </select>
         </div>
         <div class="col-md-2 d-grid">
@@ -87,7 +95,16 @@
                                             <?= money((float) $product['price']) ?>
                                         <?php endif; ?>
                                     </td>
-                                    <td data-label="Stock"><?= (int) ($product['stock_quantity'] ?? 0) ?></td>
+                                    <td data-label="Stock">
+                                        <form action="<?= url('/admin/products/update-stock') ?>" method="post" class="d-flex align-items-center gap-1" style="max-width: 120px;">
+                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                                            <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                                            <input type="number" name="stock" value="<?= (int) ($product['stock_quantity'] ?? 0) ?>" class="form-control form-control-sm px-1 text-center" style="width: 50px;">
+                                            <button type="submit" class="btn btn-sm btn-link text-primary p-0" title="Quick Update Stock">
+                                                <i class="fas fa-save"></i>
+                                            </button>
+                                        </form>
+                                    </td>
                                     <td data-label="Status">
                                         <?php if (!empty($product['is_active'])): ?>
                                             <span class="badge bg-success">Active</span>
@@ -108,6 +125,15 @@
                                                title="Edit Product">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-info btn-duplicate-product" 
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#duplicateItemModal"
+                                                    data-url="<?= url('/admin/products/duplicate/' . (int) $product['id']) ?>"
+                                                    data-title="<?= htmlspecialchars($product['name']) ?>"
+                                                    title="Duplicate Product">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
                                             <button type="button" 
                                                     class="btn btn-sm btn-outline-danger" 
                                                     data-bs-toggle="modal" 
@@ -208,6 +234,36 @@
     </div>
 </div>
 
+<!-- Duplicate Confirmation Modal -->
+<div class="modal fade" id="duplicateItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-info">Duplicate Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <div class="text-center mb-3">
+                    <i class="fas fa-copy text-info fa-4x mb-3"></i>
+                    <h4 class="fw-bold">Duplicate this product?</h4>
+                    <p class="text-muted">You are about to create a copy of the following product:</p>
+                    <div class="p-3 bg-light rounded text-start italic border-start border-info border-4 mx-3">
+                        <span id="itemToDuplicateTitle" class="fw-semibold"></span>
+                    </div>
+                    <p class="text-muted small mt-3">The new product will be set to <strong>Inactive</strong> by default.</p>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="duplicateItemForm" method="post" action="">
+                    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                    <button type="submit" class="btn btn-info text-white px-4 shadow-sm">Yes, Duplicate It</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Product Preview Modal -->
 <div class="modal fade" id="productPreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -240,6 +296,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('deleteItemForm');
             const titleSpan = document.getElementById('itemToDeleteTitle');
             form.action = '<?= url('/admin/products/delete/') ?>' + id;
+            titleSpan.textContent = title;
+        });
+    }
+
+    // Duplicate Confirmation Modal
+    const duplicateModal = document.getElementById('duplicateItemModal');
+    if (duplicateModal) {
+        duplicateModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const url = button.getAttribute('data-url');
+            const title = button.getAttribute('data-title');
+            const form = document.getElementById('duplicateItemForm');
+            const titleSpan = document.getElementById('itemToDuplicateTitle');
+            form.action = url;
             titleSpan.textContent = title;
         });
     }

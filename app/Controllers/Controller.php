@@ -499,61 +499,96 @@ abstract class Controller
     private function loadSiteSettings(): array
     {
         $defaults = [
-            'name' => 'Hair Aura',
-            'tagline' => 'Unlock Your Aura with Perfect Wigs',
-            'logo' => '/img/logo.webp',
-            'meta_description' => 'Premium wigs and hair extensions in Ghana.',
-            'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
-            'email' => 'support@example.com',
-            'phone' => '+233508007873',
-            'whatsapp' => '+233508007873',
-            'location' => 'Accra, Ghana',
-            'theme_primary' => '#D4A574',
-            'theme_primary_dark' => '#B8935F',
-            'theme_secondary' => '#2C2C2C',
-            'theme_gold' => '#D4AF37',
-            'virtual_tryon_image' => '/img/product-placeholder.webp',
-            'instagram_images' => [],
-            'hero_slides' => [
-                [
-                    'image' => '/img/hero-1.webp',
-                    'title' => 'Top Human Hair Wigs in Ghana',
-                    'subtitle' => 'Premium 100% human hair wigs, lace fronts, and extensions delivered across Accra, Kumasi, and beyond.',
-                    'button_text' => 'Shop the Collection',
-                    'button_link' => '/shop'
+            'about' => [
+                'title' => 'About Hair Aura',
+                'content' => "Hair Aura is a premium wig and hair extensions brand focused on quality, confidence, and everyday beauty.",
+                'button_text' => 'Shop Collection',
+                'button_url' => '/shop'
+            ],
+            'contact' => [
+                'email' => 'support@hair-aura.debesties.com',
+                'phone' => '+233508007873',
+                'whatsapp' => '+233508007873',
+                'location' => 'Accra, Ghana',
+                'business_hours' => 'Mon - Sat, 8:00 AM - 6:00 PM'
+            ],
+            'site' => [
+                'name' => 'Hair Aura',
+                'tagline' => 'Unlock Your Aura with Perfect Wigs',
+                'logo' => '/img/logo.webp',
+                'meta_description' => 'Premium wigs and hair extensions in Ghana.',
+                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+                'theme_primary' => '#D4A574',
+                'theme_primary_dark' => '#B8935F',
+                'theme_secondary' => '#2C2C2C',
+                'theme_gold' => '#D4AF37',
+                'virtual_tryon_image' => '/img/product-placeholder.webp',
+                'instagram_images' => [],
+                'social' => [
+                    'facebook' => ['url' => 'https://facebook.com/hairaura', 'enabled' => true],
+                    'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
+                    'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
+                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true],
+                    'twitter' => ['url' => '', 'enabled' => false],
+                    'youtube' => ['url' => '', 'enabled' => false]
                 ],
-                [
-                    'image' => '/img/hero-2.webp',
-                    'title' => 'Explore Our New Collection',
-                    'subtitle' => 'Handcrafted wigs for a natural look.',
-                    'button_text' => 'Explore Collection',
-                    'button_link' => '/shop/human-hair-wigs'
-                ],
-                [
-                    'image' => '/img/hero-3.webp',
-                    'title' => 'Find Your Perfect Match',
-                    'subtitle' => 'Style tailored to your unique aura.',
-                    'button_text' => 'Shop Now',
-                    'button_link' => '/shop'
+                'hero_slides' => [
+                    [
+                        'image' => '/img/hero-1.webp',
+                        'title' => 'Top Human Hair Wigs in Ghana',
+                        'subtitle' => 'Premium 100% human hair wigs, lace fronts, and extensions delivered across Accra, Kumasi, and beyond.',
+                        'button_text' => 'Shop the Collection',
+                        'button_link' => '/shop'
+                    ],
+                    [
+                        'image' => '/img/hero-2.webp',
+                        'title' => 'Explore Our New Collection',
+                        'subtitle' => 'Handcrafted wigs for a natural look.',
+                        'button_text' => 'Explore Collection',
+                        'button_link' => '/shop/human-hair-wigs'
+                    ],
+                    [
+                        'image' => '/img/hero-3.webp',
+                        'title' => 'Find Your Perfect Match',
+                        'subtitle' => 'Style tailored to your unique aura.',
+                        'button_text' => 'Shop Now',
+                        'button_link' => '/shop'
+                    ]
                 ]
             ]
         ];
 
         $path = __DIR__ . '/../../config/site-content.php';
         if (!is_file($path)) {
-            return $defaults;
+            return $this->flattenSettings($defaults);
         }
 
+        // Avoid OPcache issues on read by using file_get_contents + eval or similar? 
+        // No, let's just use opcache_invalidate if we suspect stale reads, 
+        // but normally require is fine if we invalidated on save.
         $data = require $path;
         if (!is_array($data)) {
-            return $defaults;
+            return $this->flattenSettings($defaults);
         }
 
-        return array_merge(
-            $defaults,
-            (array) ($data['contact'] ?? []),
-            (array) ($data['site'] ?? [])
-        );
+        return $this->flattenSettings([
+            'about' => array_merge($defaults['about'] ?? [], (array) ($data['about'] ?? [])),
+            'contact' => array_merge($defaults['contact'] ?? [], (array) ($data['contact'] ?? [])),
+            'site' => array_merge($defaults['site'] ?? [], (array) ($data['site'] ?? []))
+        ]);
+    }
+
+    /**
+     * Flatten nested settings for easier view access (backward compatibility).
+     */
+    private function flattenSettings(array $nested): array
+    {
+        $flat = $nested['site'] ?? [];
+        $contact = $nested['contact'] ?? [];
+        $about = $nested['about'] ?? [];
+        
+        // Merge contact info into the flat array (overriding site defaults if they exist)
+        return array_merge($flat, $contact, ['about_page' => $about]);
     }
 
     /**

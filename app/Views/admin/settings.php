@@ -172,6 +172,42 @@
         </div>
 
         <div class="col-12 mt-4">
+            <h4 class="mb-3">Social Media Links</h4>
+            <div class="row g-3">
+                <?php 
+                $platforms = [
+                    'facebook' => ['label' => 'Facebook', 'icon' => 'fab fa-facebook-f', 'placeholder' => 'https://facebook.com/...'],
+                    'instagram' => ['label' => 'Instagram', 'icon' => 'fab fa-instagram', 'placeholder' => 'https://instagram.com/...'],
+                    'tiktok' => ['label' => 'TikTok', 'icon' => 'fab fa-tiktok', 'placeholder' => 'https://tiktok.com/@...'],
+                    'whatsapp' => ['label' => 'WhatsApp', 'icon' => 'fab fa-whatsapp', 'placeholder' => '+233...'],
+                    'twitter' => ['label' => 'Twitter / X', 'icon' => 'fab fa-x-twitter', 'placeholder' => 'https://twitter.com/...'],
+                    'youtube' => ['label' => 'YouTube', 'icon' => 'fab fa-youtube', 'placeholder' => 'https://youtube.com/...']
+                ];
+                
+                $socialSettings = $settings['social'] ?? [];
+                
+                foreach ($platforms as $key => $p): 
+                    $val = $socialSettings[$key] ?? ['url' => '', 'enabled' => false];
+                ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card bg-light border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0 fw-bold small text-uppercase"><i class="<?= $p['icon'] ?> me-2"></i><?= $p['label'] ?></label>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input" type="checkbox" name="social[<?= $key ?>][enabled]" value="1" <?= (!empty($val['enabled'])) ? 'checked' : '' ?>>
+                                        <label class="form-check-label small">Show</label>
+                                    </div>
+                                </div>
+                                <input type="text" name="social[<?= $key ?>][url]" class="form-control form-control-sm" value="<?= htmlspecialchars((string)($val['url'] ?? '')) ?>" placeholder="<?= $p['placeholder'] ?>">
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
             <button type="submit" class="btn btn-primary btn-lg w-100">Save Site Settings</button>
         </div>
     </div>

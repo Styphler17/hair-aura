@@ -54,11 +54,16 @@ class AdminController extends Controller
         
         // Get low stock products
         $db = Database::getInstance();
+        $where = "p.stock_quantity <= 5 AND p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
+        
         $lowStock = $db->fetchAll(
             "SELECT p.*, c.name as category_name 
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.stock_quantity <= 5 AND p.is_active = 1
+             WHERE {$where}
              ORDER BY p.stock_quantity ASC
              LIMIT 10"
         );
@@ -93,6 +98,7 @@ class AdminController extends Controller
         $page = (int) ($this->get('page') ?? 1);
         $search = $this->get('search', '');
         $category = $this->get('category', '');
+        $status = $this->get('status', '');
         
         $db = Database::getInstance();
         
@@ -108,6 +114,14 @@ class AdminController extends Controller
         if ($category) {
             $where .= " AND p.category_id = :category";
             $params['category'] = $category;
+        }
+
+        if ($status !== '') {
+            if ($status === 'active') {
+                $where .= " AND p.is_active = 1";
+            } elseif ($status === 'inactive') {
+                $where .= " AND p.is_active = 0";
+            }
         }
         
         $perPage = 25;
@@ -140,7 +154,8 @@ class AdminController extends Controller
                 'total' => $total
             ],
             'search' => $search,
-            'categoryFilter' => $category
+            'categoryFilter' => $category,
+            'statusFilter' => $status
         ], 'layouts/admin');
     }
     
@@ -213,22 +228,28 @@ class AdminController extends Controller
             $this->redirect($id ? "/admin/products/edit/{$id}" : '/admin/products/add');
         }
         
+        // Ensure SKU is unique if not provided
+        $sku = trim((string)($data['sku'] ?? ''));
+        if ($sku === '') {
+            $sku = 'SKU-' . strtoupper(uniqid());
+        }
+
         $productData = [
             'name' => $data['name'],
             'slug' => !empty($data['slug']) ? $data['slug'] : strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', (string) $data['name']), '-')),
             'description' => $data['description'] ?? '',
             'short_description' => $data['short_description'] ?? '',
             'price' => $data['price'],
-            'sale_price' => $data['sale_price'] ?: null,
-            'sku' => $data['sku'] ?? '',
+            'sale_price' => !empty($data['sale_price']) ? $data['sale_price'] : null,
+            'sku' => $sku,
             'stock_quantity' => $data['stock_quantity'],
             'stock_status' => $data['stock_status'] ?? 'in_stock',
             'category_id' => $data['category_id'],
             'brand' => $data['brand'] ?? null,
             'hair_type' => $data['hair_type'] ?? null,
             'texture' => $data['texture'] ?? null,
-            'length_inches' => $data['length_inches'] ?: null,
-            'weight_grams' => $data['weight_grams'] ?: null,
+            'length_inches' => !empty($data['length_inches']) ? $data['length_inches'] : null,
+            'weight_grams' => !empty($data['weight_grams']) ? $data['weight_grams'] : null,
             'cap_size' => $data['cap_size'] ?? null,
             'lace_type' => $data['lace_type'] ?? null,
             'density' => $data['density'] ?? null,
@@ -269,6 +290,77 @@ class AdminController extends Controller
             $this->attachLibraryImagesToProduct((int) $product->id, $libraryImages);
         }
         
+        // Handle Variants
+        $db = Database::getInstance();
+        $variantsData = $data['variants'] ?? [];
+        
+        // 1. Get existing variant IDs
+        $existingVariants = $db->fetchAll(
+            "SELECT id FROM product_variants WHERE product_id = :id", 
+            ['id' => $product->id]
+        );
+        $existingIds = array_column($existingVariants, 'id');
+        $submittedIds = [];
+        
+        // 2. Process submitted variants
+        foreach ($variantsData as $v) {
+            // Skip empty names
+            if (empty($v['variant_name'])) continue;
+            
+            $variantId = !empty($v['id']) ? (int)$v['id'] : null;
+            
+            $variantRow = [
+                'variant_name' => $v['variant_name'],
+                'variant_value' => $v['variant_value'] ?? '',
+                'sku' => $v['sku'] ?? '',
+                'price_adjustment' => $v['price_adjustment'] ?? 0,
+                'stock_quantity' => $v['stock_quantity'] ?? 0,
+                'is_active' => isset($v['is_active']) ? 1 : 0,
+                // Simple sort order based on input order if needed, but for now we rely on index?
+                // If the form sends index keys, we can use them as sort_order.
+                // But usually the array comes in order.
+                'sort_order' => 0 // Default
+            ];
+            
+            if ($variantId && in_array($variantId, $existingIds)) {
+                // Update
+                $submittedIds[] = $variantId;
+                $db->update('product_variants', $variantRow, 'id = :id', ['id' => $variantId]);
+            } else {
+                // Insert
+                $variantRow['product_id'] = $product->id;
+                $db->insert('product_variants', $variantRow);
+            }
+        }
+        
+        // 3. Delete removed variants
+        $toDelete = array_diff($existingIds, $submittedIds);
+        if (!empty($toDelete)) {
+            // Safe delete? Or force delete?
+            // Variants might be in order_items. If so, soft delete?
+            // The schema has is_active but user removed from UI implies "Delete".
+            // But if they are in orders, we can't delete easily without cascade.
+            // Let's try hard delete, if it fails (constraint), we soft delete?
+            // But earlier I just implemented Force Delete for Products.
+            // Here, if a variant is in an order, we probably shouldn't delete it?
+            // But the user removed it.
+            // I will try to delete. If it fails, I'll delete the variant but keep the order_item (order_items usually store snapshot).
+            // Wait, order_items.variant_id is Foreign Key?
+            // If so, set to NULL?
+            // I'll check schema. `variant_id` int(10) UNSIGNED DEFAULT NULL.
+            // So I can set order_items.variant_id to NULL before deleting unique variant.
+            
+            foreach ($toDelete as $delId) {
+                try {
+                    // Unlink from orders first to allow deletion
+                    $db->update('order_items', ['variant_id' => null], 'variant_id = :id', ['id' => $delId]);
+                    $db->delete('product_variants', 'id = :id', ['id' => $delId]);
+                } catch (\Throwable $e) {
+                    error_log("Failed to delete variant $delId: " . $e->getMessage());
+                }
+            }
+        }
+        
         $this->redirect('/admin/products/edit/' . (int) $product->id);
     }
     
@@ -305,7 +397,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Delete product
+     * Delete product (Soft delete)
      */
     public function deleteProduct(int $id): void
     {
@@ -317,8 +409,10 @@ class AdminController extends Controller
         $product = Product::find($id);
         
         if ($product) {
-            $product->update(['is_active' => 0]);
-            $this->flash('success', 'Product deleted successfully');
+            $product->delete(); // Uses Model soft-delete
+            $this->flash('success', 'Product moved to trash');
+        } else {
+            $this->flash('error', 'Product not found');
         }
         
         $this->redirect('/admin/products');
@@ -337,14 +431,138 @@ class AdminController extends Controller
             $this->redirect('/admin/products');
         }
 
-        $db = Database::getInstance();
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
-        // We do a soft delete (is_active = 0) to match deleteProduct
-        $db->query("UPDATE products SET is_active = 0 WHERE id IN ($placeholders)", array_values($ids));
+        $successCount = 0;
+        foreach ($ids as $id) {
+            $product = Product::find($id);
+            if ($product && $product->delete()) {
+                $successCount++;
+            }
+        }
 
-        $this->flash('success', count($ids) . ' products deleted');
+        if ($successCount > 0) {
+            $this->flash('success', "$successCount products moved to trash");
+        } else {
+            $this->flash('error', "Failed to delete selected products");
+        }
+        
         $this->redirect('/admin/products');
     }
+
+    public function updateStock(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $id = (int) $this->post('product_id');
+        $stock = (int) $this->post('stock');
+
+        if ($id <= 0) {
+            $this->flash('error', 'Invalid product');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+        $db->update('products', [
+            'stock_quantity' => $stock,
+            'updated_at' => date('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $id]);
+
+        $this->flash('success', 'Stock updated');
+        $this->redirect('/admin/products');
+    }
+
+    /**
+     * Duplicate product
+     */
+    public function duplicateProduct(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $product = Product::find($id);
+        if (!$product) {
+            $this->flash('error', 'Product not found');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Prepare new data
+        $newData = [
+            'name' => 'Copy of ' . $product->name,
+            'slug' => $product->slug . '-copy-' . time(),
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+            'price' => $product->price,
+            'sale_price' => $product->sale_price,
+            'sku' => $product->sku . '-COPY-' . time(), // Ensure uniqueness
+            'stock_quantity' => $product->stock_quantity,
+            'stock_status' => $product->stock_status,
+            'category_id' => $product->category_id,
+            'brand' => $product->brand,
+            'hair_type' => $product->hair_type,
+            'texture' => $product->texture,
+            'length_inches' => $product->length_inches,
+            'weight_grams' => $product->weight_grams,
+            'cap_size' => $product->cap_size,
+            'lace_type' => $product->lace_type,
+            'density' => $product->density,
+            'color' => $product->color,
+            'featured' => 0, // Reset featured
+            'bestseller' => 0, // Reset bestseller
+            'new_arrival' => 0, // Reset new arrival
+            'meta_title' => $product->meta_title,
+            'meta_description' => $product->meta_description,
+            'meta_keywords' => $product->meta_keywords,
+            'is_active' => 1 
+        ];
+
+        // 2. Create the new product
+        $newProduct = Product::create($newData);
+        
+        if (!$newProduct || !$newProduct->id) {
+            $this->flash('error', 'Failed to duplicate product');
+            $this->redirect('/admin/products');
+        }
+
+        // 3. Copy Images
+        $images = $db->fetchAll("SELECT * FROM product_images WHERE product_id = :id", ['id' => $id]);
+        foreach ($images as $img) {
+            $db->insert('product_images', [
+                'product_id' => $newProduct->id,
+                'image_path' => $img['image_path'],
+                'alt_text' => $img['alt_text'],
+                'is_primary' => $img['is_primary'],
+                'sort_order' => $img['sort_order']
+            ]);
+        }
+
+        // 4. Copy Variants
+        $variants = $db->fetchAll("SELECT * FROM product_variants WHERE product_id = :id", ['id' => $id]);
+        foreach ($variants as $var) {
+             $variantData = [
+                'product_id' => $newProduct->id,
+                'variant_name' => $var['variant_name'], // Changed from 'name' to 'variant_name' based on schema
+                'variant_value' => $var['variant_value'], // Added 'variant_value'
+                'sku' => $var['sku'] . '-' . time(), // Ensure unique SKU
+                'price_adjustment' => $var['price_adjustment'],
+                'stock_quantity' => $var['stock_quantity'],
+                'is_active' => $var['is_active'],
+                'sort_order' => $var['sort_order'] ?? 0
+            ];
+            
+            $db->insert('product_variants', $variantData);
+        }
+
+        $this->flash('success', 'Product duplicated successfully. You are now editing the copy.');
+        $this->redirect('/admin/products/edit/' . $newProduct->id);
+    }
+
+
     
     /**
      * Upload product images
@@ -661,6 +879,44 @@ class AdminController extends Controller
         
         $this->flash('success', 'Order updated successfully');
         $this->redirect('/admin/orders/' . $id);
+    }
+    
+    /**
+     * Delete order
+     */
+    public function deleteOrder(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/orders');
+        }
+
+        $order = Order::find($id);
+        
+        if (!$order) {
+            $this->flash('error', 'Order not found');
+            $this->redirect('/admin/orders');
+        }
+
+        $db = Database::getInstance();
+        
+        try {
+            $db->beginTransaction();
+            
+            // Delete order items first
+            $db->delete('order_items', 'order_id = :id', ['id' => $id]);
+            
+            // Delete the order
+            $order->delete();
+            
+            $db->commit();
+            $this->flash('success', 'Order deleted successfully');
+        } catch (\Exception $e) {
+            $db->rollBack();
+            $this->flash('error', 'Error deleting order: ' . $e->getMessage());
+        }
+        
+        $this->redirect('/admin/orders');
     }
     
     // ==================== CUSTOMERS ====================
@@ -1074,6 +1330,33 @@ class AdminController extends Controller
         $this->redirect('/admin/categories');
     }
 
+    /**
+     * Update categories sort order
+     */
+    public function updateCategoryOrder(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $sortData = $this->post('sort');
+        if (empty($sortData) || !is_array($sortData)) {
+            $this->flash('error', 'No sort data received');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        $count = 0;
+
+        foreach ($sortData as $id => $order) {
+            $db->update('categories', ['sort_order' => (int) $order], 'id = :id', ['id' => (int) $id]);
+            $count++;
+        }
+
+        $this->flash('success', "Order updated for $count categories");
+        $this->redirect('/admin/categories');
+    }
     private function uploadCategoryImage(string $inputName): ?string
     {
         if (!isset($_FILES[$inputName])) {

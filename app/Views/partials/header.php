@@ -5,6 +5,20 @@ $contactWhatsapp = (string) ($site['whatsapp'] ?? '+233508007873');
 $contactEmail = (string) ($site['email'] ?? 'support@example.com');
 $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
 ?>
+<!-- Announcement Banner -->
+<div class="announcement-banner">
+    <div class="banner-content">
+        <div class="banner-text">
+            <span>Payment on delivery within Accra</span>
+            <span class="d-none d-md-inline">•</span>
+            <span>Free delivery on orders over GH₵ 1000</span>
+            <span class="d-none d-md-inline">•</span>
+            <span>Payment on delivery within Accra</span>
+            <span class="d-none d-md-inline">•</span>
+            <span>Free delivery on orders over GH₵ 1000</span>
+        </div>
+    </div>
+</div>
 
 <!-- Top Bar -->
 <div class="top-bar">
