@@ -154,6 +154,31 @@ class CartController extends Controller
     }
     
     /**
+     * Update shipping location (AJAX)
+     */
+    public function updateShipping(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->json(['success' => false, 'message' => 'Invalid request']);
+        }
+        
+        $location = $this->post('location');
+        if (!$location) {
+            $this->json(['success' => false, 'message' => 'Location is required']);
+        }
+        
+        $this->cart->setShippingLocation($location);
+        $summary = $this->cart->getSummary();
+        
+        $this->json([
+            'success' => true,
+            'cart_shipping' => number_format($summary['shipping'], 2),
+            'cart_total' => number_format($summary['total'], 2),
+            'location' => $location
+        ]);
+    }
+    
+    /**
      * Remove item from cart (AJAX)
      */
     public function remove(): void

@@ -33,5 +33,23 @@ return [
         ],
         'free_shipping_threshold' => 3000,
         'shipping_cost' => 50,
+        'shipping_rates' => [
+            'Greater Accra' => 30,
+            'Ashanti' => 70,
+            'Central' => 60,
+            'Eastern' => 60,
+            'Volta' => 80,
+            'Western' => 80,
+            'Bono' => 90,
+            'Bono East' => 90,
+            'Ahafo' => 90,
+            'Northern' => 120,
+            'North East' => 130,
+            'Savannah' => 130,
+            'Upper East' => 150,
+            'Upper West' => 150,
+            'Oti' => 100,
+            'Western North' => 110
+        ]
     ]
 ];

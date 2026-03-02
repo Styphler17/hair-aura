@@ -128,6 +128,49 @@
             </div>
         </div>
 
+        <div class="col-12 mt-4">
+            <h4>Shipping Configuration</h4>
+            <p class="text-muted">Manage global shipping threshold and regional rates.</p>
+            <div class="card bg-light border-0 shadow-sm p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Free Shipping Threshold (GH₵)</label>
+                        <input type="number" name="free_shipping_threshold" class="form-control" value="<?= htmlspecialchars($settings['free_shipping_threshold'] ?? 3000) ?>" step="0.01">
+                        <div class="form-text">Orders above this amount get free shipping.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Standard Shipping Cost (GH₵)</label>
+                        <input type="number" name="shipping_cost" class="form-control" value="<?= htmlspecialchars($settings['shipping_cost'] ?? 50) ?>" step="0.01">
+                        <div class="form-text">Fallback cost if a region rate isn't found.</div>
+                    </div>
+                    
+                    <div class="col-12 mt-3">
+                        <h6 class="fw-bold border-bottom pb-2">Region Specific Rates</h6>
+                        <div class="row g-2 mt-1">
+                            <?php 
+                            $regions = [
+                                'Greater Accra', 'Ashanti', 'Central', 'Eastern', 'Volta', 
+                                'Western', 'Bono', 'Bono East', 'Ahafo', 'Northern', 
+                                'North East', 'Savannah', 'Upper East', 'Upper West', 
+                                'Oti', 'Western North'
+                            ];
+                            $rates = $settings['shipping_rates'] ?? [];
+                            foreach ($regions as $region): 
+                            ?>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1"><?= $region ?></label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">GH₵</span>
+                                        <input type="number" name="shipping_rates[<?= $region ?>]" class="form-control" value="<?= htmlspecialchars($rates[$region] ?? 50) ?>" step="0.01">
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row">
 
 

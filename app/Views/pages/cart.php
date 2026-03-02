@@ -151,15 +151,29 @@
                         </div>
                         <?php endif; ?>
                         
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Shipping</span>
-                            <span class="text-success fw-medium">
-                                <?php if ($summary['shipping'] == 0): ?>
-                                Free
-                                <?php else: ?>
-                                <?= money($summary['shipping']) ?>
-                                <?php endif; ?>
-                            </span>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Shipping</span>
+                                <span id="cartShippingValue" class="<?= $summary['shipping'] == 0 ? 'text-success' : '' ?> fw-medium">
+                                    <?= $summary['shipping'] == 0 ? 'Free' : money($summary['shipping']) ?>
+                                </span>
+                            </div>
+                            <div class="mt-2">
+                                <label class="small text-muted mb-1">Select Region for Shipping</label>
+                                <select id="shippingRegionSelect" class="form-select form-select-sm" onchange="updateShippingLocation(this.value)">
+                                    <?php 
+                                    $currentLocation = (new \App\Core\CartSession())->getShippingLocation();
+                                    $regions = [
+                                        'Greater Accra', 'Ashanti', 'Central', 'Eastern', 'Volta', 
+                                        'Western', 'Bono', 'Bono East', 'Ahafo', 'Northern', 
+                                        'North East', 'Savannah', 'Upper East', 'Upper West', 
+                                        'Oti', 'Western North'
+                                    ];
+                                    foreach ($regions as $region): ?>
+                                        <option value="<?= $region ?>" <?= $currentLocation === $region ? 'selected' : '' ?>><?= $region ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
                         </div>
                         
                         <hr class="my-3">
@@ -224,6 +238,27 @@ function updateQuantity(productId, quantity, variantId) {
     .then(data => {
         if (data.success) {
             location.reload();
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+function updateShippingLocation(location) {
+    const formData = new FormData();
+    formData.append('csrf_token', '<?= \App\Core\Auth::csrfToken() ?>');
+    formData.append('location', location);
+    
+    // Show loading state if needed
+    fetch('/cart/shipping', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Smoothly reload or update DOM
+            location.reload(); 
         } else {
             alert(data.message);
         }

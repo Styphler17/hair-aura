@@ -254,6 +254,7 @@ $router->post('/cart/clear', ['CartController', 'clear']);
 $router->get('/cart/mini', ['CartController', 'miniCart']);
 $router->post('/cart/coupon', ['CartController', 'applyCoupon']);
 $router->post('/cart/coupon/remove', ['CartController', 'removeCoupon']);
+$router->post('/cart/shipping', ['CartController', 'updateShipping']);
 
 // Checkout
 $router->get('/checkout', ['CartController', 'checkout']);

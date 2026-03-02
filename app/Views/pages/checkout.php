@@ -7,7 +7,8 @@ $emailValue = $old['email'] ?? ($user->email ?? '');
 $phoneValue = $old['phone'] ?? ($address['phone'] ?? ($user->phone ?? ''));
 $addressValue = $old['address'] ?? ($address['address_line1'] ?? '');
 $cityValue = $old['city'] ?? ($address['city'] ?? '');
-$stateValue = $old['state'] ?? ($address['state'] ?? '');
+$currentShippingLocation = (new \App\Core\CartSession())->getShippingLocation();
+$stateValue = $old['state'] ?? ($address['state'] ?? $currentShippingLocation);
 $countryValue = $old['country'] ?? ($address['country'] ?? 'Ghana');
 $postalValue = $old['postal_code'] ?? ($address['postal_code'] ?? '');
 $paymentValue = $old['payment_method'] ?? 'momo';
@@ -47,7 +48,7 @@ unset($_SESSION['old_input']);
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Region (Ghana)</label>
-                        <select name="state" class="form-select" required>
+                        <select name="state" class="form-select" onchange="updateShipping(this.value)" required>
                             <option value="">Select Region</option>
                             <?php 
                             $regions = [
@@ -157,3 +158,24 @@ unset($_SESSION['old_input']);
         </div>
     </div>
 </section>
+
+<script>
+function updateShipping(location) {
+    if (!location) return;
+    
+    const formData = new FormData();
+    formData.append('csrf_token', '<?= \App\Core\Auth::csrfToken() ?>');
+    formData.append('location', location);
+    
+    fetch('/cart/shipping', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Quickest way to update total logic
+        }
+    });
+}
+</script>

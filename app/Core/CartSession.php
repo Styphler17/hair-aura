@@ -20,6 +20,9 @@ class CartSession
     /** @var string Session key for cart */
     private const CART_KEY = 'shopping_cart';
     
+    /** @var string Session key for shipping location */
+    private const SHIPPING_KEY = 'shipping_location';
+    
     /** @var array Cart items cache */
     private array $items = [];
     
@@ -280,9 +283,13 @@ class CartSession
         // Calculate shipping from config
         $siteContent = file_exists(BASE_PATH . '/config/site-content.php') ? require BASE_PATH . '/config/site-content.php' : [];
         $threshold = $siteContent['site']['free_shipping_threshold'] ?? 3000;
-        $cost = $siteContent['site']['shipping_cost'] ?? 50;
-
-        $shipping = $subtotal >= $threshold ? 0 : $cost;
+        
+        $shipping = 0;
+        if ($subtotal < $threshold) {
+            $location = $this->getShippingLocation();
+            $rates = $siteContent['site']['shipping_rates'] ?? [];
+            $shipping = $rates[$location] ?? ($siteContent['site']['shipping_cost'] ?? 50);
+        }
         
         // Calculate tax (simplified - could be based on location)
         $tax = $subtotal * 0.0; // No tax for Ghana in this example
@@ -358,6 +365,26 @@ class CartSession
         
         // Clear session cart
         unset($_SESSION[self::CART_KEY]);
+    }
+    
+    /**
+     * Set shipping location
+     * 
+     * @param string $location
+     */
+    public function setShippingLocation(string $location): void
+    {
+        $_SESSION[self::SHIPPING_KEY] = $location;
+    }
+    
+    /**
+     * Get shipping location
+     * 
+     * @return string
+     */
+    public function getShippingLocation(): string
+    {
+        return $_SESSION[self::SHIPPING_KEY] ?? 'Greater Accra';
     }
     
     /**

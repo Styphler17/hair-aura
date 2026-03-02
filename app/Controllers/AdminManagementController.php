@@ -631,6 +631,23 @@ class AdminManagementController extends Controller
             ];
         }
         $content['site']['social'] = $processedSocial;
+        
+        // Handle Shipping Settings
+        $content['site']['free_shipping_threshold'] = (float) $this->post('free_shipping_threshold', $content['site']['free_shipping_threshold'] ?? 3000);
+        $content['site']['shipping_cost'] = (float) $this->post('shipping_cost', $content['site']['shipping_cost'] ?? 50);
+        
+        $rates = (array) $this->post('shipping_rates', []);
+        $processedRates = [];
+        $regions = [
+            'Greater Accra', 'Ashanti', 'Central', 'Eastern', 'Volta', 
+            'Western', 'Bono', 'Bono East', 'Ahafo', 'Northern', 
+            'North East', 'Savannah', 'Upper East', 'Upper West', 
+            'Oti', 'Western North'
+        ];
+        foreach ($regions as $region) {
+            $processedRates[$region] = (float) ($rates[$region] ?? $content['site']['shipping_rates'][$region] ?? 50);
+        }
+        $content['site']['shipping_rates'] = $processedRates;
 
         $this->saveSiteContent($content);
 
