@@ -40,7 +40,7 @@
                     <div class="hero-content">
                         <span class="hero-subtitle">Special Offer</span>
                         <h1 class="hero-title">Free Delivery in Accra</h1>
-                        <p class="hero-text">On all orders over GH₵1200. Same-day delivery available!</p>
+                        <p class="hero-text">On all orders over GH₵ 3000. Same-day delivery available!</p>
                         <div class="hero-buttons">
                             <a href="/shop" class="btn btn-primary btn-lg">Shop Now</a>
                         </div>
@@ -66,7 +66,7 @@
                 <div class="feature-box">
                     <i class="fas fa-shipping-fast"></i>
                     <h4>Free Shipping</h4>
-                    <p>On orders over GH₵1200</p>
+                    <p>On orders over GH₵ 3000</p>
                 </div>
             </div>
             <div class="col-md-3 col-6">
