@@ -30,7 +30,7 @@ $resolveProductImage = function($path) {
             <!-- Sidebar Filters -->
             <div class="col-lg-3">
                 <?php $filterAction = ($currentCategory ?? null) ? '/shop/' . $currentCategory['slug'] : '/shop'; ?>
-                <div class="shop-sidebar">
+                <aside class="shop-sidebar">
                     <!-- Search -->
                     <div class="sidebar-widget">
                         <h4>Search</h4>
@@ -133,15 +133,14 @@ $resolveProductImage = function($path) {
                         <div class="sidebar-widget d-flex gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Apply</button>
                             <a href="<?= url($filterAction) ?>" class="btn btn-outline-primary btn-sm">Clear</a>
-                        </div>
                     </form>
-                </div>
+                </aside>
             </div>
             
             <!-- Product Grid -->
             <div class="col-lg-9">
                 <!-- Toolbar -->
-                <div class="shop-toolbar">
+                <header class="shop-toolbar">
                     <div class="toolbar-left">
                         <span class="results-info">Showing <?= count($products) ?> of <?= $pagination['total'] ?> products</span>
                     </div>
@@ -164,7 +163,7 @@ $resolveProductImage = function($path) {
                             <button class="btn" data-view="list"><i class="fas fa-list"></i></button>
                         </div>
                     </div>
-                </div>
+                </header>
                 
                 <!-- Products Grid -->
                 <div class="row product-grid">
@@ -178,57 +177,7 @@ $resolveProductImage = function($path) {
                     <?php else: ?>
                     <?php foreach ($products as $product): ?>
                     <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <a href="<?= url('/product/' . (string) $product['slug']) ?>">
-                                    <img src="<?= $resolveProductImage($product['primary_image'] ?? '') ?>" 
-                                         alt="<?= htmlspecialchars($product['name']) ?>" 
-                                         loading="lazy"
-                                         onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
-                                </a>
-                                
-                                <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
-                                <span class="product-badge sale">-<?= round((($product['price'] - $product['sale_price']) / $product['price']) * 100) ?>%</span>
-                                <?php elseif ($product['new_arrival']): ?>
-                                <span class="product-badge new">New</span>
-                                <?php endif; ?>
-                                
-                                <div class="product-actions">
-                                    <button class="btn btn-wishlist <?= ($product['in_wishlist'] ?? false) ? 'active' : '' ?>" data-product-id="<?= $product['id'] ?>">
-                                        <i class="<?= ($product['in_wishlist'] ?? false) ? 'fas' : 'far' ?> fa-heart"></i>
-                                    </button>
-                                    <button class="btn btn-quickview" data-product-id="<?= $product['id'] ?>">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-info">
-                                <span class="product-category"><?= htmlspecialchars($product['category_name'] ?? 'Wigs') ?></span>
-                                <h3 class="product-title">
-                                    <a href="<?= url('/product/' . (string) $product['slug']) ?>">
-                                        <?= htmlspecialchars($product['name']) ?>
-                                    </a>
-                                </h3>
-                                <div class="product-rating">
-                                    <?php for ($i = 1; $i <= 5; $i++): ?>
-                                        <i class="fas fa-star<?= $i > ($product['rating_avg'] ?? 0) ? '-empty' : '' ?>"></i>
-                                    <?php endfor; ?>
-                                    <span>(<?= $product['review_count'] ?? 0 ?>)</span>
-                                </div>
-                                <div class="product-price">
-                                    <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
-                                        <span class="old-price"><?= money($product['price']) ?></span>
-                                        <span class="current-price"><?= money($product['sale_price']) ?></span>
-                                    <?php else: ?>
-                                        <span class="current-price"><?= money($product['price']) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <button class="btn btn-primary btn-add-cart" data-product-id="<?= $product['id'] ?>">
-                                    <i class="fas fa-shopping-bag"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
+                        <?php \App\Core\View::partial('product_card', ['product' => $product, 'resolveProductImage' => $resolveProductImage]); ?>
                     </div>
                     <?php endforeach; ?>
                     <?php endif; ?>

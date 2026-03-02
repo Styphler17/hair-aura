@@ -277,8 +277,12 @@ class CartSession
             $itemCount += $item['quantity'];
         }
         
-        // Calculate shipping (simplified)
-        $shipping = $subtotal >= 3000 ? 0 : 50;
+        // Calculate shipping from config
+        $siteContent = file_exists(BASE_PATH . '/config/site-content.php') ? require BASE_PATH . '/config/site-content.php' : [];
+        $threshold = $siteContent['site']['free_shipping_threshold'] ?? 3000;
+        $cost = $siteContent['site']['shipping_cost'] ?? 50;
+
+        $shipping = $subtotal >= $threshold ? 0 : $cost;
         
         // Calculate tax (simplified - could be based on location)
         $tax = $subtotal * 0.0; // No tax for Ghana in this example

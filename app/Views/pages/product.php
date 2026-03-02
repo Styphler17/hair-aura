@@ -156,7 +156,7 @@ $priceDec = $priceParts[1] ?? '00';
 
             <!-- Column 3: Buy Box -->
             <div class="col-lg-3">
-                <div class="amazon-buy-box shadow-sm">
+                <aside class="amazon-buy-box shadow-sm">
                     <span class="price-symbol">GH₵</span>
                     <span class="price-large" id="buyBoxPriceInt"><?= $priceInt ?></span>
                     <span class="price-decimal" id="buyBoxPriceDec"><?= $priceDec ?></span>
@@ -207,22 +207,24 @@ $priceDec = $priceParts[1] ?? '00';
                         <i class="<?= $inWishlist ? 'fas' : 'far' ?> fa-heart me-2"></i>
                         Add to Wish List
                     </button>
-                </div>
+                </aside>
             </div>
         </div>
 
         <!-- Description & Reviews Full Width -->
         <div class="row mt-5">
             <div class="col-12">
-                <div class="amazon-divider mb-4"></div>
-                <h4 class="fw-bold mb-4">Product Description</h4>
-                <div class="px-3" style="font-size: 0.95rem; line-height: 1.6;">
-                    <?= $product->description ?>
-                </div>
+                <section class="product-description-section">
+                    <h4 class="fw-bold mb-4">Product Description</h4>
+                    <div class="px-3" style="font-size: 0.95rem; line-height: 1.6;">
+                        <?= $product->description ?>
+                    </div>
+                </section>
 
-                <div class="amazon-divider my-5"></div>
-                
-                <div class="row" id="reviews">
+                <section id="reviews" class="product-reviews-section">
+                    <div class="amazon-divider my-5"></div>
+                    
+                    <div class="row">
                     <div class="col-lg-4">
                         <h4 class="fw-bold mb-3">Customer reviews</h4>
                         <div class="d-flex align-items-center mb-1">
@@ -290,7 +292,7 @@ $priceDec = $priceParts[1] ?? '00';
                                 <p class="text-muted">No reviews yet. Be the first to share your experience!</p>
                             <?php else: ?>
                                 <?php foreach ($reviews as $rev): ?>
-                                <div class="amazon-review mb-5">
+                                <article class="amazon-review mb-5">
                                     <div class="d-flex align-items-center mb-2">
                                         <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 34px; height: 34px; background: #ccc !important;">
                                             <i class="fas fa-user text-white"></i>
@@ -317,11 +319,11 @@ $priceDec = $priceParts[1] ?? '00';
                                         <span class="mx-2 text-muted" style="font-size: 0.75rem;">|</span>
                                         <span class="text-muted" style="font-size: 0.75rem; cursor: pointer;">Report</span>
                                     </div>
-                                </div>
+                                </article>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </div>

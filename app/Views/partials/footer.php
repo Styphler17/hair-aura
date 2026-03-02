@@ -49,49 +49,55 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
 
             <!-- Quick Links -->
             <div class="col-lg-2 col-md-6 col-6">
-                <h5 class="footer-title text-uppercase mb-4">Quick Links</h5>
-                <ul class="list-unstyled footer-links">
-                    <li><a href="<?= url('/') ?>" class="footer-link">Home</a></li>
-                    <li><a href="<?= url('/shop') ?>" class="footer-link">Shop All</a></li>
-                    <li><a href="<?= url('/blog') ?>" class="footer-link">Blog</a></li>
-                    <li><a href="<?= url('/about') ?>" class="footer-link">About Us</a></li>
-                    <li><a href="<?= url('/faq') ?>" class="footer-link">FAQ</a></li>
-                </ul>
+                <nav aria-label="Quick links">
+                    <h5 class="footer-title text-uppercase mb-4">Quick Links</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="<?= url('/') ?>" class="footer-link">Home</a></li>
+                        <li><a href="<?= url('/shop') ?>" class="footer-link">Shop All</a></li>
+                        <li><a href="<?= url('/blog') ?>" class="footer-link">Blog</a></li>
+                        <li><a href="<?= url('/about') ?>" class="footer-link">About Us</a></li>
+                        <li><a href="<?= url('/faq') ?>" class="footer-link">FAQ</a></li>
+                    </ul>
+                </nav>
             </div>
 
             <!-- Shop Categories -->
             <div class="col-lg-2 col-md-6 col-6">
-                <h5 class="footer-title text-uppercase mb-4">Categories</h5>
-                <ul class="list-unstyled footer-links">
-                    <li><a href="<?= url('/shop/human-hair-wigs') ?>" class="footer-link">Human Hair Wigs</a></li>
-                    <li><a href="<?= url('/shop/lace-front-wigs') ?>" class="footer-link">Lace Front Wigs</a></li>
-                    <li><a href="<?= url('/shop/synthetic-wigs') ?>" class="footer-link">Synthetic Wigs</a></li>
-                    <li><a href="<?= url('/shop/hair-extensions') ?>" class="footer-link">Hair Extensions</a></li>
-                    <li><a href="<?= url('/shop/hair-accessories') ?>" class="footer-link">Accessories</a></li>
-                </ul>
+                <nav aria-label="Categories">
+                    <h5 class="footer-title text-uppercase mb-4">Categories</h5>
+                    <ul class="list-unstyled footer-links">
+                        <li><a href="<?= url('/shop/human-hair-wigs') ?>" class="footer-link">Human Hair Wigs</a></li>
+                        <li><a href="<?= url('/shop/lace-front-wigs') ?>" class="footer-link">Lace Front Wigs</a></li>
+                        <li><a href="<?= url('/shop/synthetic-wigs') ?>" class="footer-link">Synthetic Wigs</a></li>
+                        <li><a href="<?= url('/shop/hair-extensions') ?>" class="footer-link">Hair Extensions</a></li>
+                        <li><a href="<?= url('/shop/hair-accessories') ?>" class="footer-link">Accessories</a></li>
+                    </ul>
+                </nav>
             </div>
 
             <!-- Contact Info -->
             <div class="col-lg-4 col-md-6">
                 <h5 class="footer-title text-uppercase mb-4">Contact Us</h5>
-                <ul class="list-unstyled contact-info">
-                    <li class="mb-3 d-flex gap-3 align-items-start">
-                        <i class="fas fa-location-dot mt-1 theme-icon"></i>
-                        <span><?= htmlspecialchars($supportLocation) ?></span>
-                    </li>
-                    <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fas fa-phone theme-icon"></i>
-                        <a href="tel:<?= htmlspecialchars($supportPhone) ?>" class="footer-link"><?= htmlspecialchars($supportPhone) ?></a>
-                    </li>
-                    <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fab fa-whatsapp theme-icon"></i>
-                        <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener" class="footer-link">WhatsApp Chat</a>
-                    </li>
-                    <li class="mb-3 d-flex gap-3 align-items-center">
-                        <i class="fas fa-envelope theme-icon"></i>
-                        <a href="mailto:<?= htmlspecialchars($supportEmail) ?>" class="footer-link"><?= htmlspecialchars($supportEmail) ?></a>
-                    </li>
-                </ul>
+                <address class="contact-info">
+                    <ul class="list-unstyled">
+                        <li class="mb-3 d-flex gap-3 align-items-start">
+                            <i class="fas fa-location-dot mt-1 theme-icon"></i>
+                            <span><?= htmlspecialchars($supportLocation) ?></span>
+                        </li>
+                        <li class="mb-3 d-flex gap-3 align-items-center">
+                            <i class="fas fa-phone theme-icon"></i>
+                            <a href="tel:<?= htmlspecialchars($supportPhone) ?>" class="footer-link"><?= htmlspecialchars($supportPhone) ?></a>
+                        </li>
+                        <li class="mb-3 d-flex gap-3 align-items-center">
+                            <i class="fab fa-whatsapp theme-icon"></i>
+                            <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener" class="footer-link">WhatsApp Chat</a>
+                        </li>
+                        <li class="mb-3 d-flex gap-3 align-items-center">
+                            <i class="fas fa-envelope theme-icon"></i>
+                            <a href="mailto:<?= htmlspecialchars($supportEmail) ?>" class="footer-link"><?= htmlspecialchars($supportEmail) ?></a>
+                        </li>
+                    </ul>
+                </address>
             </div>
         </div>
 

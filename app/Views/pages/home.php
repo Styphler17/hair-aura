@@ -173,14 +173,14 @@
             <div class="swiper-wrapper">
                 <?php foreach ($testimonials as $testimonial): ?>
                 <div class="swiper-slide">
-                    <div class="testimonial-card">
+                    <article class="testimonial-card">
                         <div class="testimonial-rating">
                             <?php for ($i = 1; $i <= 5; $i++): ?>
                                 <i class="fas fa-star<?= $i > $testimonial['rating'] ? '-empty' : '' ?>"></i>
                             <?php endfor; ?>
                         </div>
                         <p class="testimonial-text">"<?= htmlspecialchars($testimonial['content']) ?>"</p>
-                        <div class="testimonial-author">
+                        <footer class="testimonial-author">
                             <div class="author-avatar">
                                 <?= strtoupper(substr($testimonial['customer_name'], 0, 1)) ?>
                             </div>
@@ -188,8 +188,8 @@
                                 <h4><?= htmlspecialchars($testimonial['customer_name']) ?></h4>
                                 <span><?= htmlspecialchars($testimonial['customer_location'] ?? 'Ghana') ?></span>
                             </div>
-                        </div>
-                    </div>
+                        </footer>
+                    </article>
                 </div>
                 <?php endforeach; ?>
             </div>

@@ -91,13 +91,15 @@ unset($_SESSION['old_input']);
                 </form>
             </div>
             <div class="col-lg-5">
-                <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                <aside class="card border-0 shadow-sm sticky-top" style="top: 20px;">
                     <div class="card-body p-4">
-                        <h4 class="checkout-section-title">Order Summary</h4>
+                        <header>
+                            <h4 class="checkout-section-title">Order Summary</h4>
+                        </header>
                         <?php if (!empty($cartItems)): ?>
                             <div class="checkout-items mb-4">
                                 <?php foreach ($cartItems as $item): ?>
-                                <div class="checkout-summary-item d-flex align-items-center mb-3">
+                                <article class="checkout-summary-item d-flex align-items-center mb-3">
                                     <div class="item-img-wrapper position-relative me-3">
                                         <img src="<?= !empty($item['image']) ? $item['image'] : asset('/img/product-placeholder.webp') ?>" 
                                              alt="<?= htmlspecialchars((string) $item['name']) ?>" 
@@ -109,15 +111,17 @@ unset($_SESSION['old_input']);
                                         </span>
                                     </div>
                                     <div class="item-info flex-grow-1">
-                                        <div class="item-name fw-semibold" style="font-size: 0.95rem; line-height: 1.2;"><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?></div>
-                                        <?php if (!empty($item['variant_name'])): ?>
-                                            <div class="item-variant text-muted small mt-1"><?= htmlspecialchars($item['variant_name']) ?></div>
-                                        <?php endif; ?>
+                                        <header>
+                                            <div class="item-name fw-semibold" style="font-size: 0.95rem; line-height: 1.2;"><?= htmlspecialchars((string) ($item['name'] ?? 'Product')) ?></div>
+                                            <?php if (!empty($item['variant_name'])): ?>
+                                                <div class="item-variant text-muted small mt-1"><?= htmlspecialchars($item['variant_name']) ?></div>
+                                            <?php endif; ?>
+                                        </header>
                                     </div>
                                     <div class="item-price text-end fw-medium ms-3">
                                         <?= money((float) ($item['subtotal'] ?? 0)) ?>
                                     </div>
-                                </div>
+                                </article>
                                 <?php endforeach; ?>
                             </div>
                         <?php endif; ?>
@@ -148,7 +152,7 @@ unset($_SESSION['old_input']);
                             <small class="text-muted"><i class="fas fa-shield-alt me-1"></i> Your personal data will be used to process your order and support your experience throughout this website.</small>
                         </div>
                     </div>
-                </div>
+                </aside>
             </div>
         </div>
     </div>

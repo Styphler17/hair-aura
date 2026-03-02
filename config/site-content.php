@@ -30,6 +30,8 @@ return [
             'whatsapp' => ['url' => '+233508007873', 'enabled' => true],
             'twitter' => ['url' => '', 'enabled' => false],
             'youtube' => ['url' => '', 'enabled' => false]
-        ]
+        ],
+        'free_shipping_threshold' => 3000,
+        'shipping_cost' => 50,
     ]
 ];

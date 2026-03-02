@@ -40,8 +40,8 @@ return [
     'currency' => 'GHS',
     'currency_symbol' => 'GH₵',
     'tax_rate' => 0,
-    'free_shipping_threshold' => 100,
-    'shipping_cost' => 15,
+    'free_shipping_threshold' => 3000,
+    'shipping_cost' => 50,
     
     // Features
     'features' => [

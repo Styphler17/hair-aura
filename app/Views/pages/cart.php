@@ -49,7 +49,7 @@
                 <div class="cart-items">
                     
                     <?php foreach ($cartItems as $item): ?>
-                    <div class="cart-item-modern mb-4" data-product-id="<?= $item['product_id'] ?>" data-variant-id="<?= $item['variant_id'] ?? '' ?>">
+                    <article class="cart-item-modern mb-4" data-product-id="<?= $item['product_id'] ?>" data-variant-id="<?= $item['variant_id'] ?? '' ?>">
                         <div class="cart-item-body">
                             <!-- Left: Image & Qty -->
                             <div class="cart-item-left">
@@ -76,10 +76,10 @@
                             </div>
 
                             <!-- Middle: Product Info -->
-                            <div class="cart-item-center">
-                                <h4 class="cart-item-title">
-                                    <a href="/product/<?= $item['product']->slug ?>"><?= htmlspecialchars($item['name']) ?></a>
-                                </h4>
+                                <header class="cart-item-center">
+                                    <h4 class="cart-item-title">
+                                        <a href="/product/<?= $item['product']->slug ?>"><?= htmlspecialchars($item['name']) ?></a>
+                                    </h4>
                                 <div class="cart-item-meta">
                                     <div class="cart-item-price fw-bold mb-1">
                                         <?= money($item['price']) ?>
@@ -116,7 +116,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </article>
                     <?php endforeach; ?>
                 </div>
                 
@@ -135,7 +135,7 @@
             
             <!-- Cart Summary -->
             <div class="col-lg-4">
-                <div class="cart-summary-modern p-4 rounded shadow-sm bg-white">
+                <aside class="cart-summary-modern p-4 rounded shadow-sm bg-white">
                     <h3 class="fs-5 fw-bold mb-4">Order Summary</h3>
                     
                     <div class="summary-details">
@@ -190,7 +190,7 @@
                             <span class="momo-badge fw-bold border rounded px-1" style="font-size: 0.8rem; color: #333; height: 1.5rem; display: flex; align-items: center;">MoMo Only</span>
                         </div>
                     </div>
-                </div>
+                </aside>
                 
                 <!-- Need Help -->
                 <div class="need-help mt-4">

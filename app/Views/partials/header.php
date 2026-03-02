@@ -6,7 +6,7 @@ $contactEmail = (string) ($site['email'] ?? 'support@example.com');
 $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
 ?>
 <!-- Announcement Banner -->
-<div class="announcement-banner">
+<aside class="announcement-banner">
     <div class="banner-content">
         <div class="banner-text">
             <span>Payment on delivery within Accra</span>
@@ -18,10 +18,10 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
             <span>Free delivery on orders over GH₵ 3000</span>
         </div>
     </div>
-</div>
+</aside>
 
 <!-- Top Bar -->
-<div class="top-bar">
+<section class="top-bar">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
@@ -42,7 +42,7 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <!-- Main Header -->
 <header class="main-header">

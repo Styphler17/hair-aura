@@ -14,15 +14,37 @@
                 <p class="text-muted mb-4">
                     Send us a message and our team will get back to you as soon as possible.
                 </p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><strong>Email:</strong> <?= htmlspecialchars($contactEmail) ?></li>
-                    <li class="mb-2"><strong>Phone:</strong> <a href="tel:<?= htmlspecialchars($contactPhone) ?>"><?= htmlspecialchars($contactPhone) ?></a></li>
-                    <li class="mb-2"><strong>WhatsApp:</strong> <a href="https://wa.me/<?= htmlspecialchars($waDigits) ?>" target="_blank" rel="noopener"><?= htmlspecialchars($contactWhatsapp) ?></a></li>
-                    <li class="mb-2"><strong>Location:</strong> <?= htmlspecialchars($contactLocation) ?></li>
-                    <?php if ($contactHours !== ''): ?>
-                        <li class="mb-2"><strong>Business Hours:</strong> <?= htmlspecialchars($contactHours) ?></li>
-                    <?php endif; ?>
-                </ul>
+                <address class="contact-address-info fs-6">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            <strong>Email:</strong> 
+                            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactEmail) ?></a>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-phone text-primary me-2"></i>
+                            <strong>Phone:</strong> 
+                            <a href="tel:<?= htmlspecialchars($contactPhone) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactPhone) ?></a>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fab fa-whatsapp text-primary me-2"></i>
+                            <strong>WhatsApp:</strong> 
+                            <a href="https://wa.me/<?= htmlspecialchars($waDigits) ?>" target="_blank" rel="noopener" class="text-decoration-none text-dark"><?= htmlspecialchars($contactWhatsapp) ?></a>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-location-dot text-primary me-2"></i>
+                            <strong>Location:</strong> 
+                            <span class="text-dark"><?= htmlspecialchars($contactLocation) ?></span>
+                        </li>
+                        <?php if ($contactHours !== ''): ?>
+                            <li class="mb-3">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong>Business Hours:</strong> 
+                                <span class="text-dark"><?= htmlspecialchars($contactHours) ?></span>
+                            </li>
+                        <?php endif; ?>
+                    </ul>
+                </address>
             </div>
             <div class="col-lg-7">
                 <div class="card shadow-sm">
