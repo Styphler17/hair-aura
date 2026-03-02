@@ -26,9 +26,7 @@ return [
         'social' => [
             'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
             'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
-            'whatsapp' => ['url' => '+233508007873', 'enabled' => true],
-            'twitter' => ['url' => '', 'enabled' => false],
-            'youtube' => ['url' => '', 'enabled' => false]
+            'whatsapp' => ['url' => '+233508007873', 'enabled' => true]
         ],
         'free_shipping_threshold' => 3000,
         'shipping_cost' => 50,

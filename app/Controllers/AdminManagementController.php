@@ -622,7 +622,7 @@ class AdminManagementController extends Controller
         // Handle Social Links
         $social = (array) $this->post('social', []);
         $processedSocial = [];
-        $platforms = ['instagram', 'tiktok', 'whatsapp', 'twitter', 'youtube'];
+        $platforms = ['instagram', 'tiktok', 'whatsapp'];
         foreach ($platforms as $platform) {
             $data = $social[$platform] ?? [];
             $processedSocial[$platform] = [
@@ -1648,9 +1648,7 @@ class AdminManagementController extends Controller
                 'social' => [
                     'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
                     'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
-                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true],
-                    'twitter' => ['url' => '', 'enabled' => false],
-                    'youtube' => ['url' => '', 'enabled' => false]
+                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true]
                 ],
                 'hero_slides' => [
                     [

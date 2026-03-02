@@ -205,8 +205,6 @@
                     'instagram' => ['label' => 'Instagram', 'icon' => 'fab fa-instagram', 'placeholder' => 'https://instagram.com/...'],
                     'tiktok' => ['label' => 'TikTok', 'icon' => 'fab fa-tiktok', 'placeholder' => 'https://tiktok.com/@...'],
                     'whatsapp' => ['label' => 'WhatsApp', 'icon' => 'fab fa-whatsapp', 'placeholder' => '+233...'],
-                    'twitter' => ['label' => 'Twitter / X', 'icon' => 'fab fa-x-twitter', 'placeholder' => 'https://twitter.com/...'],
-                    'youtube' => ['label' => 'YouTube', 'icon' => 'fab fa-youtube', 'placeholder' => 'https://youtube.com/...']
                 ];
                 
                 $socialSettings = $settings['social'] ?? [];

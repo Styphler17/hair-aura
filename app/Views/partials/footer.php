@@ -25,8 +25,6 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
                         'instagram' => ['icon' => 'fab fa-instagram', 'title' => 'Instagram'],
                         'whatsapp' => ['icon' => 'fab fa-whatsapp', 'title' => 'WhatsApp'],
                         'tiktok' => ['icon' => 'fab fa-tiktok', 'title' => 'TikTok'],
-                        'twitter' => ['icon' => 'fab fa-x-twitter', 'title' => 'Twitter'],
-                        'youtube' => ['icon' => 'fab fa-youtube', 'title' => 'YouTube'],
                     ];
 
                     foreach ($platforms as $key => $p):
