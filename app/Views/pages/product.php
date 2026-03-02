@@ -195,7 +195,7 @@ $priceDec = $priceParts[1] ?? '00';
                     </div>
 
                     <table class="amazon-meta-table mt-3">
-                        <tr><td>Ships from</td><td><strong>Hair Aura</strong></td></tr>
+                        <tr><td>Delivery from</td><td><strong>Hair Aura</strong></td></tr>
                         <tr><td>Sold by</td><td><strong>Hair Aura Official</strong></td></tr>
                         <tr><td>Returns</td><td class="text-danger">No returns accepted</td></tr>
                         <tr><td>Payment</td><td>Payment on delivery within Accra</td></tr>

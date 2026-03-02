@@ -84,7 +84,7 @@
                                     <div class="cart-item-price fw-bold mb-1">
                                         <?= money($item['price']) ?>
                                     </div>
-                                    <p class="mb-1 small text-muted">Ships from <span class="text-dark fw-medium">Hair Aura</span></p>
+                                    <p class="mb-1 small text-muted">Delivery from <span class="text-dark fw-medium">Hair Aura</span></p>
                                     <p class="mb-1 small text-muted">Sold by <span class="text-dark fw-medium">Hair Aura</span></p>
                                     
                                     <?php if ($item['variant_id']): ?>
@@ -153,13 +153,13 @@
                         
                         <div class="mb-2">
                             <div class="d-flex justify-content-between">
-                                <span class="text-muted">Shipping</span>
+                                <span class="text-muted">Delivery</span>
                                 <span id="cartShippingValue" class="<?= $summary['shipping'] == 0 ? 'text-success' : '' ?> fw-medium">
                                     <?= $summary['shipping'] == 0 ? 'Free' : money($summary['shipping']) ?>
                                 </span>
                             </div>
                             <div class="mt-2">
-                                <label class="small text-muted mb-1">Select Region for Shipping</label>
+                                <label class="small text-muted mb-1">Select Region for Delivery</label>
                                 <select id="shippingRegionSelect" class="form-select form-select-sm" onchange="updateShippingLocation(this.value)">
                                     <?php 
                                     $currentLocation = (new \App\Core\CartSession())->getShippingLocation();

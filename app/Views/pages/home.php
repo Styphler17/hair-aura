@@ -9,8 +9,8 @@
         <div class="row">
             <div class="col-md-3 col-6">
                 <div class="feature-box">
-                    <i class="fas fa-shipping-fast"></i>
-                    <h4>Free Shipping</h4>
+                    <i class="fas fa-truck"></i>
+                    <h4>Free Delivery</h4>
                     <p>On orders over <?= money((float) ($siteSettings['free_shipping_threshold'] ?? 3000)) ?></p>
                 </div>
             </div>

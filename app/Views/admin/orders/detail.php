@@ -123,7 +123,7 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between"><span>Subtotal</span><strong><?= money((float) ($order->subtotal ?? 0)) ?></strong></div>
-                <div class="d-flex justify-content-between"><span>Shipping</span><strong><?= money((float) ($order->shipping_cost ?? 0)) ?></strong></div>
+                <div class="d-flex justify-content-between"><span>Delivery</span><strong><?= money((float) ($order->shipping_cost ?? 0)) ?></strong></div>
                 <div class="d-flex justify-content-between"><span>Tax</span><strong><?= money((float) ($order->tax_amount ?? 0)) ?></strong></div>
                 <div class="d-flex justify-content-between"><span>Discount</span><strong>-<?= money((float) ($order->discount_amount ?? 0)) ?></strong></div>
                 <hr>

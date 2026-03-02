@@ -407,7 +407,7 @@ class User extends Model
 
         $address = [
             'user_id' => (int) $this->id,
-            'label' => 'Shipping',
+            'label' => 'Delivery',
             'first_name' => trim((string) ($data['first_name'] ?? $this->first_name)),
             'last_name' => trim((string) ($data['last_name'] ?? $this->last_name)),
             'phone' => static::normalizePhone((string) ($data['phone'] ?? $this->phone ?? '')),

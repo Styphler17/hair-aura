@@ -394,8 +394,8 @@ class HomeController extends Controller
     {
         $seo = [
             'title' => 'FAQ | Hair Aura Wig Store',
-            'description' => 'Frequently asked questions about Hair Aura wigs, shipping, returns, and care instructions.',
-            'keywords' => 'wig FAQ, hair care questions, shipping info',
+            'description' => 'Frequently asked questions about Hair Aura wigs, delivery, returns, and care instructions.',
+            'keywords' => 'wig FAQ, hair care questions, delivery info',
             'canonical' => '/faq'
         ];
         
@@ -409,7 +409,7 @@ class HomeController extends Controller
                     'answer' => "Hair Aura specializes in premium 100% human hair wigs, including lace fronts, closure wigs, and full lace options. We also offer high-quality heat-safe synthetic wigs and premium hair extensions specifically curated for the Ghanaian market."
                 ],
                 [
-                    'question' => "Do you ship across Ghana?",
+                    'question' => "Do you deliver across Ghana?",
                     'answer' => "Yes! We offer nationwide delivery. We provide same-day delivery within Accra and Tema, and 1-3 business days for Kumasi, Takoradi, Tamale, and all other regions across Ghana."
                 ],
                 [
@@ -460,9 +460,9 @@ class HomeController extends Controller
     public function shipping(): void
     {
         $seo = [
-            'title' => 'Shipping Information | Hair Aura',
-            'description' => 'Learn about Hair Aura shipping options, delivery times, and tracking information within Ghana.',
-            'keywords' => 'shipping Ghana, wig delivery, hair extensions shipping',
+            'title' => 'Delivery Information | Hair Aura',
+            'description' => 'Learn about Hair Aura delivery options, delivery times, and tracking information within Ghana.',
+            'keywords' => 'delivery Ghana, wig delivery, hair extensions delivery',
             'canonical' => '/shipping'
         ];
         

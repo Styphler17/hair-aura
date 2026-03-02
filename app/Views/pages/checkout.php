@@ -133,7 +133,7 @@ unset($_SESSION['old_input']);
                                 <span><?= money((float) ($summary['subtotal'] ?? 0)) ?></span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Shipping</span>
+                                <span class="text-muted">Delivery</span>
                                 <span><?= $summary['shipping'] > 0 ? money((float) $summary['shipping']) : '<span class="text-success">Free</span>' ?></span>
                             </div>
                             <?php if (($summary['tax'] ?? 0) > 0): ?>

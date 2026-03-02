@@ -40,7 +40,7 @@
                             <span><?= date('F j, Y', strtotime($order->created_at ?? 'now')) ?></span>
                         </div>
                         <div class="col-md-4">
-                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Shipping Address</label>
+                            <label class="text-muted small text-uppercase fw-bold d-block mb-1">Delivery Address</label>
                             <address class="mb-0 small text-muted">
                                 <?= htmlspecialchars(($order->shipping_first_name ?? $order->first_name ?? '') . ' ' . ($order->shipping_last_name ?? $order->last_name ?? '')) ?><br>
                                 <?= htmlspecialchars($order->shipping_address ?? $order->address ?? '') ?><br>
@@ -103,7 +103,7 @@
                                 <td class="text-end pe-4"><?= money((float) ($order->subtotal ?? ($order->total - ($order->shipping_cost ?? 0)))) ?></td>
                             </tr>
                             <tr>
-                                <td colspan="3" class="text-end text-muted ps-4">Shipping</td>
+                                <td colspan="3" class="text-end text-muted ps-4">Delivery</td>
                                 <td class="text-end pe-4 text-success"><?= ($order->shipping_cost ?? 0) > 0 ? money((float)$order->shipping_cost) : 'Free' ?></td>
                             </tr>
                             <tr>

@@ -54,6 +54,7 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
                         <li><a href="<?= url('/blog') ?>" class="footer-link">Blog</a></li>
                         <li><a href="<?= url('/about') ?>" class="footer-link">About Us</a></li>
                         <li><a href="<?= url('/faq') ?>" class="footer-link">FAQ</a></li>
+                        <li><a href="<?= url('/shipping') ?>" class="footer-link">Delivery Info</a></li>
                     </ul>
                 </nav>
             </div>

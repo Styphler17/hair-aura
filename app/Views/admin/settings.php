@@ -129,17 +129,17 @@
         </div>
 
         <div class="col-12 mt-4">
-            <h4>Shipping Configuration</h4>
-            <p class="text-muted">Manage global shipping threshold and regional rates.</p>
+            <h4>Delivery Configuration</h4>
+            <p class="text-muted">Manage global delivery threshold and regional rates.</p>
             <div class="card bg-light border-0 shadow-sm p-4">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Free Shipping Threshold (GH₵)</label>
+                        <label class="form-label fw-bold">Free Delivery Threshold (GH₵)</label>
                         <input type="number" name="free_shipping_threshold" class="form-control" value="<?= htmlspecialchars($settings['free_shipping_threshold'] ?? 3000) ?>" step="0.01">
-                        <div class="form-text">Orders above this amount get free shipping.</div>
+                        <div class="form-text">Orders above this amount get free delivery.</div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-bold">Standard Shipping Cost (GH₵)</label>
+                        <label class="form-label fw-bold">Standard Delivery Cost (GH₵)</label>
                         <input type="number" name="shipping_cost" class="form-control" value="<?= htmlspecialchars($settings['shipping_cost'] ?? 50) ?>" step="0.01">
                         <div class="form-text">Fallback cost if a region rate isn't found.</div>
                     </div>
