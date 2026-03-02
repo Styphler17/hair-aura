@@ -24,7 +24,6 @@ return [
         'theme_secondary' => '#2C2C2C',
         'theme_gold' => '#D4AF37',
         'social' => [
-            'facebook' => ['url' => 'https://facebook.com/hairaura', 'enabled' => true],
             'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
             'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
             'whatsapp' => ['url' => '+233508007873', 'enabled' => true],

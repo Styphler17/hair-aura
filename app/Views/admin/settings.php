@@ -202,7 +202,6 @@
             <div class="row g-3">
                 <?php 
                 $platforms = [
-                    'facebook' => ['label' => 'Facebook', 'icon' => 'fab fa-facebook-f', 'placeholder' => 'https://facebook.com/...'],
                     'instagram' => ['label' => 'Instagram', 'icon' => 'fab fa-instagram', 'placeholder' => 'https://instagram.com/...'],
                     'tiktok' => ['label' => 'TikTok', 'icon' => 'fab fa-tiktok', 'placeholder' => 'https://tiktok.com/@...'],
                     'whatsapp' => ['label' => 'WhatsApp', 'icon' => 'fab fa-whatsapp', 'placeholder' => '+233...'],
