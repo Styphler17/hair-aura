@@ -426,7 +426,7 @@ class HomeController extends Controller
                 ],
                 [
                     'question' => "What payment methods do you accept in Ghana?",
-                    'answer' => "We accept all major mobile money (MoMo) payments (MTN, Telecel, AT), bank transfers, and secure card payments (Visa/Mastercard). Cash on delivery is available for verified orders within Accra."
+                    'answer' => "We accept all major mobile money (MoMo) payments including MTN MoMo, Telecel Cash, and AT Money. Use our official line +233508007873 for all payments."
                 ]
             ];
         }

@@ -259,8 +259,6 @@ $router->post('/cart/shipping', ['CartController', 'updateShipping']);
 // Checkout
 $router->get('/checkout', ['CartController', 'checkout']);
 $router->post('/checkout', ['CartController', 'processCheckout']);
-$router->get('/checkout/stripe/{orderNumber}', ['CartController', 'stripeCheckout']);
-$router->get('/checkout/paypal/{orderNumber}', ['CartController', 'paypalCheckout']);
 $router->get('/checkout/success', ['CartController', 'success']);
 $router->get('/checkout/cancel', ['CartController', 'cancel']);
 
