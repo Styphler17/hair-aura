@@ -24,19 +24,16 @@ $extraClass = $class ?? '';
                 
                 <div class="container h-100">
                     <div class="hero-inner h-100 d-flex align-items-center">
-                        <article class="hero-content-glass">
+                        <article class="hero-content-clean">
                             <span class="hero-label">Luxurious Quality</span>
-                            <h2 class="hero-display-title font-serif"><?= htmlspecialchars($slide['title'] ?? '') ?></h2>
+                            <h2 class="hero-display-title"><?= htmlspecialchars($slide['title'] ?? '') ?></h2>
                             <p class="hero-description"><?= htmlspecialchars($slide['subtitle'] ?? '') ?></p>
                             
                             <div class="hero-actions mt-4">
-                                <?php \App\Core\View::partial('button', [
-                                    'text' => $slide['button_text'] ?? 'Shop Collection',
-                                    'url' => $slide['button_link'] ?? '/shop',
-                                    'type' => 'gold',
-                                    'size' => 'lg',
-                                    'icon' => 'fas fa-arrow-right'
-                                ]); ?>
+                                <a href="<?= $slide['button_link'] ?? '/shop' ?>" class="btn-explore">
+                                    <span class="explore-line"></span>
+                                    Explore more
+                                </a>
                             </div>
                         </article>
                     </div>
@@ -45,16 +42,8 @@ $extraClass = $class ?? '';
             <?php endforeach; ?>
         </div>
         
-        <!-- Premium Controls -->
-        <div class="container">
-            <div class="hero-controls">
-                <div class="hero-pagination swiper-pagination"></div>
-                <div class="hero-nav-buttons d-none d-md-flex">
-                    <div class="hero-prev swiper-button-prev"></div>
-                    <div class="hero-next swiper-button-next"></div>
-                </div>
-            </div>
-        </div>
+        <!-- Slide Dots -->
+        <div class="hero-pagination swiper-pagination"></div>
 
         <!-- Scroll Down Anchor -->
         <a href="#featured-products" class="hero-scroll-anchor" aria-label="Scroll to featured products">

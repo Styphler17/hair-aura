@@ -67,10 +67,6 @@ function initSwipers() {
                 el: '.hero-pagination',
                 clickable: true
             },
-            navigation: {
-                prevEl: '.hero-prev',
-                nextEl: '.hero-next'
-            },
             effect: 'fade',
             fadeEffect: {
                 crossFade: true
