@@ -11,11 +11,11 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
         <div class="banner-text">
             <span>Payment on delivery within Accra</span>
             <span class="d-none d-md-inline">•</span>
-            <span>Free delivery on orders over GH₵ 3000</span>
+            <span>Free delivery on orders over <?= money((float) ($site['free_shipping_threshold'] ?? 3000)) ?></span>
             <span class="d-none d-md-inline">•</span>
             <span>Payment on delivery within Accra</span>
             <span class="d-none d-md-inline">•</span>
-            <span>Free delivery on orders over GH₵ 3000</span>
+            <span>Free delivery on orders over <?= money((float) ($site['free_shipping_threshold'] ?? 3000)) ?></span>
         </div>
     </div>
 </aside>
@@ -37,7 +37,7 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
             </div>
             <div class="col-md-6 text-end">
                 <span class="top-bar-text">
-                    <i class="fas fa-truck"></i> Free shipping on orders over GH₵ 3000
+                    <i class="fas fa-truck"></i> Free shipping on orders over <?= money((float) ($site['free_shipping_threshold'] ?? 3000)) ?>
                 </span>
             </div>
         </div>

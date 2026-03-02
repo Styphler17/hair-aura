@@ -11,7 +11,7 @@
                 <div class="feature-box">
                     <i class="fas fa-shipping-fast"></i>
                     <h4>Free Shipping</h4>
-                    <p>On orders over GH₵ 3000</p>
+                    <p>On orders over <?= money((float) ($siteSettings['free_shipping_threshold'] ?? 3000)) ?></p>
                 </div>
             </div>
             <div class="col-md-3 col-6">
