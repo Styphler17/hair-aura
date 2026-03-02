@@ -1,0 +1,5 @@
+{
+  "name": "LuxeLocks Virtual Studio",
+  "description": "A premium virtual hair try-on experience using AI to realistically blend hairstyles and wigs with your face in real-time or from uploaded photos.",
+  "requestFramePermissions": ["camera"]
+}

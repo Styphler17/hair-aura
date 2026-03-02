@@ -34,7 +34,7 @@ class HomeController extends Controller
         // Get categories
         $db = Database::getInstance();
         $categories = $db->fetchAll(
-            "SELECT * FROM categories WHERE is_active = 1 ORDER BY sort_order LIMIT 6"
+            "SELECT * FROM categories WHERE is_active = 1 ORDER BY sort_order LIMIT 4"
         );
         
         // Get testimonials
@@ -634,6 +634,8 @@ class HomeController extends Controller
         echo "Sitemap: " . $this->absoluteUrl('/sitemap.xml') . "\n";
         exit;
     }
+
+
     
     /**
      * Newsletter signup

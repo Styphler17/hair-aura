@@ -57,7 +57,10 @@ $mediaImages = $mediaImages ?? [];
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold small text-uppercase text-muted">Category Image</label>
-                    <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                    <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp" onchange="previewLocalImage(this, 'newCategoryPreview')">
+                    <div id="newCategoryPreview" class="mt-2 d-none">
+                        <img src="" class="img-thumbnail" style="max-height: 150px;">
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <?php
@@ -150,6 +153,20 @@ $mediaImages = $mediaImages ?? [];
                                     </td>
                                     <td data-label="Action" class="text-end">
                                         <div class="d-flex justify-content-end gap-1">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-info preview-category-btn"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#categoryPreviewModal"
+                                                    data-name="<?= htmlspecialchars((string)($category['name'] ?? '')) ?>"
+                                                    data-description="<?= htmlspecialchars((string)($category['description'] ?? '')) ?>"
+                                                    data-image="<?= htmlspecialchars($resolveCategoryImage((string) ($category['image'] ?? ''))) ?>"
+                                                    data-slug="<?= htmlspecialchars((string)($category['slug'] ?? '')) ?>"
+                                                    data-products="<?= (int)($category['product_count'] ?? 0) ?>"
+                                                    data-meta-title="<?= htmlspecialchars((string)($category['meta_title'] ?? '')) ?>"
+                                                    data-meta-description="<?= htmlspecialchars((string)($category['meta_description'] ?? '')) ?>"
+                                                    title="Preview Category">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
                                             <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editCategory<?= $catId ?>">Edit</button>
                                             <button type="button" 
                                                     class="btn btn-sm btn-outline-danger" 
@@ -187,10 +204,10 @@ $mediaImages = $mediaImages ?? [];
                                                         <label class="form-label small fw-bold text-muted">Sort Order</label>
                                                         <input type="number" name="sort_order" class="form-control" value="<?= (int) ($category['sort_order'] ?? 0) ?>">
                                                     </div>
-                                                    <div class="col-md-8">
-                                                        <label class="form-label small fw-bold text-muted">Meta Title</label>
-                                                        <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_title'] ?? '')) ?>" placeholder="SEO Title">
-                                                    </div>
+                                                     <div class="col-md-8">
+                                                         <label class="form-label small fw-bold text-muted">Meta Title (SEO)</label>
+                                                         <input type="text" name="meta_title" class="form-control" value="<?= htmlspecialchars((string) ($category['meta_title'] ?? '')) ?>" placeholder="SEO Title">
+                                                     </div>
                                                     
                                                     <div class="col-md-12">
                                                         <label class="form-label small fw-bold text-muted">Description</label>
@@ -213,10 +230,13 @@ $mediaImages = $mediaImages ?? [];
 
                                                     <div class="col-md-12 border-top pt-3 mt-3">
                                                         <div class="row g-3">
-                                                            <div class="col-md-6">
-                                                                <label class="form-label small fw-bold text-muted">Change Image</label>
-                                                                <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp">
-                                                            </div>
+                                                             <div class="col-md-6">
+                                                                 <label class="form-label small fw-bold text-muted">Change Image</label>
+                                                                 <input type="file" name="image_file" class="form-control" accept=".jpg,.jpeg,.png,.webp" onchange="previewLocalImage(this, 'editCategoryPreview<?= $catId ?>')">
+                                                                 <div id="editCategoryPreview<?= $catId ?>" class="mt-2 d-none">
+                                                                     <img src="" class="img-thumbnail" style="max-height: 100px;">
+                                                                 </div>
+                                                             </div>
                                                             <div class="col-md-6">
                                                                 <?php
                                                                     // Setup for partial
@@ -314,6 +334,59 @@ $mediaImages = $mediaImages ?? [];
     </div>
 </div>
 
+<!-- Category Preview Modal -->
+<div class="modal fade" id="categoryPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 position-absolute w-100" style="z-index: 1;">
+                <button type="button" class="btn-close btn-close-white ms-auto bg-dark opacity-75" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 overflow-hidden rounded-top">
+                <div class="row g-0">
+                    <div class="col-md-5">
+                        <div class="category-preview-hero h-100 min-vh-40" style="background-color: #f8f9fa;">
+                            <img id="previewModalImage" src="" class="w-100 h-100" style="object-fit: cover; min-height: 300px;">
+                        </div>
+                    </div>
+                    <div class="col-md-7 p-4">
+                        <div class="d-flex align-items-center mb-2">
+                             <span id="previewModalProducts" class="badge bg-theme me-2">0 Products</span>
+                             <span id="previewModalSlug" class="text-muted small font-monospace">/slug</span>
+                        </div>
+                        <h3 id="previewModalName" class="fw-bold mb-3">Category Name</h3>
+                        
+                        <div class="category-meta-box p-3 bg-light rounded-3 mb-4">
+                            <h6 class="small fw-bold text-uppercase text-muted mb-2">Description</h6>
+                            <p id="previewModalDescription" class="mb-0 text-secondary" style="font-size: 0.95rem; line-height: 1.6;">
+                                No description provided.
+                            </p>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="p-3 border rounded-3 bg-white">
+                                    <h6 class="small fw-bold text-muted text-uppercase mb-2"><i class="fas fa-search me-2 text-primary"></i>SEO Preview</h6>
+                                    <div class="mb-3">
+                                        <p class="small text-muted mb-1 fw-bold">Meta Title</p>
+                                        <p id="previewModalMetaTitle" class="text-dark small mb-0">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="small text-muted mb-1 fw-bold">Meta Description</p>
+                                        <p id="previewModalMetaDesc" class="text-dark small mb-0">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3 bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Single Delete Confirmation Modal -->
 <div class="modal fade" id="deleteItemModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -373,6 +446,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 warning.classList.add('d-none');
                 confirmBtn.disabled = false;
             }
+        });
+    }
+
+    // Category Preview Modal
+    const previewModal = document.getElementById('categoryPreviewModal');
+    if (previewModal) {
+        previewModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            
+            // Extract data from attributes
+            const name = button.getAttribute('data-name');
+            const description = button.getAttribute('data-description');
+            const image = button.getAttribute('data-image');
+            const slug = button.getAttribute('data-slug');
+            const products = button.getAttribute('data-products');
+            const metaTitle = button.getAttribute('data-meta-title');
+            const metaDesc = button.getAttribute('data-meta-description');
+            
+            // Update elements
+            document.getElementById('previewModalName').textContent = name;
+            document.getElementById('previewModalDescription').textContent = description || 'No description provided.';
+            document.getElementById('previewModalImage').src = image;
+            document.getElementById('previewModalSlug').textContent = '/' + slug;
+            document.getElementById('previewModalProducts').textContent = products + ' Products';
+            document.getElementById('previewModalMetaTitle').textContent = metaTitle || '-';
+            document.getElementById('previewModalMetaDesc').textContent = metaDesc || '-';
         });
     }
 
@@ -439,6 +538,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function previewLocalImage(input, previewId) {
+    const previewContainer = document.getElementById(previewId);
+    if (!previewContainer) return;
+    
+    const previewImg = previewContainer.querySelector('img');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            previewContainer.classList.remove('d-none');
+        }
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        previewContainer.classList.add('d-none');
+    }
+}
 </script>
 
 

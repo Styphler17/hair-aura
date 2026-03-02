@@ -604,14 +604,7 @@ class AdminManagementController extends Controller
         }
         $content['site']['hero_slides'] = $processedSlides;
 
-        // Handle Virtual Try-On Image
-        $libraryTryon = trim((string) $this->post('virtual_tryon_image', ''));
-        if ($libraryTryon !== '') {
-            $cleanPath = ltrim(str_replace('\\', '/', $libraryTryon), '/');
-            if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
-                $content['site']['virtual_tryon_image'] = '/' . $cleanPath;
-            }
-        }
+
 
         // Handle Instagram Images (Multiple)
         $instagramPaths = $this->post('instagram_images');

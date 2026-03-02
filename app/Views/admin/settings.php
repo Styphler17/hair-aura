@@ -129,24 +129,7 @@
         </div>
 
         <div class="row">
-            <div class="col-md-6 mt-4">
-                <h4>Virtual Try-On</h4>
-                <div class="card bg-light border-0">
-                    <div class="card-body">
-                        <div class="mb-3 text-center">
-                            <img src="<?= asset($settings['virtual_tryon_image'] ?? '/img/product-placeholder.webp') ?>" class="img-thumbnail" style="height: 120px;" onerror="this.src='/img/product-placeholder.webp'">
-                        </div>
-                        <?php
-                            // Setup for partial
-                            $inputName = 'virtual_tryon_image';
-                            $isMultiple = false;
-                            $currentValue = $settings['virtual_tryon_image'] ?? '';
-                            $label = 'Select Try-On Illustration';
-                            include __DIR__ . '/partials/media_library_selector.php';
-                        ?>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="col-md-6 mt-4">
                 <h4>Instagram Feed</h4>

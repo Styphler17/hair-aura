@@ -149,4 +149,48 @@ class ImageManager
             return false;
         }
     }
+    /**
+     * Get the dominant background color of an image by sampling a corner
+     * 
+     * @param string $relativePath Path relative to public/
+     * @param string $default Fallback color
+     * @return string Hex color code
+     */
+    public static function getDominantColor(string $relativePath, string $default = '#FDFBFA'): string
+    {
+        try {
+            $publicRoot = __DIR__ . '/../../public/';
+            $path = $publicRoot . ltrim($relativePath, '/');
+
+            if (!file_exists($path) || !is_readable($path)) {
+                return $default;
+            }
+
+            $mimeType = @mime_content_type($path);
+            $image = null;
+            
+            switch ($mimeType) {
+                case 'image/jpeg': $image = @imagecreatefromjpeg($path); break;
+                case 'image/png': $image = @imagecreatefrompng($path); break;
+                case 'image/gif': $image = @imagecreatefromgif($path); break;
+                case 'image/webp': $image = @imagecreatefromwebp($path); break;
+            }
+
+            if (!$image) return $default;
+
+            // Sample a pixel near the top-left corner (offset to avoid potential borders)
+            $rgb = imagecolorat($image, 10, 10);
+            $r = ($rgb >> 16) & 0xFF;
+            $g = ($rgb >> 8) & 0xFF;
+            $b = $rgb & 0xFF;
+
+            imagedestroy($image);
+
+            // Convert to Hex
+            return sprintf("#%02x%02x%02x", $r, $g, $b);
+            
+        } catch (\Throwable $e) {
+            return $default;
+        }
+    }
 }

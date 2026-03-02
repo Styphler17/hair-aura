@@ -522,7 +522,7 @@ abstract class Controller
                 'theme_primary_dark' => '#B8935F',
                 'theme_secondary' => '#2C2C2C',
                 'theme_gold' => '#D4AF37',
-                'virtual_tryon_image' => '/img/product-placeholder.webp',
+
                 'instagram_images' => [],
                 'social' => [
                     'facebook' => ['url' => 'https://facebook.com/hairaura', 'enabled' => true],
@@ -534,21 +534,21 @@ abstract class Controller
                 ],
                 'hero_slides' => [
                     [
-                        'image' => '/img/hero-1.webp',
+                        'image' => '/img/hero-1.png',
                         'title' => 'Top Human Hair Wigs in Ghana',
                         'subtitle' => 'Premium 100% human hair wigs, lace fronts, and extensions delivered across Accra, Kumasi, and beyond.',
                         'button_text' => 'Shop the Collection',
                         'button_link' => '/shop'
                     ],
                     [
-                        'image' => '/img/hero-2.webp',
+                        'image' => '/img/hero-2.png',
                         'title' => 'Explore Our New Collection',
                         'subtitle' => 'Handcrafted wigs for a natural look.',
                         'button_text' => 'Explore Collection',
                         'button_link' => '/shop/human-hair-wigs'
                     ],
                     [
-                        'image' => '/img/hero-3.webp',
+                        'image' => '/img/hero-3.png',
                         'title' => 'Find Your Perfect Match',
                         'subtitle' => 'Style tailored to your unique aura.',
                         'button_text' => 'Shop Now',

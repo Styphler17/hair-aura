@@ -278,7 +278,7 @@ class CartSession
         }
         
         // Calculate shipping (simplified)
-        $shipping = $subtotal > 100 ? 0 : 15;
+        $shipping = $subtotal >= 3000 ? 0 : 50;
         
         // Calculate tax (simplified - could be based on location)
         $tax = $subtotal * 0.0; // No tax for Ghana in this example

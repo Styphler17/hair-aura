@@ -48,8 +48,8 @@ $inputNameAttr = $isMultiple ? $inputName . '[]' : $inputName;
                     $selected = $isSelected($mPathRel);
                 ?>
                 <div class="media-checkbox-option position-relative" style="width: 100px; height: 100px;" data-name="<?= htmlspecialchars($mName) ?>">
-                    <input type="<?= $inputType ?>" name="<?= $inputNameAttr ?>" value="<?= htmlspecialchars($mPathRel) ?>" id="media_<?= $mId ?>" class="btn-check" <?= $selected ? 'checked' : '' ?>>
-                    <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="media_<?= $mId ?>">
+                    <input type="<?= $inputType ?>" name="<?= $inputNameAttr ?>" value="<?= htmlspecialchars($mPathRel) ?>" id="<?= $containerId ?>_<?= $mId ?>" class="btn-check" <?= $selected ? 'checked' : '' ?>>
+                    <label class="btn btn-outline-light p-0 w-100 h-100 overflow-hidden border shadow-sm d-flex align-items-center justify-content-center" for="<?= $containerId ?>_<?= $mId ?>">
                         <img src="<?= asset('/' . $mPathRel) ?>" alt="<?= htmlspecialchars($mName) ?>" 
                              class="w-100 h-100" style="object-fit: cover; object-position: center;"
                              title="<?= htmlspecialchars($mName) ?>"

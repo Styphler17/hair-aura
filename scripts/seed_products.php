@@ -39,7 +39,7 @@ try {
             'description' => 'Experience the pinnacle of luxury with our Vietnamese Bone Straight hair. Sourced from single donors, this hair is naturally sleek, incredibly soft, and maintains its straightness even after washing. Perfect for a sophisticated, high-end look.',
             'short_description' => 'Super double drawn, 100% human hair, Grade 12A.',
             'sku' => 'VBS-LUX-001',
-            'image' => 'Bone-straight.jpeg',
+            'image' => 'Bone-straight.webp',
             'variants' => ['10"', '12"', '14"', '16"', '18"', '20"', '22"', '24"', '26"', '28"', '30"'],
             'price_step' => 80.00
         ],

@@ -228,6 +228,7 @@ $router->get('/sitemap', ['HomeController', 'sitemap']);
 $router->get('/sitemap.xml', ['HomeController', 'sitemap']);
 $router->get('/robots.txt', ['HomeController', 'robots']);
 
+
 // Newsletter
 $router->post('/newsletter', ['HomeController', 'newsletter']);
 
