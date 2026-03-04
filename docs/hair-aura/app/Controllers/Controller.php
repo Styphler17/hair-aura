@@ -44,8 +44,55 @@ abstract class Controller
             'isLoggedIn' => $this->isLoggedIn,
             'isAdmin' => Auth::isAdmin(),
             'siteSettings' => $siteSettings,
-            'themeVars' => $this->resolveThemeVars($siteSettings)
+            'themeVars' => $this->resolveThemeVars($siteSettings),
+            'localBusinessSchema' => [
+                '@context' => 'https://schema.org',
+                '@type' => 'LocalBusiness',
+                'name' => 'Hair Aura',
+                'image' => $this->absoluteUrl('/img/logo.webp'),
+                'telephone' => '+233508007873',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => 'Accra',
+                    'addressLocality' => 'Accra',
+                    'addressRegion' => 'Greater Accra',
+                    'addressCountry' => 'GH'
+                ],
+                'geo' => [
+                    '@type' => 'GeoCoordinates',
+                    'latitude' => 5.6037,
+                    'longitude' => -0.1870
+                ],
+                'url' => $this->absoluteUrl('/'),
+                'openingHoursSpecification' => [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                    'opens' => '08:00',
+                    'closes' => '18:00'
+                ],
+                'sameAs' => [
+                    'https://instagram.com/hairaura'
+                ]
+            ],
+            'footerCategories' => $this->getFooterCategories()
         ]);
+    }
+
+    /**
+     * Get active categories for footer
+     * 
+     * @return array
+     */
+    private function getFooterCategories(): array
+    {
+        try {
+            $db = \App\Core\Database::getInstance();
+            return $db->fetchAll(
+                "SELECT name, slug FROM categories WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 6"
+            );
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
     
     /**
@@ -359,9 +406,44 @@ abstract class Controller
         $this->user = $this->isLoggedIn ? Auth::user() : null;
 
         if (!$this->isLoggedIn || !$this->user) {
+            if ($this->isAjax()) {
+                $this->json([
+                    'success' => false,
+                    'message' => 'Please login to use this feature',
+                    'redirect' => $redirect
+                ], 401);
+            }
             $_SESSION['redirect_after_login'] = $_SERVER['REQUEST_URI'];
             $this->redirect($redirect);
         }
+    }
+    
+    /**
+     * Inject wishlist status into product arrays
+     * 
+     * @param array $products
+     * @return array
+     */
+    protected function injectWishlist(array $products): array
+    {
+        if (!$this->isLoggedIn || !$this->user) {
+            return array_map(function($p) {
+                $p['in_wishlist'] = false;
+                return $p;
+            }, $products);
+        }
+
+        $db = \App\Core\Database::getInstance();
+        $wishlistData = $db->fetchAll(
+            "SELECT product_id FROM wishlists WHERE user_id = :user_id",
+            ['user_id' => $this->user->id]
+        );
+        $wishlistIds = array_column($wishlistData, 'product_id');
+
+        return array_map(function($p) use ($wishlistIds) {
+            $p['in_wishlist'] = in_array((int) ($p['id'] ?? 0), $wishlistIds);
+            return $p;
+        }, $products);
     }
     
     /**
@@ -435,35 +517,93 @@ abstract class Controller
     private function loadSiteSettings(): array
     {
         $defaults = [
-            'name' => 'Hair Aura',
-            'tagline' => 'Unlock Your Aura with Perfect Wigs',
-            'meta_description' => 'Premium wigs and hair extensions in Ghana.',
-            'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
-            'email' => 'support@example.com',
-            'phone' => '+233508007873',
-            'whatsapp' => '+233508007873',
-            'location' => 'Accra, Ghana',
-            'theme_primary' => '#D4A574',
-            'theme_primary_dark' => '#B8935F',
-            'theme_secondary' => '#2C2C2C',
-            'theme_gold' => '#D4AF37'
+            'about' => [
+                'title' => 'About Hair Aura',
+                'content' => "Hair Aura is a premium wig and hair extensions brand focused on quality, confidence, and everyday beauty.",
+                'button_text' => 'Shop Collection',
+                'button_url' => '/shop'
+            ],
+            'contact' => [
+                'email' => 'support@hair-aura.debesties.com',
+                'phone' => '+233508007873',
+                'whatsapp' => '+233508007873',
+                'location' => 'Accra, Ghana',
+                'business_hours' => 'Mon - Sat, 8:00 AM - 6:00 PM'
+            ],
+            'site' => [
+                'name' => 'Hair Aura',
+                'tagline' => 'Unlock Your Aura with Perfect Wigs',
+                'logo' => '/img/logo.webp',
+                'meta_description' => 'Premium wigs and hair extensions in Ghana.',
+                'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
+                'theme_primary' => '#D4A574',
+                'theme_primary_dark' => '#B8935F',
+                'theme_secondary' => '#2C2C2C',
+                'theme_gold' => '#D4AF37',
+
+                'instagram_images' => [],
+                'social' => [
+                    'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
+                    'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
+                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true]
+                ],
+                'hero_slides' => [
+                    [
+                        'image' => '/img/hero-1.png',
+                        'title' => 'Top Human Hair Wigs in Ghana',
+                        'subtitle' => 'Premium 100% human hair wigs, lace fronts, and extensions delivered across Accra, Kumasi, and beyond.',
+                        'button_text' => 'Shop the Collection',
+                        'button_link' => '/shop'
+                    ],
+                    [
+                        'image' => '/img/hero-2.png',
+                        'title' => 'Explore Our New Collection',
+                        'subtitle' => 'Handcrafted wigs for a natural look.',
+                        'button_text' => 'Explore Collection',
+                        'button_link' => '/shop/human-hair-wigs'
+                    ],
+                    [
+                        'image' => '/img/hero-3.png',
+                        'title' => 'Find Your Perfect Match',
+                        'subtitle' => 'Style tailored to your unique aura.',
+                        'button_text' => 'Shop Now',
+                        'button_link' => '/shop'
+                    ]
+                ]
+            ]
         ];
 
         $path = __DIR__ . '/../../config/site-content.php';
         if (!is_file($path)) {
-            return $defaults;
+            return $this->flattenSettings($defaults);
         }
 
+        // Avoid OPcache issues on read by using file_get_contents + eval or similar? 
+        // No, let's just use opcache_invalidate if we suspect stale reads, 
+        // but normally require is fine if we invalidated on save.
         $data = require $path;
         if (!is_array($data)) {
-            return $defaults;
+            return $this->flattenSettings($defaults);
         }
 
-        return array_merge(
-            $defaults,
-            (array) ($data['contact'] ?? []),
-            (array) ($data['site'] ?? [])
-        );
+        return $this->flattenSettings([
+            'about' => array_merge($defaults['about'] ?? [], (array) ($data['about'] ?? [])),
+            'contact' => array_merge($defaults['contact'] ?? [], (array) ($data['contact'] ?? [])),
+            'site' => array_merge($defaults['site'] ?? [], (array) ($data['site'] ?? []))
+        ]);
+    }
+
+    /**
+     * Flatten nested settings for easier view access (backward compatibility).
+     */
+    private function flattenSettings(array $nested): array
+    {
+        $flat = $nested['site'] ?? [];
+        $contact = $nested['contact'] ?? [];
+        $about = $nested['about'] ?? [];
+        
+        // Merge contact info into the flat array (overriding site defaults if they exist)
+        return array_merge($flat, $contact, ['about_page' => $about]);
     }
 
     /**

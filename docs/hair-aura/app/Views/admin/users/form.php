@@ -40,10 +40,14 @@ $title = $isEdit ? 'Edit User' : 'Add User';
             </select>
         </div>
 
-        <div class="col-md-6 d-flex align-items-end">
+        <div class="col-md-6 d-flex align-items-end flex-wrap gap-3">
             <div class="form-check mb-2">
                 <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" <?= (($account?->is_active ?? 1) ? 'checked' : '') ?>>
-                <label class="form-check-label" for="is_active">Active account</label>
+                <label class="form-check-label text-success fw-semibold" for="is_active">Active account</label>
+            </div>
+            <div class="form-check mb-2">
+                <input type="checkbox" class="form-check-input" id="is_banned" name="is_banned" value="1" <?= (($account?->is_banned ?? 0) ? 'checked' : '') ?>>
+                <label class="form-check-label text-danger fw-semibold" for="is_banned">Banned</label>
             </div>
         </div>
 

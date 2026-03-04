@@ -1,33 +1,4 @@
-<?php
-$categories = $categories ?? [];
-$relatedPosts = $relatedPosts ?? [];
-
-$resolveBlogImage = function(?string $rawImage): string {
-    if (empty($rawImage)) {
-        return asset('/img/product-placeholder.png');
-    }
-
-    $image = trim((string) $rawImage);
-    if ($image === '') {
-        return asset('/img/product-placeholder.png');
-    }
-
-    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-        return $image;
-    }
-
-    if (str_starts_with($image, '/')) {
-        return $image;
-    }
-
-    if (str_contains($image, '/')) {
-        return asset('/uploads/' . ltrim($image, '/'));
-    }
-
-    return asset('/uploads/blog/' . ltrim($image, '/'));
-};
-
-$featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
+$featuredImagePath = resolve_blog_image($post['featured_image'] ?? null);
 ?>
 
 <section class="blog-detail-page py-5">
@@ -45,7 +16,7 @@ $featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
                 </div>
 
                 <figure class="mb-4">
-                    <img src="<?= htmlspecialchars($featuredImagePath) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid rounded blog-detail-image" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                    <img src="<?= htmlspecialchars($featuredImagePath) ?>" alt="<?= htmlspecialchars($post['title']) ?>" class="img-fluid rounded blog-detail-image" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                 </figure>
 
                 <article class="blog-content mb-5">
@@ -57,11 +28,11 @@ $featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
                     <h3 class="mb-3">Related Posts</h3>
                     <div class="row g-3">
                         <?php foreach ($relatedPosts as $related): ?>
-                        <?php $relatedImage = $resolveBlogImage($related['featured_image'] ?? null); ?>
+                        <?php $relatedImage = resolve_blog_image($related['featured_image'] ?? null); ?>
                         <div class="col-md-6">
                             <article class="card border-0 shadow-sm h-100">
                                 <a href="<?= url('/blog/' . $related['slug']) ?>">
-                                    <img src="<?= htmlspecialchars($relatedImage) ?>" class="card-img-top blog-related-image" alt="<?= htmlspecialchars($related['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.png') ?>';">
+                                    <img src="<?= htmlspecialchars($relatedImage) ?>" class="card-img-top blog-related-image" alt="<?= htmlspecialchars($related['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                 </a>
                                 <div class="card-body">
                                     <div class="small text-muted mb-2">

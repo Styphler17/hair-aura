@@ -1,12 +1,21 @@
+<?php
+$resolveProductImage = function($path) {
+    if (!$path) return asset('/img/product-placeholder.webp');
+    if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+        return asset('/' . ltrim($path, '/'));
+    }
+    return asset('/uploads/products/' . $path);
+};
+?>
 <!-- Page Header -->
 <section class="page-header">
     <div class="container">
-        <h1><?= $currentCategory ? htmlspecialchars($currentCategory['name']) : 'Shop All Products' ?></h1>
+        <h1><?= ($currentCategory ?? null) ? htmlspecialchars($currentCategory['name']) : 'Shop All Products' ?></h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
                 <li class="breadcrumb-item active">Shop</li>
-                <?php if ($currentCategory): ?>
+                <?php if ($currentCategory ?? null): ?>
                 <li class="breadcrumb-item active"><?= htmlspecialchars($currentCategory['name']) ?></li>
                 <?php endif; ?>
             </ol>
@@ -20,14 +29,14 @@
         <div class="row">
             <!-- Sidebar Filters -->
             <div class="col-lg-3">
-                <?php $filterAction = $currentCategory ? '/shop/' . $currentCategory['slug'] : '/shop'; ?>
-                <div class="shop-sidebar">
+                <?php $filterAction = ($currentCategory ?? null) ? '/shop/' . $currentCategory['slug'] : '/shop'; ?>
+                <aside class="shop-sidebar">
                     <!-- Search -->
                     <div class="sidebar-widget">
                         <h4>Search</h4>
                         <form action="<?= url('/shop') ?>" method="get" class="search-form" data-live-search="products">
                             <input type="text" name="q" class="form-control" placeholder="Search products..." 
-                                   value="<?= htmlspecialchars($query) ?>">
+                                   value="<?= htmlspecialchars($query ?? '') ?>">
                             <button type="submit" class="btn"><i class="fas fa-search"></i></button>
                         </form>
                     </div>
@@ -37,7 +46,7 @@
                         <h4>Categories</h4>
                         <ul class="category-list">
                             <li>
-                                <a href="<?= url('/shop') ?>" class="<?= !$currentCategory ? 'active' : '' ?>">
+                                <a href="<?= url('/shop') ?>" class="<?= !($currentCategory ?? null) ? 'active' : '' ?>">
                                     All Products
                                     <span class="count">(<?= array_sum(array_column($categories, 'product_count')) ?>)</span>
                                 </a>
@@ -45,7 +54,7 @@
                             <?php foreach ($categories as $cat): ?>
                             <li>
                                 <a href="<?= url('/shop/' . (string) $cat['slug']) ?>" 
-                                   class="<?= $currentCategory && $currentCategory['id'] == $cat['id'] ? 'active' : '' ?>">
+                                   class="<?= ($currentCategory ?? null) && $currentCategory['id'] == $cat['id'] ? 'active' : '' ?>">
                                     <?= htmlspecialchars($cat['name']) ?>
                                     <span class="count">(<?= $cat['product_count'] ?>)</span>
                                 </a>
@@ -124,15 +133,14 @@
                         <div class="sidebar-widget d-flex gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Apply</button>
                             <a href="<?= url($filterAction) ?>" class="btn btn-outline-primary btn-sm">Clear</a>
-                        </div>
                     </form>
-                </div>
+                </aside>
             </div>
             
             <!-- Product Grid -->
             <div class="col-lg-9">
                 <!-- Toolbar -->
-                <div class="shop-toolbar">
+                <header class="shop-toolbar">
                     <div class="toolbar-left">
                         <span class="results-info">Showing <?= count($products) ?> of <?= $pagination['total'] ?> products</span>
                     </div>
@@ -155,7 +163,7 @@
                             <button class="btn" data-view="list"><i class="fas fa-list"></i></button>
                         </div>
                     </div>
-                </div>
+                </header>
                 
                 <!-- Products Grid -->
                 <div class="row product-grid">
@@ -169,56 +177,7 @@
                     <?php else: ?>
                     <?php foreach ($products as $product): ?>
                     <div class="col-lg-4 col-md-6 mb-4">
-                        <div class="product-card">
-                            <div class="product-image">
-                                <a href="<?= url('/product/' . (string) $product['slug']) ?>">
-                                    <img src="<?= $product['primary_image'] ? asset('/uploads/products/' . $product['primary_image']) : asset('/img/product-placeholder.png') ?>" 
-                                         alt="<?= htmlspecialchars($product['name']) ?>" 
-                                         loading="lazy">
-                                </a>
-                                
-                                <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
-                                <span class="product-badge sale">-<?= round((($product['price'] - $product['sale_price']) / $product['price']) * 100) ?>%</span>
-                                <?php elseif ($product['new_arrival']): ?>
-                                <span class="product-badge new">New</span>
-                                <?php endif; ?>
-                                
-                                <div class="product-actions">
-                                    <button class="btn btn-wishlist" data-product-id="<?= $product['id'] ?>">
-                                        <i class="far fa-heart"></i>
-                                    </button>
-                                    <button class="btn btn-quickview" data-product-id="<?= $product['id'] ?>">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                            <div class="product-info">
-                                <span class="product-category"><?= htmlspecialchars($product['category_name'] ?? 'Wigs') ?></span>
-                                <h3 class="product-title">
-                                    <a href="<?= url('/product/' . (string) $product['slug']) ?>">
-                                        <?= htmlspecialchars($product['name']) ?>
-                                    </a>
-                                </h3>
-                                <div class="product-rating">
-                                    <?php for ($i = 1; $i <= 5; $i++): ?>
-                                        <i class="fas fa-star<?= $i > ($product['rating_avg'] ?? 0) ? '-empty' : '' ?>"></i>
-                                    <?php endfor; ?>
-                                    <span>(<?= $product['review_count'] ?? 0 ?>)</span>
-                                </div>
-                                <div class="product-price">
-                                    <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
-                                        <span class="old-price"><?= money($product['price']) ?></span>
-                                        <span class="current-price"><?= money($product['sale_price']) ?></span>
-                                    <?php else: ?>
-                                        <span class="current-price"><?= money($product['price']) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                                <button class="btn btn-primary btn-add-cart" data-product-id="<?= $product['id'] ?>">
-                                    <i class="fas fa-shopping-bag"></i> Add to Cart
-                                </button>
-                            </div>
-                        </div>
+                        <?php \App\Core\View::partial('product_card', ['product' => $product, 'resolveProductImage' => $resolveProductImage]); ?>
                     </div>
                     <?php endforeach; ?>
                     <?php endif; ?>

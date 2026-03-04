@@ -290,7 +290,18 @@ class Review extends Model
      */
     public function reject(): bool
     {
-        return $this->delete();
+        $productId = $this->product_id;
+        $result = $this->delete();
+        
+        // Update product rating after deletion
+        if ($result && $productId) {
+            $product = Product::find($productId);
+            if ($product) {
+                $product->updateRating();
+            }
+        }
+        
+        return $result;
     }
     
     /**

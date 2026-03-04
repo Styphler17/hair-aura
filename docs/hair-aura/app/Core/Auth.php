@@ -134,6 +134,10 @@ class Auth
             return false;
         }
 
+        if (!empty($user->is_banned)) {
+            return false;
+        }
+
         if ((int) ($user->id ?? 0) <= 0) {
             return false;
         }

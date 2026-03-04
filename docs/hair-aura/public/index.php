@@ -145,7 +145,13 @@ foreach ($assetCandidates as $candidate) {
 }
 
 // Use /public for assets when the app is not served directly from public/
-$GLOBALS['app_asset_url'] = $publicFromDocRoot !== '' ? $publicFromDocRoot : $scriptDir;
+// If the URL already contains the domain and we are serving from 'public' folder, 
+// we should double-check if /public is actually required in the URL.
+$globalsAssetUrl = $publicFromDocRoot !== '' ? $publicFromDocRoot : $scriptDir;
+if ($globalsAssetUrl === '/public') {
+    $globalsAssetUrl = '';
+}
+$GLOBALS['app_asset_url'] = $globalsAssetUrl;
 
 // Use clean base for routes when /public is hidden by rewrite rules
 $routeFromDocRoot = rtrim((string) preg_replace('#/public$#', '', $publicFromDocRoot), '/');
@@ -193,6 +199,67 @@ if (!function_exists('money')) {
     }
 }
 
+if (!function_exists('resolve_blog_image')) {
+    /**
+     * Resolves a blog image path, supporting fuzzy matching for synced filenames.
+     * 
+     * @param string|null $image The raw image path or filename from DB
+     * @return string The resolved URL
+     */
+    function resolve_blog_image($image): string
+    {
+        if (empty($image)) {
+            return asset('/img/product-placeholder.webp');
+        }
+
+        // Check if it's already a full URL
+        if (str_starts_with($image, 'http')) {
+            return $image;
+        }
+
+        // Handle paths that already include directory structure (e.g. products/, img/)
+        if (str_contains($image, 'uploads/') || str_contains($image, 'img/') || str_contains($image, '../')) {
+            $cleanPath = ltrim(str_replace('../', '', $image), '/');
+            
+            // If it starts with products/ or categories/ but not uploads/, prepend uploads/
+            if ((str_starts_with($cleanPath, 'products/') || str_starts_with($cleanPath, 'categories/')) && !str_starts_with($cleanPath, 'uploads/')) {
+                return asset('/uploads/' . $cleanPath);
+            }
+            
+            return asset('/' . $cleanPath);
+        }
+
+        // Default logic: check in uploads/blog with fuzzy matching
+        $blogDir = BASE_PATH . '/public/uploads/blog/';
+        $exactPath = $blogDir . $image;
+
+        if (file_exists($exactPath)) {
+            return asset('/uploads/blog/' . $image);
+        }
+
+        // Fuzzy Matching Logic: Find file starting with the same name + suffix
+        // This handles files like 'image-123456.png' when DB says 'image.png'
+        $ext = pathinfo($image, PATHINFO_EXTENSION);
+        $filename = pathinfo($image, PATHINFO_FILENAME);
+        
+        // Pattern matches filename-anything.ext
+        $pattern = $blogDir . $filename . '-*.' . $ext;
+        $matches = glob($pattern);
+
+        if ($matches) {
+            // Sort by modification time, newest first
+            usort($matches, function($a, $b) {
+                return filemtime($b) - filemtime($a);
+            });
+            $newest = basename($matches[0]);
+            return asset('/uploads/blog/' . $newest);
+        }
+
+        // Fallback to original path
+        return asset('/uploads/blog/' . $image);
+    }
+}
+
 // Initialize Auth
 \App\Core\Auth::init();
 
@@ -218,8 +285,10 @@ $router->get('/care-guide', ['HomeController', 'careGuide']);
 $router->get('/size-guide', ['HomeController', 'sizeGuide']);
 $router->get('/privacy', ['HomeController', 'privacy']);
 $router->get('/terms', ['HomeController', 'terms']);
+$router->get('/sitemap', ['HomeController', 'sitemap']);
 $router->get('/sitemap.xml', ['HomeController', 'sitemap']);
 $router->get('/robots.txt', ['HomeController', 'robots']);
+
 
 // Newsletter
 $router->post('/newsletter', ['HomeController', 'newsletter']);
@@ -246,12 +315,11 @@ $router->post('/cart/clear', ['CartController', 'clear']);
 $router->get('/cart/mini', ['CartController', 'miniCart']);
 $router->post('/cart/coupon', ['CartController', 'applyCoupon']);
 $router->post('/cart/coupon/remove', ['CartController', 'removeCoupon']);
+$router->post('/cart/shipping', ['CartController', 'updateShipping']);
 
 // Checkout
 $router->get('/checkout', ['CartController', 'checkout']);
 $router->post('/checkout', ['CartController', 'processCheckout']);
-$router->get('/checkout/stripe/{orderNumber}', ['CartController', 'stripeCheckout']);
-$router->get('/checkout/paypal/{orderNumber}', ['CartController', 'paypalCheckout']);
 $router->get('/checkout/success', ['CartController', 'success']);
 $router->get('/checkout/cancel', ['CartController', 'cancel']);
 
@@ -295,15 +363,23 @@ $router->group('/admin', function($router) {
     $router->get('/products/edit/{id:\d+}', ['AdminController', 'editProduct']);
     $router->post('/products/save', ['AdminController', 'saveProduct']);
     $router->post('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->post('/products/duplicate/{id:\d+}', ['AdminController', 'duplicateProduct']);
+    $router->post('/products/bulk-delete', ['AdminController', 'bulkDeleteProducts']);
+    $router->post('/products/update-stock', ['AdminController', 'updateStock']);
+    $router->post('/products/images/delete/{id:\d+}', ['AdminController', 'deleteProductImage']);
     
     // Orders
     $router->get('/orders', ['AdminController', 'orders']);
     $router->get('/orders/{id:\d+}', ['AdminController', 'orderDetail']);
     $router->post('/orders/{id:\d+}/status', ['AdminController', 'updateOrderStatus']);
+    $router->post('/orders/delete/{id:\d+}', ['AdminController', 'deleteOrder']);
     
     // Customers
     $router->get('/customers', ['AdminController', 'customers']);
     $router->get('/customers/{id:\d+}', ['AdminController', 'customerDetail']);
+    $router->post('/customers/bulk-delete', ['AdminController', 'bulkDeleteCustomers']);
+    $router->post('/customers/bulk-ban', ['AdminController', 'bulkBanCustomers']);
+    $router->post('/customers/bulk-unban', ['AdminController', 'bulkUnbanCustomers']);
     
     // Reviews
     $router->get('/reviews', ['AdminController', 'reviews']);
@@ -313,6 +389,9 @@ $router->group('/admin', function($router) {
     // Categories
     $router->get('/categories', ['AdminController', 'categories']);
     $router->post('/categories/save', ['AdminController', 'saveCategory']);
+    $router->post('/categories/delete/{id:\d+}', ['AdminController', 'deleteCategory']);
+    $router->post('/categories/update-order', ['AdminController', 'updateCategoryOrder']);
+    $router->post('/categories/bulk-delete', ['AdminController', 'bulkDeleteCategories']);
 
     // Blog CRUD
     $router->get('/blogs', ['AdminManagementController', 'blogs']);
@@ -320,6 +399,9 @@ $router->group('/admin', function($router) {
     $router->get('/blogs/edit/{id:\d+}', ['AdminManagementController', 'editBlog']);
     $router->post('/blogs/save', ['AdminManagementController', 'saveBlog']);
     $router->post('/blogs/delete/{id:\d+}', ['AdminManagementController', 'deleteBlog']);
+    $router->post('/blogs/bulk-delete', ['AdminManagementController', 'bulkDeleteBlogs']);
+    $router->post('/blogs/bulk-publish', ['AdminManagementController', 'bulkPublishBlogs']);
+    $router->post('/blogs/bulk-unpublish', ['AdminManagementController', 'bulkUnpublishBlogs']);
 
     // User CRUD
     $router->get('/users', ['AdminManagementController', 'users']);
@@ -327,6 +409,7 @@ $router->group('/admin', function($router) {
     $router->get('/users/edit/{id:\d+}', ['AdminManagementController', 'editUser']);
     $router->post('/users/save', ['AdminManagementController', 'saveUser']);
     $router->post('/users/delete/{id:\d+}', ['AdminManagementController', 'deleteUser']);
+    $router->post('/users/bulk-deactivate', ['AdminManagementController', 'bulkDeactivateUsers']);
 
     // Content / Site Management
     $router->get('/about-page', ['AdminManagementController', 'aboutPage']);
@@ -338,11 +421,18 @@ $router->group('/admin', function($router) {
     $router->get('/notes', ['AdminManagementController', 'notes']);
     $router->post('/notes/save', ['AdminManagementController', 'saveNote']);
     $router->post('/notes/delete/{id:\d+}', ['AdminManagementController', 'deleteNote']);
+    $router->get('/faqs', ['AdminManagementController', 'faqs']);
+    $router->post('/faqs/save', ['AdminManagementController', 'saveFaq']);
+    $router->post('/faqs/delete/{id:\d+}', ['AdminManagementController', 'deleteFaq']);
+    $router->post('/faqs/bulk-delete', ['AdminManagementController', 'bulkDeleteFaqs']);
     $router->get('/media', ['AdminManagementController', 'mediaLibrary']);
     $router->post('/media/upload', ['AdminManagementController', 'uploadMedia']);
+    $router->post('/media/rename', ['AdminManagementController', 'renameMedia']);
     $router->post('/media/delete/{id:\d+}', ['AdminManagementController', 'deleteMedia']);
+    $router->post('/media/bulk-delete', ['AdminManagementController', 'bulkDeleteMedia']);
     $router->post('/media/sync', ['AdminManagementController', 'syncMedia']);
     $router->get('/search', ['AdminManagementController', 'search']);
+    $router->get('/api/search', ['AdminManagementController', 'searchApi']);
     $router->get('/settings', ['AdminManagementController', 'settings']);
     $router->post('/settings', ['AdminManagementController', 'saveSettings']);
 
@@ -350,6 +440,12 @@ $router->group('/admin', function($router) {
     $router->get('/profile', ['AdminManagementController', 'profile']);
     $router->post('/profile', ['AdminManagementController', 'saveProfile']);
     $router->post('/profile/password', ['AdminManagementController', 'saveProfilePassword']);
+
+    // Trash Management
+    $router->get('/trash', ['TrashController', 'index']);
+    $router->post('/trash/restore/{type}/{id:\d+}', ['TrashController', 'restore']);
+    $router->post('/trash/delete-permanent/{type}/{id:\d+}', ['TrashController', 'permanentDelete']);
+    $router->post('/trash/empty', ['TrashController', 'emptyTrash']);
 });
 
 // ==================== ERROR HANDLING ====================
@@ -402,6 +498,30 @@ try {
     }
     
     // Dispatch the request
+    if ($uri === '/sitemap.xml' || $uri === '/sitemap') {
+        (new \App\Controllers\HomeController())->sitemap();
+        exit;
+    }
+    if ($uri === '/robots.txt') {
+        (new \App\Controllers\HomeController())->robots();
+        exit;
+    }
+
+    if ($uri === '/test-db') {
+        try {
+            $db = \App\Core\Database::getInstance();
+            $cats = $db->fetchAll("SELECT id, name FROM categories");
+            echo "<h1>Database Connection Successful</h1>";
+            echo "<pre>";
+            print_r($cats);
+            echo "</pre>";
+        } catch (Exception $e) {
+            echo "<h1>Database Error</h1>";
+            echo "<p>" . $e->getMessage() . "</p>";
+        }
+        exit;
+    }
+
     $router->dispatch($uri, $method);
     
 } catch (Exception $e) {

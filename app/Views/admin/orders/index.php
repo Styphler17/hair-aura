@@ -77,12 +77,27 @@
                                 </td>
                                 <td data-label="Total"><strong><?= money((float) ($order['total'] ?? 0)) ?></strong></td>
                                 <td data-label="Status">
-                                    <span class="badge bg-<?= $statusClass ?>"><?= ucfirst($status) ?></span>
+                                    <select class="form-select form-select-sm status-dropdown order-status-select" 
+                                            data-id="<?= $order['id'] ?>"
+                                            data-url="<?= url('/admin/orders/' . $order['id'] . '/status') ?>">
+                                        <?php foreach (['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'] as $statusOption): ?>
+                                            <option value="<?= $statusOption ?>" <?= ($status === $statusOption) ? 'selected' : '' ?>>
+                                                <?= ucfirst($statusOption) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </td>
                                 <td data-label="Date"><?= !empty($order['created_at']) ? htmlspecialchars(date('Y-m-d H:i', strtotime($order['created_at']))) : '-' ?></td>
                                 <td data-label="Action" class="text-end">
                                     <a href="<?= url('/admin/orders/' . (int) $order['id']) ?>" class="btn btn-sm btn-outline-primary" title="View Order"><i class="fas fa-eye"></i></a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" onclick="confirmDelete(<?= $order['id'] ?>, '<?= htmlspecialchars($order['order_number']) ?>')" title="Delete Order"><i class="fas fa-trash-alt"></i></button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-1" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteOrderModal" 
+                                            data-id="<?= $order['id'] ?>" 
+                                            data-number="<?= htmlspecialchars($order['order_number']) ?>" 
+                                            title="Delete Order">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -139,24 +154,19 @@
 </div>
 
 <script>
-function confirmDelete(id, orderNumber) {
-    const modalEl = document.getElementById('deleteOrderModal');
-    // Check if bootstrap is defined, otherwise fallback or error gracefully
-    if (typeof bootstrap !== 'undefined') {
-        const modal = new bootstrap.Modal(modalEl);
-        const form = document.getElementById('deleteOrderForm');
-        const numberText = document.getElementById('deleteOrderNumberText');
-        
-        form.action = "<?= url('/admin/orders/delete/') ?>" + id;
-        if (numberText) numberText.textContent = '#' + orderNumber;
-        
-        modal.show();
-    } else {
-        if (confirm('Are you sure you want to delete order #' + orderNumber + '?')) {
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteOrderModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const number = button.getAttribute('data-number');
             const form = document.getElementById('deleteOrderForm');
-            form.action = "<?= url('/admin/orders/delete/') ?>" + id;
-            form.submit();
-        }
+            const numberText = document.getElementById('deleteOrderNumberText');
+            
+            form.action = '<?= url("/admin/orders/delete/") ?>' + id;
+            if (numberText) numberText.textContent = '#' + number;
+        });
     }
-}
+});
 </script>

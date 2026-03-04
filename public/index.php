@@ -153,15 +153,20 @@ if ($globalsAssetUrl === '/public') {
 }
 $GLOBALS['app_asset_url'] = $globalsAssetUrl;
 
-// Use clean base for routes when /public is hidden by rewrite rules
 $routeFromDocRoot = rtrim((string) preg_replace('#/public$#', '', $publicFromDocRoot), '/');
+
+// Diagnostic logging for routing issues
+file_put_contents(BASE_PATH . '/route_debug.log', 
+    date('[Y-m-d H:i:s] ') . $_SERVER['REQUEST_URI'] . " | " . 
+    "BaseURL: " . ($GLOBALS['app_base_url'] ?? 'N/A') . " | " .
+    "PublicFromDocRoot: " . $publicFromDocRoot . "\n", 
+    FILE_APPEND
+);
 
 if ($routeFromDocRoot !== '') {
     $GLOBALS['app_base_url'] = $routeFromDocRoot;
-} elseif ($scriptDir !== '' && strpos($requestPath, $scriptDir) === 0) {
-    $GLOBALS['app_base_url'] = $scriptDir;
 } else {
-    $GLOBALS['app_base_url'] = $cleanBaseDir;
+    $GLOBALS['app_base_url'] = ($scriptDir !== '/public') ? rtrim((string) preg_replace('#/public$#', '', $scriptDir), '/') : '';
 }
 
 if (!function_exists('asset')) {
@@ -196,6 +201,132 @@ if (!function_exists('money')) {
     function money($amount): string
     {
         return 'GH₵' . number_format((float) $amount, 2);
+    }
+}
+
+if (!function_exists('size_format')) {
+    function size_format($bytes): string
+    {
+        $bytes = (float) $bytes;
+        if ($bytes <= 0) return '0 B';
+        $base = log($bytes) / log(1024);
+        $suffixes = array('B', 'KB', 'MB', 'GB', 'TB');
+        $floorBase = (int) floor($base);
+        return round(pow(1024, $base - $floorBase), 2) . ' ' . $suffixes[$floorBase];
+    }
+}
+
+if (!function_exists('resolve_blog_image')) {
+    /**
+     * Resolves a blog image path to a working asset URL.
+     *
+     * Handles:
+     *  - Full URL passthrough
+     *  - DB values with uploads/blog/ or uploads/ prefix (stripped internally)
+     *  - Relative traversal paths (../products/, ../categories/)
+     *  - Bare filenames resolved in uploads/blog/
+     *  - Extension-agnostic fallback (.webp / .png / .jpg / .jpeg)
+     *  - Suffixed duplicates created by the media library (prefers clean names first)
+     *
+     * @param string|null $image Raw image path or filename from DB
+     * @return string The resolved asset URL
+     */
+    function resolve_blog_image($image): string
+    {
+        if (empty($image)) {
+            return asset('/img/product-placeholder.webp');
+        }
+
+        // Passthrough full URLs
+        if (str_starts_with($image, 'http')) {
+            return $image;
+        }
+
+        $blogDir    = BASE_PATH . '/public/uploads/blog/';
+        $extensions = ['webp', 'png', 'jpg', 'jpeg'];
+
+        // ---------- Normalise stored path ----------
+        $clean = str_replace('\\', '/', $image);
+
+        // Strip leading uploads/blog/ or uploads/ so we always work on the bare part
+        foreach (['uploads/blog/', 'uploads/'] as $prefix) {
+            if (str_starts_with(ltrim($clean, '/'), $prefix)) {
+                $clean = substr(ltrim($clean, '/'), strlen($prefix));
+                break;
+            }
+        }
+
+        // Handle relative traversal paths like ../products/Bone-straight.webp
+        // Search blog/ for same basename (any extension), then fall back to original folder.
+        if (str_contains($clean, '../') || str_contains($clean, 'products/') || str_contains($clean, 'categories/')) {
+            $bare     = basename($clean);
+            $nameOnly = pathinfo($bare, PATHINFO_FILENAME);
+
+            // 1. Check blog/ for basename with any extension
+            foreach ($extensions as $ext) {
+                if (file_exists($blogDir . $nameOnly . '.' . $ext)) {
+                    return asset('/uploads/blog/' . $nameOnly . '.' . $ext);
+                }
+            }
+
+            // 2. Resolve the original traversal path from public/uploads/blog/
+            $resolvedAbs = realpath(BASE_PATH . '/public/uploads/blog/' . $clean);
+            if ($resolvedAbs && file_exists($resolvedAbs)) {
+                $publicBase = str_replace('\\', '/', BASE_PATH . '/public/');
+                $rel = ltrim(str_replace($publicBase, '', str_replace('\\', '/', $resolvedAbs)), '/');
+                return asset('/' . $rel);
+            }
+
+            // 3. Direct lookup in products/ or categories/ folder
+            $fallbackFolder = str_contains($clean, 'categor') ? 'categories' : 'products';
+            if (file_exists(BASE_PATH . '/public/uploads/' . $fallbackFolder . '/' . $bare)) {
+                return asset('/uploads/' . $fallbackFolder . '/' . $bare);
+            }
+
+            return asset('/img/product-placeholder.webp');
+        }
+
+        // img/ paths pass through directly
+        if (str_starts_with($clean, 'img/')) {
+            return asset('/' . $clean);
+        }
+
+        // ---------- Bare filename resolution in uploads/blog/ ----------
+
+        // 1. Exact match
+        if (file_exists($blogDir . $clean)) {
+            return asset('/uploads/blog/' . $clean);
+        }
+
+        $nameOnly = pathinfo($clean, PATHINFO_FILENAME);
+        $origExt  = strtolower(pathinfo($clean, PATHINFO_EXTENSION));
+
+        // 2. Extension fallback (DB stored .jpeg but file is .webp, etc.)
+        foreach ($extensions as $ext) {
+            if ($ext !== $origExt && file_exists($blogDir . $nameOnly . '.' . $ext)) {
+                return asset('/uploads/blog/' . $nameOnly . '.' . $ext);
+            }
+        }
+
+        // 3. Fuzzy match: files starting with the same base name followed by a dash.
+        //    Prefer clean names (fewer extra dash-segments) over timestamp copies.
+        $candidates = glob($blogDir . $nameOnly . '-*') ?: [];
+
+        if ($candidates) {
+            usort($candidates, function ($a, $b) use ($nameOnly) {
+                // Count extra dash segments beyond the original name
+                $segA = substr_count(pathinfo($a, PATHINFO_FILENAME), '-') - substr_count($nameOnly, '-');
+                $segB = substr_count(pathinfo($b, PATHINFO_FILENAME), '-') - substr_count($nameOnly, '-');
+                if ($segA !== $segB) {
+                    return $segA - $segB; // fewer extra segments first
+                }
+                return filemtime($b) - filemtime($a); // newer first as tiebreaker
+            });
+            return asset('/uploads/blog/' . basename($candidates[0]));
+        }
+
+        // 4. Give up — show placeholder
+        return asset('/img/product-placeholder.webp');
     }
 }
 
@@ -301,7 +432,8 @@ $router->group('/admin', function($router) {
     $router->get('/products/add', ['AdminController', 'addProduct']);
     $router->get('/products/edit/{id:\d+}', ['AdminController', 'editProduct']);
     $router->post('/products/save', ['AdminController', 'saveProduct']);
-    $router->post('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->delete('/products/delete/{id:\d+}', ['AdminController', 'deleteProduct']);
+    $router->post('/products/update-status/{id:\d+}', ['AdminManagementController', 'updateProductStatus']);
     $router->post('/products/duplicate/{id:\d+}', ['AdminController', 'duplicateProduct']);
     $router->post('/products/bulk-delete', ['AdminController', 'bulkDeleteProducts']);
     $router->post('/products/update-stock', ['AdminController', 'updateStock']);
@@ -311,11 +443,12 @@ $router->group('/admin', function($router) {
     $router->get('/orders', ['AdminController', 'orders']);
     $router->get('/orders/{id:\d+}', ['AdminController', 'orderDetail']);
     $router->post('/orders/{id:\d+}/status', ['AdminController', 'updateOrderStatus']);
-    $router->post('/orders/delete/{id:\d+}', ['AdminController', 'deleteOrder']);
+    $router->delete('/orders/delete/{id:\d+}', ['AdminController', 'deleteOrder']);
     
     // Customers
     $router->get('/customers', ['AdminController', 'customers']);
     $router->get('/customers/{id:\d+}', ['AdminController', 'customerDetail']);
+    $router->post('/customers/update-status/{id:\d+}', ['AdminController', 'updateCustomerStatus']);
     $router->post('/customers/bulk-delete', ['AdminController', 'bulkDeleteCustomers']);
     $router->post('/customers/bulk-ban', ['AdminController', 'bulkBanCustomers']);
     $router->post('/customers/bulk-unban', ['AdminController', 'bulkUnbanCustomers']);
@@ -328,7 +461,8 @@ $router->group('/admin', function($router) {
     // Categories
     $router->get('/categories', ['AdminController', 'categories']);
     $router->post('/categories/save', ['AdminController', 'saveCategory']);
-    $router->post('/categories/delete/{id:\d+}', ['AdminController', 'deleteCategory']);
+    $router->delete('/categories/delete/{id:\d+}', ['AdminController', 'deleteCategory']);
+    $router->post('/categories/update-status/{id:\d+}', ['AdminController', 'updateCategoryStatus']);
     $router->post('/categories/update-order', ['AdminController', 'updateCategoryOrder']);
     $router->post('/categories/bulk-delete', ['AdminController', 'bulkDeleteCategories']);
 
@@ -337,7 +471,8 @@ $router->group('/admin', function($router) {
     $router->get('/blogs/add', ['AdminManagementController', 'addBlog']);
     $router->get('/blogs/edit/{id:\d+}', ['AdminManagementController', 'editBlog']);
     $router->post('/blogs/save', ['AdminManagementController', 'saveBlog']);
-    $router->post('/blogs/delete/{id:\d+}', ['AdminManagementController', 'deleteBlog']);
+    $router->delete('/blogs/delete/{id:\d+}', ['AdminManagementController', 'deleteBlog']);
+    $router->post('/blogs/update-status/{id:\d+}', ['AdminManagementController', 'updateBlogStatus']);
     $router->post('/blogs/bulk-delete', ['AdminManagementController', 'bulkDeleteBlogs']);
     $router->post('/blogs/bulk-publish', ['AdminManagementController', 'bulkPublishBlogs']);
     $router->post('/blogs/bulk-unpublish', ['AdminManagementController', 'bulkUnpublishBlogs']);

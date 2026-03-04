@@ -158,10 +158,13 @@ abstract class Model
         $table = static::$table;
         $key = static::$primaryKey;
         
-        $result = $db->fetchOne(
-            "SELECT * FROM {$table} WHERE {$key} = :id LIMIT 1",
-            ['id' => $id]
-        );
+        $sql = "SELECT * FROM {$table} WHERE {$key} = :id";
+        if (static::useSoftDeletes()) {
+            $sql .= " AND deleted_at IS NULL";
+        }
+        $sql .= " LIMIT 1";
+        
+        $result = $db->fetchOne($sql, ['id' => $id]);
         
         if (!$result) {
             return null;
@@ -210,9 +213,13 @@ abstract class Model
         $db = Database::getInstance();
         $table = static::$table;
         
-        return $db->fetchAll(
-            "SELECT * FROM {$table} ORDER BY {$orderBy} {$direction}"
-        );
+        $sql = "SELECT * FROM {$table}";
+        if (static::useSoftDeletes()) {
+            $sql .= " WHERE deleted_at IS NULL";
+        }
+        $sql .= " ORDER BY {$orderBy} {$direction}";
+        
+        return $db->fetchAll($sql);
     }
     
     /**
@@ -237,8 +244,12 @@ abstract class Model
             $params[$key] = $value;
         }
         
-        $whereClause = implode(' AND ', $whereParts);
-        $sql = "SELECT * FROM {$table} WHERE {$whereClause} ORDER BY {$orderBy} {$direction}";
+        if (static::useSoftDeletes()) {
+            $whereParts[] = "deleted_at IS NULL";
+        }
+        
+        $whereClause = !empty($whereParts) ? "WHERE " . implode(' AND ', $whereParts) : "";
+        $sql = "SELECT * FROM {$table} {$whereClause} ORDER BY {$orderBy} {$direction}";
         
         if ($limit) {
             $sql .= " LIMIT {$limit}";
@@ -374,11 +385,12 @@ abstract class Model
     }
     
     /**
-     * Delete record
+     * Delete record (Soft delete if deleted_at exists)
      * 
+     * @param bool $force
      * @return bool
      */
-    public function delete(): bool
+    public function delete(bool $force = false): bool
     {
         if (!$this->exists) {
             return false;
@@ -391,6 +403,11 @@ abstract class Model
             return false;
         }
         
+        if (!$force && static::useSoftDeletes()) {
+            $this->update(['deleted_at' => date('Y-m-d H:i:s')]);
+            return true;
+        }
+
         $db->delete(
             static::$table,
             "{$key} = :id",
@@ -399,6 +416,47 @@ abstract class Model
         
         $this->exists = false;
         return true;
+    }
+
+    /**
+     * Restore a soft-deleted record
+     * 
+     * @return bool
+     */
+    public function restore(): bool
+    {
+        if (!$this->exists || !static::useSoftDeletes()) {
+            return false;
+        }
+
+        return $this->update(['deleted_at' => null]);
+    }
+    
+    /** @var array Cache for column existence checks */
+    protected static array $columnCache = [];
+
+    /**
+     * Check if soft delete is supported and the column exists in the database
+     */
+    protected static function useSoftDeletes(): bool
+    {
+        if (!in_array('deleted_at', static::$fillable)) {
+            return false;
+        }
+
+        $table = static::$table;
+        if (isset(self::$columnCache[$table])) {
+            return self::$columnCache[$table];
+        }
+
+        $db = Database::getInstance();
+        self::$columnCache[$table] = $db->hasColumn($table, 'deleted_at');
+
+        if (!self::$columnCache[$table]) {
+            error_log("Soft delete column 'deleted_at' missing in table '{$table}'");
+        }
+
+        return self::$columnCache[$table];
     }
     
     /**
@@ -413,14 +471,19 @@ abstract class Model
         $table = static::$table;
         
         $sql = "SELECT COUNT(*) FROM {$table}";
+        $whereParts = [];
         $params = [];
         
-        if (!empty($conditions)) {
-            $whereParts = [];
-            foreach ($conditions as $key => $value) {
-                $whereParts[] = "{$key} = :{$key}";
-                $params[$key] = $value;
-            }
+        foreach ($conditions as $key => $value) {
+            $whereParts[] = "{$key} = :{$key}";
+            $params[$key] = $value;
+        }
+        
+        if (static::useSoftDeletes()) {
+            $whereParts[] = "deleted_at IS NULL";
+        }
+        
+        if (!empty($whereParts)) {
             $sql .= " WHERE " . implode(' AND ', $whereParts);
         }
         

@@ -49,7 +49,7 @@ abstract class Controller
                 '@context' => 'https://schema.org',
                 '@type' => 'LocalBusiness',
                 'name' => 'Hair Aura',
-                'image' => $this->absoluteUrl('/img/logo.webp'),
+                'image' => $this->absoluteUrl('/uploads/logos/logo.webp'),
                 'telephone' => '+233508007873',
                 'address' => [
                     '@type' => 'PostalAddress',
@@ -73,8 +73,26 @@ abstract class Controller
                 'sameAs' => [
                     'https://instagram.com/hairaura'
                 ]
-            ]
+            ],
+            'footerCategories' => $this->getFooterCategories()
         ]);
+    }
+
+    /**
+     * Get active categories for footer
+     * 
+     * @return array
+     */
+    private function getFooterCategories(): array
+    {
+        try {
+            $db = \App\Core\Database::getInstance();
+            return $db->fetchAll(
+                "SELECT name, slug FROM categories WHERE is_active = 1 ORDER BY sort_order ASC LIMIT 6"
+            );
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
     
     /**
@@ -515,7 +533,7 @@ abstract class Controller
             'site' => [
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
-                'logo' => '/img/logo.webp',
+                'logo' => 'uploads/logos/logo.webp',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
                 'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
                 'theme_primary' => '#D4A574',

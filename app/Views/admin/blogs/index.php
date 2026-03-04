@@ -60,11 +60,8 @@
                                         </div>
                                     </td>
                                     <td data-label="Image">
-                                        <img src="<?= $post['featured_image'] ? asset($post['featured_image']) : asset('/img/product-placeholder.webp') ?>" 
-                                             alt="<?= htmlspecialchars($post['title']) ?>" 
-                                             class="rounded" 
-                                             style="width: 50px; height: 50px; object-fit: cover;"
-                                             onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
+                                        <?php $imagePath = resolve_blog_image($post['featured_image'] ?? null); ?>
+                                        <img src="<?= htmlspecialchars($imagePath) ?>" alt="" class="img-thumbnail" style="height: 50px; width: 50px; object-fit: cover;" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
                                     </td>
                                     <td data-label="Title">
                                         <strong><?= htmlspecialchars($post['title']) ?></strong>
@@ -72,23 +69,27 @@
                                     </td>
                                     <td data-label="Category"><?= htmlspecialchars($post['category'] ?? 'General') ?></td>
                                     <td data-label="Status">
-                                        <?php if (!empty($post['is_published'])): ?>
-                                            <span class="badge bg-success">Published</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Draft</span>
-                                        <?php endif; ?>
+                                        <select class="form-select form-select-sm blog-status-dropdown" data-id="<?= (int) $post['id'] ?>" style="width: auto;">
+                                            <option value="1" <?= !empty($post['is_published']) ? 'selected' : '' ?>>Published</option>
+                                            <option value="0" <?= empty($post['is_published']) ? 'selected' : '' ?>>Draft</option>
+                                        </select>
                                     </td>
                                     <td data-label="Published"><?= !empty($post['published_at']) ? htmlspecialchars(date('Y-m-d', strtotime($post['published_at']))) : '-' ?></td>
                                     <td data-label="Actions" class="text-end">
-                                        <a href="<?= url('/admin/blogs/edit/' . (int) $post['id']) ?>" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <button type="button" 
-                                                class="btn btn-sm btn-outline-danger" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteItemModal" 
-                                                data-id="<?= (int) $post['id'] ?>"
-                                                data-title="<?= htmlspecialchars($post['title']) ?>">
-                                            Delete
-                                        </button>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="<?= url('/admin/blogs/edit/' . (int) $post['id']) ?>" class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-outline-danger btn-delete-blog" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteItemModal" 
+                                                    data-id="<?= (int) $post['id'] ?>"
+                                                    data-title="<?= htmlspecialchars($post['title']) ?>"
+                                                    title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

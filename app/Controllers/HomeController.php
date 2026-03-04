@@ -96,7 +96,7 @@ class HomeController extends Controller
         $posts = [];
         $categories = [];
         $page = max(1, (int) $this->get('page', 1));
-        $perPage = 12;
+        $perPage = 9;
         $selectedCategory = trim((string) $this->get('category', ''));
         $searchQuery = trim((string) $this->get('q', ''));
         $total = 0;
@@ -231,7 +231,7 @@ class HomeController extends Controller
                  FROM blog_posts
                  WHERE is_published = 1
                    AND id != :id
-                   AND category = :category
+                   AND COALESCE(category, 'General') = :category
                  ORDER BY COALESCE(published_at, created_at) DESC
                  LIMIT 4",
                 [

@@ -154,6 +154,31 @@ class CartController extends Controller
     }
     
     /**
+     * Update shipping location (AJAX)
+     */
+    public function updateShipping(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->json(['success' => false, 'message' => 'Invalid request']);
+        }
+        
+        $location = $this->post('location');
+        if (!$location) {
+            $this->json(['success' => false, 'message' => 'Location is required']);
+        }
+        
+        $this->cart->setShippingLocation($location);
+        $summary = $this->cart->getSummary();
+        
+        $this->json([
+            'success' => true,
+            'cart_shipping' => number_format($summary['shipping'], 2),
+            'cart_total' => number_format($summary['total'], 2),
+            'location' => $location
+        ]);
+    }
+    
+    /**
      * Remove item from cart (AJAX)
      */
     public function remove(): void
@@ -319,7 +344,7 @@ class CartController extends Controller
             $this->redirect('/checkout');
         }
 
-        $allowedPaymentMethods = ['momo', 'cash', 'stripe', 'paypal'];
+        $allowedPaymentMethods = ['momo'];
         if (!in_array($data['payment_method'], $allowedPaymentMethods, true)) {
             $this->flash('error', 'Invalid payment method selected');
             $this->redirect('/checkout');
@@ -389,66 +414,18 @@ class CartController extends Controller
             // Clear cart
             $this->cart->clear();
             
-            // Redirect to payment
-            if ($data['payment_method'] === 'momo') {
-                $this->flash(
-                    'info',
-                    'MoMo selected. Send ' . money((float) $order->total) . ' to +233508007873 and use order #' . $order->order_number . ' as reference.'
-                );
-                $this->redirect('/account/orders/' . $order->order_number);
-            } elseif ($data['payment_method'] === 'stripe') {
-                $this->redirect('/checkout/stripe/' . $order->order_number);
-            } elseif ($data['payment_method'] === 'paypal') {
-                $this->redirect('/checkout/paypal/' . $order->order_number);
-            } else {
-                // Cash on delivery or bank transfer
-                $this->flash('success', 'Order placed successfully! Order #' . $order->order_number);
-                $this->redirect('/account/orders/' . $order->order_number);
-            }
+            // Redirect to order detail with MoMo instructions
+            $this->flash(
+                'info',
+                'MoMo selected. Send ' . money((float) $order->total) . ' to +233508007873 and use order #' . $order->order_number . ' as reference.'
+            );
+            $this->redirect('/account/orders/' . $order->order_number);
             
         } catch (\Exception $e) {
             error_log("Checkout error: " . $e->getMessage());
             $this->flash('error', 'An error occurred while processing your order. Please try again.');
             $this->redirect('/checkout');
         }
-    }
-    
-    /**
-     * Stripe checkout
-     */
-    public function stripeCheckout(string $orderNumber): void
-    {
-        $order = Order::findByOrderNumber($orderNumber);
-        
-        if (!$order || $order->user_id !== $this->user?->id) {
-            $this->flash('error', 'Order not found');
-            $this->redirect('/account/orders');
-        }
-        
-        // TODO: Implement Stripe integration
-        // This is a stub for the Stripe checkout flow
-        
-        $this->flash('info', 'Stripe payment integration coming soon. Order #' . $orderNumber);
-        $this->redirect('/account/orders/' . $orderNumber);
-    }
-    
-    /**
-     * PayPal checkout
-     */
-    public function paypalCheckout(string $orderNumber): void
-    {
-        $order = Order::findByOrderNumber($orderNumber);
-        
-        if (!$order || $order->user_id !== $this->user?->id) {
-            $this->flash('error', 'Order not found');
-            $this->redirect('/account/orders');
-        }
-        
-        // TODO: Implement PayPal integration
-        // This is a stub for the PayPal checkout flow
-        
-        $this->flash('info', 'PayPal payment integration coming soon. Order #' . $orderNumber);
-        $this->redirect('/account/orders/' . $orderNumber);
     }
     
     /**

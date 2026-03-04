@@ -48,7 +48,8 @@ class Product extends Model
         'meta_keywords',
         'is_active',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'deleted_at'
     ];
     
     /**
@@ -151,10 +152,14 @@ class Product extends Model
         );
         
         if ($image) {
-            return '/uploads/products/' . $image['image_path'];
+            $path = $image['image_path'];
+            if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
+                return '/' . ltrim($path, '/');
+            }
+            return '/uploads/products/' . $path;
         }
         
-        return '/img/product-placeholder.png';
+        return '/img/product-placeholder.webp';
     }
     
     /**
@@ -356,6 +361,11 @@ class Product extends Model
     {
         $db = Database::getInstance();
         
+        $where = "p.featured = 1 AND p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
+
         return $db->fetchAll(
             "SELECT p.*, 
                 (SELECT image_path FROM product_images 
@@ -363,7 +373,7 @@ class Product extends Model
                 c.name as category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.featured = 1 AND p.is_active = 1 
+             WHERE {$where}
              ORDER BY p.created_at DESC 
              LIMIT :limit",
             ['limit' => $limit]
@@ -380,6 +390,11 @@ class Product extends Model
     {
         $db = Database::getInstance();
         
+        $where = "p.bestseller = 1 AND p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
+
         return $db->fetchAll(
             "SELECT p.*, 
                 (SELECT image_path FROM product_images 
@@ -387,7 +402,7 @@ class Product extends Model
                 c.name as category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.bestseller = 1 AND p.is_active = 1 
+             WHERE {$where}
              ORDER BY p.rating_avg DESC 
              LIMIT :limit",
             ['limit' => $limit]
@@ -404,6 +419,11 @@ class Product extends Model
     {
         $db = Database::getInstance();
         
+        $where = "p.new_arrival = 1 AND p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
+
         return $db->fetchAll(
             "SELECT p.*, 
                 (SELECT image_path FROM product_images 
@@ -411,7 +431,7 @@ class Product extends Model
                 c.name as category_name
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.new_arrival = 1 AND p.is_active = 1 
+             WHERE {$where}
              ORDER BY p.created_at DESC 
              LIMIT :limit",
             ['limit' => $limit]
@@ -441,13 +461,18 @@ class Product extends Model
                  LEFT JOIN categories c ON p.category_id = c.id";
         
         $where = "WHERE p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
         
         $params = [];
         
         // Search query
         if (!empty($query)) {
-            $where .= " AND (p.name LIKE :query OR p.description LIKE :query OR p.meta_keywords LIKE :query)";
-            $params['query'] = "%{$query}%";
+            $where .= " AND (p.name LIKE :q1 OR p.description LIKE :q2 OR p.meta_keywords LIKE :q3)";
+            $params['q1'] = "%{$query}%";
+            $params['q2'] = "%{$query}%";
+            $params['q3'] = "%{$query}%";
         }
         
         // Category filter

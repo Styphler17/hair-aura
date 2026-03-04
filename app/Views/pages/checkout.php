@@ -75,10 +75,11 @@ unset($_SESSION['old_input']);
                             <div class="form-check payment-option">
                                 <input class="form-check-input" type="radio" name="payment_method" id="payMomo" value="momo" checked>
                                 <label class="form-check-label w-100" for="payMomo">
-                                    <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span>Mobile Money (MoMo)</span>
                                         <span class="momo-badge">MTN/Vodafone/AirtelTigo</span>
                                     </div>
+                                    <img src="<?= asset('/img/momo-payment-banner.png') ?>" alt="MoMo Payment Methods" class="payment-banner checkout-payment-banner">
                                     <small class="text-muted d-block mt-1">Pay via your mobile wallet. <strong>Line: +233508007873</strong></small>
                                 </label>
                             </div>

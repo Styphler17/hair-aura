@@ -50,7 +50,7 @@ $contactWhatsappDigits = preg_replace('/\D+/', '', $contactWhatsapp);
         <nav class="navbar navbar-expand-lg">
             <!-- Logo -->
             <a class="navbar-brand" href="<?= url('/') ?>">
-                <img src="<?= asset($site['logo'] ?? '/img/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="brand-logo-img">
+                <img src="<?= asset($site['logo'] ?? 'uploads/logos/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="brand-logo-img">
             </a>
 
             <!-- Mobile Toggle -->
@@ -74,21 +74,87 @@ $isContact = str_contains($currPath, '/contact');
                         <a class="nav-link <?= $isHome ? 'active' : '' ?>" href="<?= url('/') ?>">Home</a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle <?= $isShop ? 'active' : '' ?>" href="<?= url('/shop') ?>" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle <?= $isShop ? 'active' : '' ?>" href="<?= url('/shop') ?>" id="shopDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Shop
                         </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="<?= url('/shop') ?>">All Products</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/human-hair-wigs') ?>">Human Hair Wigs</a></li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/lace-front-wigs') ?>">Lace Front Wigs</a></li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/synthetic-wigs') ?>">Synthetic Wigs</a></li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/hair-extensions') ?>">Hair Extensions</a></li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/hair-toppers') ?>">Hair Toppers</a></li>
-                            <li><a class="dropdown-item" href="<?= url('/shop/hair-accessories') ?>">Accessories</a></li>
-                        </ul>
+                        <div class="dropdown-menu shop-dropdown-menu" aria-labelledby="shopDropdown">
+                            <div class="shop-dropdown-header">
+                                <a href="<?= url('/shop') ?>" class="shop-dropdown-all">
+                                    <span class="shop-dropdown-all-icon"><i class="fas fa-store"></i></span>
+                                    <span>
+                                        <strong>All Products</strong>
+                                        <small>Browse our full collection</small>
+                                    </span>
+                                    <i class="fas fa-arrow-right shop-dropdown-arrow"></i>
+                                </a>
+                            </div>
+                            <div class="shop-dropdown-divider"></div>
+                            <div class="shop-dropdown-grid">
+                                <a href="<?= url('/shop') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-crown"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Wig Collection</strong>
+                                        <small>Browse all units</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/raw-hair') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-gem"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Premium Raw Hair</strong>
+                                        <small>Single donor quality</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/bone-straight-hair') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-crown"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Bone-straight</strong>
+                                        <small>Luxury sleek finish</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/body-wave-hair') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-star"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Body wave</strong>
+                                        <small>Bouncy &amp; voluminous</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/pixie-cut') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-magic"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Pixie cut</strong>
+                                        <small>Bold &amp; sophisticated</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/pixie-curls') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-scissors"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Pixie curls</strong>
+                                        <small>Playful &amp; textured</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/deep-wave') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-water"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Deep wave</strong>
+                                        <small>Intense defined curls</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/raw-hair') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-gem"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Raw hair</strong>
+                                        <small>Unprocessed single donor</small>
+                                    </span>
+                                </a>
+                                <a href="<?= url('/shop/blunt-cut') ?>" class="shop-dropdown-item">
+                                    <span class="shop-dropdown-icon"><i class="fas fa-cut"></i></span>
+                                    <span class="shop-dropdown-text">
+                                        <strong>Blunt cut</strong>
+                                        <small>Sharp &amp; timeless bobs</small>
+                                    </span>
+                                </a>
+                            </div>
+                        </div>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $isAbout ? 'active' : '' ?>" href="<?= url('/about') ?>">About</a>
@@ -117,18 +183,34 @@ $isContact = str_contains($currPath, '/contact');
                     <?php if ($isLoggedIn ?? false): ?>
                         <?php $userAvatar = asset($user->getAvatarUrl()); ?>
                         <div class="header-user dropdown">
-                            <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown">
+                            <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" id="userDropdown" aria-expanded="false">
                                 <img src="<?= $userAvatar ?>" alt="<?= htmlspecialchars($user->getFullName()) ?>" class="header-avatar">
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="<?= url('/account') ?>">My Account</a></li>
-                                <li><a class="dropdown-item" href="<?= url('/account/orders') ?>">My Orders</a></li>
-                                <li><a class="dropdown-item" href="<?= url('/account/wishlist') ?>">Wishlist</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="<?= url('/logout') ?>">Logout</a></li>
-                            </ul>
+                            <div class="dropdown-menu dropdown-menu-end user-dropdown-menu" aria-labelledby="userDropdown">
+                                <div class="user-dropdown-header">
+                                    <div class="user-dropdown-info">
+                                        <img src="<?= $userAvatar ?>" alt="" class="user-dropdown-avatar">
+                                        <div class="user-dropdown-meta">
+                                            <strong><?= htmlspecialchars($user->getFullName()) ?></strong>
+                                            <small><?= htmlspecialchars($user->email) ?></small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="<?= url('/account') ?>">
+                                    <i class="fas fa-user-circle me-2"></i> My Account
+                                </a>
+                                <a class="dropdown-item" href="<?= url('/account/orders') ?>">
+                                    <i class="fas fa-box me-2"></i> My Orders
+                                </a>
+                                <a class="dropdown-item" href="<?= url('/account/wishlist') ?>">
+                                    <i class="fas fa-heart me-2"></i> Wishlist
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item logout-item" href="<?= url('/logout') ?>">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a>
+                            </div>
                         </div>
                     <?php else: ?>
                         <a href="<?= url('/login') ?>" class="header-user">

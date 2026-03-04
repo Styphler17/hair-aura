@@ -209,6 +209,12 @@ class Router
      */
     public function dispatch(string $url, string $method)
     {
+        // Strip app base path for subdirectory installs
+        $basePath = rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/');
+        if ($basePath !== '' && strpos($url, $basePath) === 0) {
+            $url = substr($url, strlen($basePath));
+        }
+
         // Remove query string
         $url = parse_url($url, PHP_URL_PATH) ?? $url;
         
@@ -353,9 +359,16 @@ class Router
                 if (isset($route['name']) && $route['name'] === $name) {
                     $url = $route['original'];
                     foreach ($params as $key => $value) {
-                        $url = str_replace("{{$key}}", $value, $url);
-                        $url = str_replace("{{$key}?}", $value, $url);
+                        $url = str_replace("{{$key}}", (string) $value, $url);
+                        $url = str_replace("{{$key}?}", (string) $value, $url);
                     }
+
+                    // Prepend base path if not already present
+                    $basePath = (string) ($GLOBALS['app_base_url'] ?? '');
+                    if ($basePath !== '' && !str_starts_with($url, $basePath)) {
+                        $url = $basePath . '/' . ltrim($url, '/');
+                    }
+
                     return $url;
                 }
             }

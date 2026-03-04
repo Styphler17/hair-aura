@@ -845,12 +845,13 @@ class AdminController extends Controller
         ], 'layouts/admin');
     }
     
-    /**
-     * Update order status
-     */
     public function updateOrderStatus(int $id): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/orders');
         }
@@ -858,6 +859,10 @@ class AdminController extends Controller
         $order = Order::find($id);
         
         if (!$order) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Order not found']);
+                return;
+            }
             $this->flash('error', 'Order not found');
             $this->redirect('/admin/orders');
         }
@@ -866,27 +871,42 @@ class AdminController extends Controller
         $paymentStatus = $this->post('payment_status');
         $trackingNumber = $this->post('tracking_number');
         
-        // Update payment status if provided
-        if ($paymentStatus) {
-            $order->updatePaymentStatus($paymentStatus);
-        }
+        try {
+            // Update payment status if provided
+            if ($paymentStatus) {
+                $order->updatePaymentStatus($paymentStatus);
+            }
 
-        if ($trackingNumber) {
-            $order->addTracking($trackingNumber);
-        } else {
-            $order->updateStatus($status);
+            if ($trackingNumber) {
+                $order->addTracking($trackingNumber);
+            } else {
+                $order->updateStatus($status);
+            }
+            
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Order updated successfully']);
+                return;
+            }
+
+            $this->flash('success', 'Order updated successfully');
+            $this->redirect('/admin/orders/' . $id);
+        } catch (\Exception $e) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => $e->getMessage()]);
+                return;
+            }
+            $this->flash('error', $e->getMessage());
+            $this->redirect('/admin/orders/' . $id);
         }
-        
-        $this->flash('success', 'Order updated successfully');
-        $this->redirect('/admin/orders/' . $id);
     }
     
-    /**
-     * Delete order
-     */
     public function deleteOrder(int $id): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/orders');
         }
@@ -894,6 +914,10 @@ class AdminController extends Controller
         $order = Order::find($id);
         
         if (!$order) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Order not found']);
+                return;
+            }
             $this->flash('error', 'Order not found');
             $this->redirect('/admin/orders');
         }
@@ -910,9 +934,19 @@ class AdminController extends Controller
             $order->delete();
             
             $db->commit();
+
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Order deleted successfully']);
+                return;
+            }
+
             $this->flash('success', 'Order deleted successfully');
         } catch (\Exception $e) {
             $db->rollBack();
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => $e->getMessage()]);
+                return;
+            }
             $this->flash('error', 'Error deleting order: ' . $e->getMessage());
         }
         
@@ -974,12 +1008,20 @@ class AdminController extends Controller
     public function bulkDeleteCustomers(): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/customers');
         }
 
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/customers');
         }
@@ -990,19 +1032,33 @@ class AdminController extends Controller
         // Soft delete/deactivate
         $db->query("UPDATE users SET is_active = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
 
-        $this->flash('success', count($ids) . ' customers deactivated');
+        $count = count($ids);
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => "$count customers deactivated"]);
+            return;
+        }
+
+        $this->flash('success', $count . ' customers deactivated');
         $this->redirect('/admin/customers');
     }
 
     public function bulkBanCustomers(): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/customers');
         }
 
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/customers');
         }
@@ -1012,19 +1068,33 @@ class AdminController extends Controller
         
         $db->query("UPDATE users SET is_banned = 1 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
 
-        $this->flash('success', count($ids) . ' customers banned');
+        $count = count($ids);
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => "$count customers banned"]);
+            return;
+        }
+
+        $this->flash('success', $count . ' customers banned');
         $this->redirect('/admin/customers');
     }
 
     public function bulkUnbanCustomers(): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/customers');
         }
 
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/customers');
         }
@@ -1034,8 +1104,44 @@ class AdminController extends Controller
         
         $db->query("UPDATE users SET is_banned = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
 
-        $this->flash('success', count($ids) . ' customers unbanned');
+        $count = count($ids);
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => "$count customers unbanned"]);
+            return;
+        }
+
+        $this->flash('success', $count . ' customers unbanned');
         $this->redirect('/admin/customers');
+    }
+
+    /**
+     * Update individual customer status (AJAX)
+     */
+    public function updateCustomerStatus(int $id): void
+    {
+        if (!$this->isAjax()) {
+            $this->redirect('/admin/customers');
+        }
+
+        $status = $this->post('status'); // active, banned, inactive
+        $db = Database::getInstance();
+        
+        try {
+            if ($status === 'banned') {
+                $db->query("UPDATE users SET is_banned = 1, is_active = 1 WHERE id = ? AND role = 'customer'", [$id]);
+            } elseif ($status === 'active') {
+                $db->query("UPDATE users SET is_banned = 0, is_active = 1 WHERE id = ? AND role = 'customer'", [$id]);
+            } elseif ($status === 'inactive') {
+                $db->query("UPDATE users SET is_banned = 0, is_active = 0 WHERE id = ? AND role = 'customer'", [$id]);
+            } else {
+                $this->json(['success' => false, 'message' => 'Invalid status']);
+                return;
+            }
+
+            $this->json(['success' => true, 'message' => 'Customer status updated']);
+        } catch (\Exception $e) {
+            $this->json(['success' => false, 'message' => $e->getMessage()]);
+        }
     }
     
     /**
@@ -1108,16 +1214,20 @@ class AdminController extends Controller
      */
     public function approveReview(int $id): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/reviews');
-        }
-        
         $review = Review::find($id);
         
         if ($review) {
             $review->approve();
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Review approved']);
+                return;
+            }
             $this->flash('success', 'Review approved');
+        } else {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Review not found']);
+                return;
+            }
         }
         
         $this->redirect('/admin/reviews');
@@ -1128,16 +1238,20 @@ class AdminController extends Controller
      */
     public function rejectReview(int $id): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/reviews');
-        }
-        
         $review = Review::find($id);
         
         if ($review) {
             $review->reject();
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Review rejected/deleted']);
+                return;
+            }
             $this->flash('success', 'Review rejected');
+        } else {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Review not found']);
+                return;
+            }
         }
         
         $this->redirect('/admin/reviews');
@@ -1250,16 +1364,15 @@ class AdminController extends Controller
      */
     public function deleteCategory(int $id): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/categories');
-        }
-
         $db = Database::getInstance();
         
         // Check if category exists
         $category = $db->fetchOne("SELECT id, image FROM categories WHERE id = :id", ['id' => $id]);
         if (!$category) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Category not found']);
+                return;
+            }
             $this->flash('error', 'Category not found');
             $this->redirect('/admin/categories');
         }
@@ -1267,6 +1380,10 @@ class AdminController extends Controller
         // Check for products in this category
         $hasProducts = (int) $db->fetchColumn("SELECT COUNT(*) FROM products WHERE category_id = :id", ['id' => $id]) > 0;
         if ($hasProducts) {
+             if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Cannot delete category that contains products.']);
+                return;
+            }
             $this->flash('error', 'Cannot delete category that contains products. Please move or delete the products first.');
             $this->redirect('/admin/categories');
         }
@@ -1278,23 +1395,43 @@ class AdminController extends Controller
             }
 
             $db->query("DELETE FROM categories WHERE id = :id", ['id' => $id]);
+            
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => 'Category deleted successfully']);
+                return;
+            }
             $this->flash('success', 'Category deleted successfully');
         } catch (\Exception $e) {
+             if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+                return;
+            }
             $this->flash('error', 'Error deleting category: ' . $e->getMessage());
         }
 
         $this->redirect('/admin/categories');
     }
 
+    public function updateCategoryStatus(int $id): void
+    {
+        $db = Database::getInstance();
+        $status = (int) $this->post('status');
+        
+        $db->update('categories', [
+            'is_active' => $status ? 1 : 0
+        ], 'id = :id', ['id' => $id]);
+
+        $this->json(['success' => true, 'message' => 'Category status updated']);
+    }
+
     public function bulkDeleteCategories(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/categories');
-        }
-
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/categories');
         }
@@ -1309,6 +1446,10 @@ class AdminController extends Controller
         );
 
         if ((int) $withProducts > 0) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Some selected categories contain products and cannot be deleted.']);
+                return;
+            }
             $this->flash('error', 'Some selected categories contain products and cannot be deleted.');
             $this->redirect('/admin/categories');
         }
@@ -1326,6 +1467,10 @@ class AdminController extends Controller
 
         $db->query("DELETE FROM categories WHERE id IN ($placeholders)", array_values($ids));
 
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => count($ids) . ' categories deleted']);
+            return;
+        }
         $this->flash('success', count($ids) . ' categories deleted');
         $this->redirect('/admin/categories');
     }
@@ -1335,13 +1480,12 @@ class AdminController extends Controller
      */
     public function updateCategoryOrder(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/categories');
-        }
-
         $sortData = $this->post('sort');
         if (empty($sortData) || !is_array($sortData)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No sort data received']);
+                return;
+            }
             $this->flash('error', 'No sort data received');
             $this->redirect('/admin/categories');
         }
@@ -1354,6 +1498,10 @@ class AdminController extends Controller
             $count++;
         }
 
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => "Order updated for $count categories"]);
+            return;
+        }
         $this->flash('success', "Order updated for $count categories");
         $this->redirect('/admin/categories');
     }

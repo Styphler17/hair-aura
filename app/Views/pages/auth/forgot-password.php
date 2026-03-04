@@ -1,14 +1,33 @@
-<section class="py-4">
-    <h2 class="mb-3">Forgot Password</h2>
-    <p class="text-muted">Enter your email and we will send reset instructions.</p>
-    <form method="post" action="<?= url('/forgot-password') ?>" class="row g-3">
-        <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-        <div class="col-12">
-            <label class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" required>
+<div class="auth-heading">
+    <h1 class="auth-title">Forgot Password?</h1>
+    <p class="auth-subtitle">Enter your email and we'll send you a reset link.</p>
+</div>
+
+<form method="post" action="<?= url('/forgot-password') ?>" class="auth-form" id="forgotForm" novalidate>
+    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+
+    <div class="auth-field">
+        <label for="forgot-email" class="auth-label">Email Address</label>
+        <div class="auth-input-wrap">
+            <i class="fas fa-envelope auth-input-icon"></i>
+            <input
+                type="email"
+                id="forgot-email"
+                name="email"
+                class="auth-input"
+                placeholder="you@example.com"
+                required
+                autocomplete="email"
+            >
         </div>
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary">Send Reset Link</button>
-        </div>
-    </form>
-</section>
+    </div>
+
+    <button type="submit" class="auth-btn-primary">
+        <i class="fas fa-paper-plane me-2"></i>
+        <span>Send Reset Link</span>
+    </button>
+</form>
+
+<div class="auth-create-account">
+    <p>Remembered it? <a href="<?= url('/login') ?>" class="auth-link">Sign In</a></p>
+</div>

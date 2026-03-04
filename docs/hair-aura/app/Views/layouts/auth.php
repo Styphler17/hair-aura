@@ -48,7 +48,7 @@
             <!-- Logo -->
             <div class="auth-logo">
                 <a href="<?= url('/') ?>">
-                    <img src="<?= asset('/img/logo.png') ?>" alt="Hair Aura" class="brand-logo-img">
+                    <img src="<?= asset($siteSettings['logo'] ?? '/img/logo.png') ?>" alt="<?= htmlspecialchars($siteSettings['name'] ?? 'Hair Aura') ?>" class="brand-logo-img">
                 </a>
                 <p class="auth-tagline">Unlock Your Aura with Perfect Wigs</p>
             </div>

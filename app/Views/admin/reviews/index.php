@@ -53,19 +53,27 @@
                                 <td data-label="Date"><?= !empty($review['created_at']) ? htmlspecialchars(date('Y-m-d', strtotime($review['created_at']))) : '-' ?></td>
                                 <td data-label="Action" class="text-end">
                                     <?php if (($status ?? 'pending') === 'pending'): ?>
-                                        <form method="post" action="<?= url('/admin/reviews/' . (int) $review['id'] . '/approve') ?>" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-success">Approve</button>
-                                        </form>
-                                        <form method="post" action="<?= url('/admin/reviews/' . (int) $review['id'] . '/reject') ?>" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">Delete</button>
-                                        </form>
+                                        <div class="d-flex justify-content-end gap-1">
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success btn-approve-review" 
+                                                    data-id="<?= (int) $review['id'] ?>"
+                                                    data-url="<?= url('/admin/reviews/' . (int) $review['id'] . '/approve') ?>">
+                                                Approve
+                                            </button>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-danger btn-reject-review" 
+                                                    data-id="<?= (int) $review['id'] ?>"
+                                                    data-url="<?= url('/admin/reviews/' . (int) $review['id'] . '/reject') ?>">
+                                                Delete
+                                            </button>
+                                        </div>
                                     <?php else: ?>
-                                        <form method="post" action="<?= url('/admin/reviews/' . (int) $review['id'] . '/reject') ?>" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">Remove</button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger btn-reject-review" 
+                                                data-id="<?= (int) $review['id'] ?>"
+                                                data-url="<?= url('/admin/reviews/' . (int) $review['id'] . '/reject') ?>">
+                                            Remove
+                                        </button>
                                     <?php endif; ?>
                                 </td>
                             </tr>

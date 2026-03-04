@@ -259,4 +259,20 @@ class Database
     {
         return '`' . str_replace('`', '``', $identifier) . '`';
     }
+    /**
+     * Check if a column exists in a table
+     * 
+     * @param string $table
+     * @param string $column
+     * @return bool
+     */
+    public function hasColumn(string $table, string $column): bool
+    {
+        try {
+            $this->query("SELECT {$column} FROM {$table} WHERE 1=0");
+            return true;
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
 }

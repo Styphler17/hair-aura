@@ -27,8 +27,10 @@ if (isset($attr) && is_array($attr)) {
 
 $classes = "btn btn-{$type} btn-{$size} {$extraClass}";
 
-if ($url): ?>
-    <a href="<?= $url ?>" class="<?= $classes ?>"<?= $attributes ?>>
+if ($url): 
+    $finalUrl = (str_starts_with($url, '/') && !str_starts_with($url, '//')) ? url($url) : $url;
+?>
+    <a href="<?= $finalUrl ?>" class="<?= $classes ?>"<?= $attributes ?>>
         <?php if ($icon): ?><i class="<?= $icon ?>"></i><?php endif; ?>
         <span><?= htmlspecialchars($text) ?></span>
     </a>

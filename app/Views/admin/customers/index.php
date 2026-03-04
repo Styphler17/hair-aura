@@ -54,13 +54,13 @@
                                     <td data-label="Total Spent"><strong><?= money((float) ($customer['total_spent'] ?? 0)) ?></strong></td>
                                     <td data-label="Joined"><?= !empty($customer['created_at']) ? htmlspecialchars(date('Y-m-d', strtotime($customer['created_at']))) : '-' ?></td>
                                     <td data-label="Status">
-                                        <?php if (!empty($customer['is_banned'])): ?>
-                                            <span class="badge bg-danger">Banned</span>
-                                        <?php elseif (!empty($customer['is_active'])): ?>
-                                            <span class="badge bg-success">Active</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        <?php endif; ?>
+                                        <select class="form-select form-select-sm status-dropdown customer-status-select" 
+                                                data-id="<?= $customer['id'] ?>"
+                                                data-url="<?= url('/admin/customers/update-status/' . $customer['id']) ?>">
+                                            <option value="active" <?= !empty($customer['is_active']) && empty($customer['is_banned']) ? 'selected' : '' ?>>Active</option>
+                                            <option value="inactive" <?= empty($customer['is_active']) && empty($customer['is_banned']) ? 'selected' : '' ?>>Inactive</option>
+                                            <option value="banned" <?= !empty($customer['is_banned']) ? 'selected' : '' ?>>Banned</option>
+                                        </select>
                                     </td>
                                     <td data-label="Action" class="text-end">
                                         <a href="<?= url('/admin/customers/' . (int) $customer['id']) ?>" class="btn btn-sm btn-outline-primary transition">View</a>
@@ -131,64 +131,4 @@
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const selectAll = document.getElementById('selectAllItems');
-    const checkboxes = document.querySelectorAll('.item-checkbox');
-    const bulkBar = document.getElementById('bulkActionsBar');
-    const selectedCountSpan = document.getElementById('selectedCount');
-    const bulkDeleteCountSpan = document.getElementById('bulkDeleteCount');
-    const bulkForm = document.getElementById('bulkActionForm');
-    
-    const confirmBulkDelete = document.getElementById('confirmBulkDelete');
-    const btnBulkBan = document.getElementById('btnBulkBan');
-    const btnBulkUnban = document.getElementById('btnBulkUnban');
-
-    function updateBulkBar() {
-        const checked = document.querySelectorAll('.item-checkbox:checked').length;
-        if (checked > 0) {
-            bulkBar.classList.remove('d-none');
-            selectedCountSpan.textContent = checked;
-            bulkDeleteCountSpan.textContent = checked;
-        } else {
-            bulkBar.classList.add('d-none');
-        }
-    }
-
-    if (selectAll) {
-        selectAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = selectAll.checked);
-            updateBulkBar();
-        });
-    }
-
-    checkboxes.forEach(cb => {
-        cb.addEventListener('change', function() {
-            const allChecked = Array.from(checkboxes).every(c => c.checked);
-            if (selectAll) selectAll.checked = allChecked;
-            updateBulkBar();
-        });
-    });
-
-    if (confirmBulkDelete) {
-        confirmBulkDelete.addEventListener('click', function() {
-            bulkForm.action = '<?= url('/admin/customers/bulk-delete') ?>';
-            bulkForm.submit();
-        });
-    }
-
-    if (btnBulkBan) {
-        btnBulkBan.addEventListener('click', function() {
-            bulkForm.action = '<?= url('/admin/customers/bulk-ban') ?>';
-            bulkForm.submit();
-        });
-    }
-
-    if (btnBulkUnban) {
-        btnBulkUnban.addEventListener('click', function() {
-            bulkForm.action = '<?= url('/admin/customers/bulk-unban') ?>';
-            bulkForm.submit();
-        });
-    }
-});
-</script>
+</div>

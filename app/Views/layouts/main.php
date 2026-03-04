@@ -22,7 +22,7 @@
             }
         }
         // Fallback to the first candidate if none exist, so at least we have a path
-        return '/' . ltrim((string) ($candidates[0] ?? 'img/logo.png'), '/');
+        return '/' . ltrim((string) ($candidates[0] ?? 'uploads/logos/logo.webp'), '/');
     };
 
     $canonicalRaw = (string) ($seo['canonical'] ?? '/');
@@ -30,18 +30,18 @@
         ? $canonicalRaw
         : $siteBaseUrl . '/' . ltrim($canonicalRaw, '/');
 
-    $faviconIco = $resolvePublicAsset(['/img/favicon.webp']);
+    $faviconIco = $resolvePublicAsset(['/uploads/favicons/favicon.ico', '/uploads/favicons/favicon.webp', '/img/favicon.webp']);
     // SVG is scalable and good for modern browsers, keeping it or preferring webp if available
-    $faviconSvg = $resolvePublicAsset(['/img/favicon.svg']); 
-    $faviconPng96 = $resolvePublicAsset(['/img/favicon-96x96.webp']);
-    $appleTouchIcon = $resolvePublicAsset(['/img/apple-touch-icon.webp']);
-    $webManifest = $resolvePublicAsset(['/img/site.webmanifest']);
+    $faviconSvg = $resolvePublicAsset(['/uploads/favicons/favicon.svg', '/img/favicon.svg']); 
+    $faviconPng96 = $resolvePublicAsset(['/uploads/favicons/favicon-96x96.webp', '/img/favicon-96x96.webp']);
+    $appleTouchIcon = $resolvePublicAsset(['/uploads/favicons/apple-touch-icon.webp', '/img/apple-touch-icon.webp']);
+    $webManifest = '/uploads/favicons/site.webmanifest';
 
     // Define preferred default images in order (WebP only)
     $defaultImages = [
-        '/img/og-image.webp',
-        $siteSettings['logo'] ?? '/img/logo.webp',
-        '/img/hero-1.webp'
+        '/uploads/logos/og-image.webp',
+        $siteSettings['logo'] ?? '/uploads/logos/logo.webp',
+        '/uploads/hero/hero-1.png'
     ];
 
     // Determine the raw image path
@@ -86,7 +86,7 @@
     <link rel="icon" type="image/svg+xml" href="<?= asset($faviconSvg) ?>">
     <link rel="icon" type="image/png" sizes="96x96" href="<?= asset($faviconPng96) ?>">
     <link rel="apple-touch-icon" href="<?= asset($appleTouchIcon) ?>">
-    <link rel="manifest" href="<?= asset($webManifest) ?>">
+    <link rel="manifest" href="<?= asset('/uploads/favicons/site.webmanifest') ?>">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">

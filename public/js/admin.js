@@ -83,13 +83,247 @@ function initSidebar() {
 }
 
 function initDeleteConfirm() {
-    document.querySelectorAll('.btn-delete').forEach((btn) => {
-        btn.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to delete this item?')) {
-                e.preventDefault();
-            }
-        });
+    // Generic AJAX Form Submission (for single items)
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (form.id === 'deleteItemForm' || form.id === 'deleteOrderForm' || form.id === 'deactivateUserForm') {
+            e.preventDefault();
+            handleAjaxFormSubmit(form);
+        }
     });
+
+    // Generic AJAX Bulk Action handling
+    const confirmBulk = document.getElementById('confirmBulkDelete') || document.getElementById('confirmBulkDeactivate');
+    if (confirmBulk) {
+        confirmBulk.addEventListener('click', function() {
+            const bulkForm = document.getElementById('bulkActionForm') || document.getElementById('bulkUserForm');
+            if (!bulkForm) return;
+
+            const modalElement = document.closestModal(this);
+            const bootstrapModal = modalElement ? window.bootstrap.Modal.getInstance(modalElement) : null;
+            
+            const formData = new FormData(bulkForm);
+            const action = bulkForm.getAttribute('action');
+            
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+            this.disabled = true;
+
+            fetch(action, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const checkedCount = bulkForm.querySelectorAll('.item-checkbox:checked, .user-checkbox:checked');
+                    checkedCount.forEach(cb => {
+                        const row = cb.closest('article, tr');
+                        if (row) row.remove();
+                    });
+                    if (bootstrapModal) bootstrapModal.hide();
+                    showToast(data.message || 'Action successful', 'success');
+                    
+                    const bulkBar = document.getElementById('bulkActionsBar');
+                    if (bulkBar) bulkBar.classList.add('d-none');
+
+                    // Special case for media library
+                    const mediaGrid = document.querySelector('.media-gallery-grid');
+                    if (mediaGrid && mediaGrid.children.length === 0) {
+                        location.reload();
+                    }
+                } else {
+                    showToast(data.message || 'Error occurred', 'danger');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Network error occurred', 'danger');
+            })
+            .finally(() => {
+                this.innerHTML = originalHtml;
+                this.disabled = false;
+            });
+        });
+    }
+
+    // Generic Status/Select Change AJAX
+    document.addEventListener('change', function(e) {
+        const el = e.target;
+        if (el.classList.contains('status-dropdown') || el.classList.contains('order-status-select') || el.classList.contains('customer-status-select') || el.classList.contains('user-status-select')) {
+            const id = el.dataset.id;
+            const url = el.dataset.url || toAppUrl(`${getCurrentAdminType()}/update-status/${id}`);
+            const status = el.value;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            el.classList.add('loading-spinner');
+
+            const body = new FormData();
+            body.append('status', status);
+            body.append('csrf_token', csrf);
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: body
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Network error', 'danger');
+            })
+            .finally(() => {
+                el.classList.remove('loading-spinner');
+            });
+        }
+    });
+
+    // Individual Action Buttons (that don't use modals)
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.btn-approve-review, .btn-reject-review');
+        if (btn) {
+            e.preventDefault();
+            const url = btn.dataset.url;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `csrf_token=${encodeURIComponent(csrf)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.closest('tr').remove();
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            });
+        }
+    });
+}
+
+/**
+ * Helper to handle single item delete/action forms
+ */
+function handleAjaxFormSubmit(form) {
+    const action = form.getAttribute('action');
+    const formData = new FormData(form);
+    const modalElement = document.closestModal(form);
+    const bootstrapModal = modalElement ? window.bootstrap.Modal.getInstance(modalElement) : null;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalHtml = submitBtn ? submitBtn.innerHTML : '';
+    
+    // Extract ID from action if possible (legacy support)
+    const itemIdMatch = action.match(/\/delete\/(\d+)/) || action.match(/\/status\/(\d+)/);
+    const itemId = itemIdMatch ? itemIdMatch[1] : null;
+
+    if (submitBtn) {
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+        submitBtn.disabled = true;
+    }
+
+    fetch(action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Find and remove the row/element
+            if (itemId) {
+                const element = document.querySelector(`[data-id="${itemId}"]`)?.closest('article, tr, .media-card');
+                if (element) element.remove();
+            } else if (form.id === 'deactivateUserForm') {
+                // If it's a user deactivation and we don't have ID in URL, we might need reload or find it differently
+                location.reload();
+            }
+            
+            if (bootstrapModal) bootstrapModal.hide();
+            showToast(data.message || 'Successful', 'success');
+            
+            // Special check for empty states
+            const mediaGrid = document.querySelector('.media-gallery-grid');
+            if (mediaGrid && mediaGrid.children.length === 0) {
+                location.reload();
+            }
+        } else {
+            showToast(data.message || 'Error occurred', 'danger');
+            if (submitBtn) {
+                submitBtn.innerHTML = originalHtml;
+                submitBtn.disabled = false;
+            }
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Network error occurred', 'danger');
+        if (submitBtn) {
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.disabled = false;
+        }
+    });
+}
+
+/**
+ * Helper to find current admin section
+ */
+function getCurrentAdminType() {
+    const path = window.location.pathname;
+    if (path.includes('/products')) return 'admin/products';
+    if (path.includes('/orders')) return 'admin/orders';
+    if (path.includes('/customers')) return 'admin/customers';
+    if (path.includes('/users')) return 'admin/users';
+    if (path.includes('/blogs')) return 'admin/blogs';
+    if (path.includes('/categories')) return 'admin/categories';
+    return 'admin';
+}
+
+// Add polyfill/helper for closest modal
+document.closestModal = function(el) {
+    return el.closest('.modal');
+};
+
+function showToast(message, type = 'success') {
+    // Try to find a good place for the toast
+    let container = document.querySelector('.admin-content');
+    if (!container) container = document.body;
+
+    const div = document.createElement('div');
+    div.className = `alert alert-${type === 'danger' ? 'danger' : 'success'} alert-dismissible fade show shadow-sm`;
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.right = '20px';
+    div.style.zIndex = '9999';
+    div.style.minWidth = '250px';
+    
+    div.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas ${type === 'danger' ? 'fa-exclamation-circle' : 'fa-check-circle'} me-2"></i>
+            <div>${message}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(div);
+    
+    setTimeout(() => {
+        const bsAlert = new bootstrap.Alert(div);
+        bsAlert.close();
+    }, 4000);
 }
 
 /**
@@ -390,16 +624,18 @@ function initMediaClipboard() {
 function updateOrderStatus(orderId, status) {
     const formData = new FormData();
     formData.append('status', status);
-    formData.append('csrf_token', document.querySelector('[name="csrf_token"]')?.value || '');
+    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
 
     fetch(toAppUrl(`admin/orders/${orderId}/status`), {
         method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData
     })
     .then((res) => res.json())
     .then((data) => {
         if (data.success) {
-            location.reload();
+            showToast(data.message);
         }
     });
 }
+

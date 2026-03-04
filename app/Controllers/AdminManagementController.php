@@ -197,31 +197,45 @@ class AdminManagementController extends Controller
 
     public function deleteBlog(int $id): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/blogs');
-        }
-
         $db = Database::getInstance();
         if ($db->hasColumn('blog_posts', 'deleted_at')) {
             $db->update('blog_posts', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
-            $this->flash('success', 'Blog post moved to trash');
+            $msg = 'Blog post moved to trash';
         } else {
             $db->delete('blog_posts', 'id = :id', ['id' => $id]);
-            $this->flash('success', 'Blog post permanently deleted');
+            $msg = 'Blog post permanently deleted';
         }
+
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => $msg]);
+            return;
+        }
+
+        $this->flash('success', $msg);
         $this->redirect('/admin/blogs');
+    }
+
+    public function updateBlogStatus(int $id): void
+    {
+        $db = Database::getInstance();
+        $status = (int) $this->post('status');
+        
+        $db->update('blog_posts', [
+            'is_published' => $status ? 1 : 0,
+            'published_at' => $status ? date('Y-m-d H:i:s') : null
+        ], 'id = :id', ['id' => $id]);
+
+        $this->json(['success' => true, 'message' => 'Blog status updated']);
     }
 
     public function bulkDeleteBlogs(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/blogs');
-        }
-
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/blogs');
         }
@@ -239,24 +253,25 @@ class AdminManagementController extends Controller
             $successCount++;
         }
 
-        if ($successCount > 0) {
-            $msg = $hasTrashColumn ? "$successCount blog posts moved to trash" : "$successCount blog posts deleted";
-            $this->flash('success', $msg);
-        } else {
-            $this->flash('error', 'Failed to delete selected posts');
+        $msg = $hasTrashColumn ? "$successCount blog posts moved to trash" : "$successCount blog posts deleted";
+        
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => $msg]);
+            return;
         }
+
+        $this->flash('success', $msg);
         $this->redirect('/admin/blogs');
     }
 
     public function bulkPublishBlogs(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/blogs');
-        }
-
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/blogs');
         }
@@ -267,19 +282,23 @@ class AdminManagementController extends Controller
         // Update is_published and set published_at if null
         $db->query("UPDATE blog_posts SET is_published = 1, published_at = COALESCE(published_at, NOW()) WHERE id IN ($placeholders)", array_values($ids));
 
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => count($ids) . ' blog posts published']);
+            return;
+        }
+
         $this->flash('success', count($ids) . ' blog posts published');
         $this->redirect('/admin/blogs');
     }
 
     public function bulkUnpublishBlogs(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/blogs');
-        }
-
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/blogs');
         }
@@ -288,6 +307,11 @@ class AdminManagementController extends Controller
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
         
         $db->query("UPDATE blog_posts SET is_published = 0 WHERE id IN ($placeholders)", array_values($ids));
+
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => count($ids) . ' blog posts moved to drafts']);
+            return;
+        }
 
         $this->flash('success', count($ids) . ' blog posts moved to drafts');
         $this->redirect('/admin/blogs');
@@ -476,11 +500,19 @@ class AdminManagementController extends Controller
     public function deleteUser(int $id): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/users');
         }
 
         if ((int) $this->user->id === $id) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'You cannot deactivate your own account']);
+                return;
+            }
             $this->flash('error', 'You cannot deactivate your own account');
             $this->redirect('/admin/users');
         }
@@ -491,6 +523,11 @@ class AdminManagementController extends Controller
             'updated_at' => date('Y-m-d H:i:s')
         ], 'id = :id', ['id' => $id]);
 
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => 'User deactivated']);
+            return;
+        }
+
         $this->flash('success', 'User deactivated');
         $this->redirect('/admin/users');
     }
@@ -498,12 +535,20 @@ class AdminManagementController extends Controller
     public function bulkDeactivateUsers(): void
     {
         if (!$this->validateCsrf()) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Invalid CSRF token']);
+                return;
+            }
             $this->flash('error', 'Invalid request');
             $this->redirect('/admin/users');
         }
 
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/users');
         }
@@ -514,6 +559,10 @@ class AdminManagementController extends Controller
         });
 
         if (empty($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No valid items selected']);
+                return;
+            }
             $this->flash('error', 'No valid items selected');
             $this->redirect('/admin/users');
         }
@@ -523,7 +572,13 @@ class AdminManagementController extends Controller
         
         $db->query("UPDATE users SET is_active = 0, updated_at = NOW() WHERE id IN ($placeholders)", array_values($ids));
 
-        $this->flash('success', count($ids) . ' users deactivated');
+        $count = count($ids);
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => "$count users deactivated"]);
+            return;
+        }
+
+        $this->flash('success', $count . ' users deactivated');
         $this->redirect('/admin/users');
     }
 
@@ -554,12 +609,12 @@ class AdminManagementController extends Controller
         // Handle Logo Upload or Library Selection
         $uploaded = false;
         if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
-            $success = \App\Core\ImageManager::replace($_FILES['logo'], 'img/logo.webp');
+            $success = \App\Core\ImageManager::replace($_FILES['logo'], 'uploads/logos/logo.webp');
             if (!$success) {
                 $this->flash('error', 'Failed to update logo. Please try a different image.');
                 $this->redirect('/admin/settings');
             }
-            $content['site']['logo'] = '/img/logo.webp';
+            $content['site']['logo'] = 'uploads/logos/logo.webp';
             $uploaded = true;
         }
 
@@ -595,7 +650,7 @@ class AdminManagementController extends Controller
         for ($i = 0; $i < 3; $i++) {
             $slide = $postSlides[$i] ?? [];
             $processedSlides[] = [
-                'image' => trim((string) ($slide['image'] ?? $content['site']['hero_slides'][$i]['image'] ?? '/img/hero-1.webp')),
+                'image' => trim((string) ($slide['image'] ?? $content['site']['hero_slides'][$i]['image'] ?? '/uploads/hero/hero-'.($i+1).'.png')),
                 'title' => trim((string) ($slide['title'] ?? '')),
                 'subtitle' => trim((string) ($slide['subtitle'] ?? '')),
                 'button_text' => trim((string) ($slide['button_text'] ?? '')),
@@ -618,6 +673,11 @@ class AdminManagementController extends Controller
             }
             $content['site']['instagram_images'] = $cleanInstagram;
         }
+
+        // Handle Instagram Reels (One per line)
+        $reelsStr = (string) $this->post('instagram_reels', '');
+        $reelsArray = array_filter(array_map('trim', explode("\n", $reelsStr)));
+        $content['site']['instagram_reels'] = array_values($reelsArray);
 
         // Handle Social Links
         $social = (array) $this->post('social', []);
@@ -1145,9 +1205,19 @@ class AdminManagementController extends Controller
         }
 
         if ($uploadedCount > 0) {
-            $this->flash('success', $uploadedCount . ' file(s) uploaded to Media Library');
+            $msg = $uploadedCount . ' file(s) uploaded to Media Library';
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg]);
+                return;
+            }
+            $this->flash('success', $msg);
         } else {
-            $this->flash('error', 'No files were uploaded. Check file type/size and try again.');
+            $msg = 'No files were uploaded. Check file type/size and try again.';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => $msg]);
+                return;
+            }
+            $this->flash('error', $msg);
         }
 
         $this->redirect('/admin/media');
@@ -1254,9 +1324,19 @@ class AdminManagementController extends Controller
                 ['old_path' => $oldRelPath, 'new_path' => $newRelPath]
             );
 
-            $this->flash('success', 'File renamed to ' . htmlspecialchars($newName));
+            $msg = 'File renamed to ' . htmlspecialchars($newName);
+            if ($this->isAjax()) {
+                $this->json(['success' => true, 'message' => $msg, 'new_name' => $newName]);
+                return;
+            }
+            $this->flash('success', $msg);
         } else {
-            $this->flash('error', 'Failed to rename file');
+            $msg = 'Failed to rename file';
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => $msg]);
+                return;
+            }
+            $this->flash('error', $msg);
         }
 
         $this->redirect('/admin/media');
@@ -1264,46 +1344,48 @@ class AdminManagementController extends Controller
 
     public function deleteMedia(int $id): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/media');
-        }
-
         $db = Database::getInstance();
         $this->ensureMediaLibraryTable($db);
 
         $item = $db->fetchOne('SELECT * FROM media_library WHERE id = :id LIMIT 1', ['id' => $id]);
         if (!$item) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'Media file not found']);
+                return;
+            }
             $this->flash('error', 'Media file not found');
             $this->redirect('/admin/media');
         }
 
         if ($db->hasColumn('media_library', 'deleted_at')) {
             $db->update('media_library', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
-            $this->flash('success', 'Media file moved to trash');
+            $msg = 'Media file moved to trash';
         } else {
             // Revert to hard delete (unlink file)
-            $item = $db->fetchOne('SELECT file_path FROM media_library WHERE id = :id', ['id' => $id]);
-            if ($item) {
-                $relative = ltrim((string) $item['file_path'], '/');
-                $absolute = __DIR__ . '/../../public/' . $relative;
-                if (is_file($absolute)) @unlink($absolute);
-            }
+            $relative = ltrim((string) $item['file_path'], '/');
+            $absolute = __DIR__ . '/../../public/' . $relative;
+            if (is_file($absolute)) @unlink($absolute);
             $db->delete('media_library', 'id = :id', ['id' => $id]);
-            $this->flash('success', 'Media file permanently deleted');
+            $msg = 'Media file permanently deleted';
         }
-        $this->redirect('/admin/media');
+
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => $msg]);
+            return;
+        }
+
+        $this->flash('success', $msg);
+        $this->redirect('/admin/media' . ($this->get('folder') ? '?folder=' . urlencode($this->get('folder')) : ''));
     }
 
     public function bulkDeleteMedia(): void
     {
-        if (!$this->validateCsrf()) {
-            $this->flash('error', 'Invalid request');
-            $this->redirect('/admin/media');
-        }
-
         $ids = $this->post('ids');
         if (empty($ids) || !is_array($ids)) {
+            if ($this->isAjax()) {
+                $this->json(['success' => false, 'message' => 'No items selected']);
+                return;
+            }
             $this->flash('error', 'No items selected');
             $this->redirect('/admin/media');
         }
@@ -1314,7 +1396,7 @@ class AdminManagementController extends Controller
                 "UPDATE media_library SET deleted_at = NOW() WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
                 array_values($ids)
             );
-            $this->flash('success', count($ids) . ' media files moved to trash');
+            $msg = count($ids) . ' media files moved to trash';
         } else {
             // Permanent bulk delete fallback
             $placeholders = implode(',', array_fill(0, count($ids), '?'));
@@ -1325,9 +1407,34 @@ class AdminManagementController extends Controller
                 if (is_file($absolute)) @unlink($absolute);
             }
             $db->query("DELETE FROM media_library WHERE id IN ($placeholders)", array_values($ids));
-            $this->flash('success', count($ids) . ' media files permanently deleted');
+            $msg = count($ids) . ' media files permanently deleted';
         }
+
+        if ($this->isAjax()) {
+            $this->json(['success' => true, 'message' => $msg]);
+            return;
+        }
+
+        $this->flash('success', $msg);
         $this->redirect('/admin/media');
+    }
+
+    public function updateProductStatus(int $id): void
+    {
+        $product = \App\Models\Product::find($id);
+        if (!$product) {
+            $this->json(['success' => false, 'message' => 'Product not found']);
+            return;
+        }
+
+        $status = (int) $this->post('status');
+        $db = Database::getInstance();
+        $db->update('products', [
+            'is_active' => $status ? 1 : 0,
+            'updated_at' => date('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $id]);
+
+        $this->json(['success' => true, 'message' => 'Product status updated']);
     }
 
     public function syncMedia(): void
@@ -1636,7 +1743,7 @@ class AdminManagementController extends Controller
             'site' => [
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
-                'logo' => '/img/logo.webp',
+                'logo' => 'uploads/logos/logo.webp',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
                 'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
                 'theme_primary' => '#D4A574',
@@ -1848,10 +1955,15 @@ class AdminManagementController extends Controller
 
         foreach ($sourceCandidates as $source) {
             if (is_file($source)) {
-                $ext = pathinfo($basename, PATHINFO_EXTENSION);
-                $newFilename = pathinfo($basename, PATHINFO_FILENAME) . '-' . time() . '.' . $ext;
-                if (copy($source, $targetDir . $newFilename)) {
-                    return $newFilename;
+                // Copy to target folder, preserving original name; dedup only on collision.
+                $destFilename = $basename;
+                if (file_exists($targetDir . $destFilename)) {
+                    $ext = pathinfo($basename, PATHINFO_EXTENSION);
+                    $base = pathinfo($basename, PATHINFO_FILENAME);
+                    $destFilename = $base . '-' . time() . '.' . $ext;
+                }
+                if (copy($source, $targetDir . $destFilename)) {
+                    return $destFilename;
                 }
             }
         }
@@ -1892,9 +2004,13 @@ class AdminManagementController extends Controller
             mkdir($uploadDir, 0755, true);
         }
 
-        $filename = $safeBase . '-' . time() . '-' . substr(md5((string) mt_rand()), 0, 6);
-        if ($extension !== '') {
-            $filename .= '.' . $extension;
+        // Preserve the original clean filename; only add a suffix on collision.
+        $filename = $extension !== '' ? $safeBase . '.' . $extension : $safeBase;
+        if (file_exists($uploadDir . $filename)) {
+            $filename = $safeBase . '-' . time() . '-' . substr(md5((string) mt_rand()), 0, 6);
+            if ($extension !== '') {
+                $filename .= '.' . $extension;
+            }
         }
 
         $targetPath = $uploadDir . $filename;

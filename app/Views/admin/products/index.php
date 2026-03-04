@@ -105,28 +105,27 @@
                                             </button>
                                         </form>
                                     </td>
-                                    <td data-label="Status">
-                                        <?php if (!empty($product['is_active'])): ?>
-                                            <span class="badge bg-success">Active</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        <?php endif; ?>
+                                    <td class="product-status-col">
+                                        <select class="form-select form-select-sm status-dropdown" data-id="<?= $product['id'] ?>" style="width: auto;">
+                                            <option value="1" <?= $product['is_active'] ? 'selected' : '' ?>>Active</option>
+                                            <option value="0" <?= !$product['is_active'] ? 'selected' : '' ?>>Inactive</option>
+                                        </select>
                                     </td>
-                                    <td data-label="Actions" class="text-end">
-                                        <div class="btn-group">
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-secondary btn-preview-product" 
+                                                    class="btn btn-outline-secondary btn-preview-product" 
                                                     data-id="<?= (int) $product['id'] ?>"
                                                     title="Quick Preview">
                                                 <i class="fas fa-eye"></i>
                                             </button>
                                             <a href="<?= url('/admin/products/edit/' . (int) $product['id']) ?>" 
-                                               class="btn btn-sm btn-outline-primary"
+                                               class="btn btn-outline-primary"
                                                title="Edit Product">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-info btn-duplicate-product" 
+                                                    class="btn btn-outline-info btn-duplicate-product" 
                                                     data-bs-toggle="modal"
                                                     data-bs-target="#duplicateItemModal"
                                                     data-url="<?= url('/admin/products/duplicate/' . (int) $product['id']) ?>"

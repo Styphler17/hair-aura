@@ -18,7 +18,21 @@ $extraClass = $class ?? '';
             <?php foreach ($slides as $slide): ?>
             <div class="swiper-slide hero-slide">
                 <div class="hero-bg-wrapper">
-                    <img src="<?= asset($slide['image'] ?? '/img/hero-1.png') ?>" alt="<?= htmlspecialchars($slide['title'] ?? '') ?>" class="hero-bg-img">
+                    <?php 
+                    $rawImg = $slide['image'] ?? 'hero-1.webp';
+                    $imgBase = basename($rawImg, '.webp');
+                    $imgBase = basename($imgBase, '.png');
+                    
+                    // Try to resolve path
+                    $heroPath = "/uploads/hero/{$imgBase}.webp";
+                    if (!is_file(__DIR__ . '/../../../public' . $heroPath)) {
+                        $heroPath = "/uploads/hero/{$imgBase}.png";
+                    }
+                    if (!is_file(__DIR__ . '/../../../public' . $heroPath)) {
+                        $heroPath = "/img/{$imgBase}.png"; // Last resort legacy path
+                    }
+                    ?>
+                    <img src="<?= asset($heroPath) ?>" alt="<?= htmlspecialchars($slide['title'] ?? '') ?>" class="hero-bg-img">
                     <div class="hero-gradient-overlay"></div>
                 </div>
                 

@@ -27,12 +27,19 @@ class AdminManagementController extends Controller
         $perPage = 20;
         $offset = ($page - 1) * $perPage;
 
-        $where = ['1=1'];
+        $where = [];
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $where[] = 'bp.deleted_at IS NULL';
+        } else {
+            $where[] = '1=1';
+        }
         $params = [];
 
         if ($search !== '') {
-            $where[] = '(bp.title LIKE :search OR bp.excerpt LIKE :search OR bp.content LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $where[] = '(bp.title LIKE :s1 OR bp.excerpt LIKE :s2 OR bp.content LIKE :s3)';
+            $params['s1'] = '%' . $search . '%';
+            $params['s2'] = '%' . $search . '%';
+            $params['s3'] = '%' . $search . '%';
         }
 
         if ($category !== '') {
@@ -53,9 +60,11 @@ class AdminManagementController extends Controller
         );
 
         $total = (int) $db->fetchColumn("SELECT COUNT(*) FROM blog_posts bp WHERE {$whereSql}", $params);
+        $catWhere = $db->hasColumn('blog_posts', 'deleted_at') ? "WHERE deleted_at IS NULL" : "";
         $categories = $db->fetchAll(
             "SELECT DISTINCT COALESCE(category, 'General') as category
              FROM blog_posts
+             $catWhere
              ORDER BY category ASC"
         );
 
@@ -84,7 +93,11 @@ class AdminManagementController extends Controller
     public function editBlog(int $id): void
     {
         $db = Database::getInstance();
-        $post = $db->fetchOne("SELECT * FROM blog_posts WHERE id = :id LIMIT 1", ['id' => $id]);
+        $query = "SELECT * FROM blog_posts WHERE id = :id";
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $query .= " AND deleted_at IS NULL";
+        }
+        $post = $db->fetchOne("$query LIMIT 1", ['id' => $id]);
 
         if (!$post) {
             $this->flash('error', 'Blog post not found');
@@ -122,7 +135,7 @@ class AdminManagementController extends Controller
         }
 
         $existingSlug = $db->fetchOne(
-            'SELECT id FROM blog_posts WHERE slug = :slug AND id != :id LIMIT 1',
+            'SELECT id FROM blog_posts WHERE slug = :slug AND id != :id AND deleted_at IS NULL LIMIT 1',
             ['slug' => $slug, 'id' => $id]
         );
         if ($existingSlug) {
@@ -132,12 +145,15 @@ class AdminManagementController extends Controller
         $featuredImage = trim((string) ($data['featured_image'] ?? ''));
         $uploadedImage = $this->uploadBlogImage('featured_image_file');
         $libraryImage = trim((string) ($data['library_image'] ?? ''));
+        
         if ($uploadedImage !== null) {
+            // Direct upload: store relative path
             $featuredImage = $uploadedImage;
         } elseif ($libraryImage !== '') {
-            $resolvedImage = $this->resolveMediaPathToFolder($libraryImage, 'blog');
-            if ($resolvedImage !== null) {
-                $featuredImage = $resolvedImage;
+            // Library selection: store the path directly (no copying)
+            $cleanPath = ltrim(str_replace('\\', '/', $libraryImage), '/');
+            if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
+                $featuredImage = $cleanPath;
             }
         }
 
@@ -187,9 +203,93 @@ class AdminManagementController extends Controller
         }
 
         $db = Database::getInstance();
-        $db->delete('blog_posts', 'id = :id', ['id' => $id]);
+        if ($db->hasColumn('blog_posts', 'deleted_at')) {
+            $db->update('blog_posts', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Blog post moved to trash');
+        } else {
+            $db->delete('blog_posts', 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Blog post permanently deleted');
+        }
+        $this->redirect('/admin/blogs');
+    }
 
-        $this->flash('success', 'Blog post deleted');
+    public function bulkDeleteBlogs(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/blogs');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/blogs');
+        }
+
+        $db = Database::getInstance();
+        $successCount = 0;
+        $hasTrashColumn = $db->hasColumn('blog_posts', 'deleted_at');
+
+        foreach ($ids as $id) {
+            if ($hasTrashColumn) {
+                $db->update('blog_posts', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => (int) $id]);
+            } else {
+                $db->delete('blog_posts', 'id = :id', ['id' => (int) $id]);
+            }
+            $successCount++;
+        }
+
+        if ($successCount > 0) {
+            $msg = $hasTrashColumn ? "$successCount blog posts moved to trash" : "$successCount blog posts deleted";
+            $this->flash('success', $msg);
+        } else {
+            $this->flash('error', 'Failed to delete selected posts');
+        }
+        $this->redirect('/admin/blogs');
+    }
+
+    public function bulkPublishBlogs(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/blogs');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/blogs');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        // Update is_published and set published_at if null
+        $db->query("UPDATE blog_posts SET is_published = 1, published_at = COALESCE(published_at, NOW()) WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' blog posts published');
+        $this->redirect('/admin/blogs');
+    }
+
+    public function bulkUnpublishBlogs(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/blogs');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/blogs');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE blog_posts SET is_published = 0 WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' blog posts moved to drafts');
         $this->redirect('/admin/blogs');
     }
 
@@ -206,8 +306,11 @@ class AdminManagementController extends Controller
         $params = [];
 
         if ($search !== '') {
-            $where[] = '(first_name LIKE :search OR last_name LIKE :search OR email LIKE :search OR phone LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $where[] = '(first_name LIKE :s1 OR last_name LIKE :s2 OR email LIKE :s3 OR phone LIKE :s4)';
+            $params['s1'] = '%' . $search . '%';
+            $params['s2'] = '%' . $search . '%';
+            $params['s3'] = '%' . $search . '%';
+            $params['s4'] = '%' . $search . '%';
         }
 
         if ($role !== '') {
@@ -317,6 +420,7 @@ class AdminManagementController extends Controller
         }
 
         $isActive = isset($data['is_active']) ? 1 : 0;
+        $isBanned = isset($data['is_banned']) ? 1 : 0;
         $payload = [
             'first_name' => $firstName,
             'last_name' => $lastName,
@@ -324,6 +428,7 @@ class AdminManagementController extends Controller
             'phone' => $phone,
             'role' => $role,
             'is_active' => $isActive,
+            'is_banned' => $isBanned,
             'updated_at' => date('Y-m-d H:i:s')
         ];
 
@@ -390,12 +495,46 @@ class AdminManagementController extends Controller
         $this->redirect('/admin/users');
     }
 
+    public function bulkDeactivateUsers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/users');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/users');
+        }
+
+        // Avoid deactivating self
+        $ids = array_filter($ids, function($id) {
+            return (int) $id !== (int) $this->user->id;
+        });
+
+        if (empty($ids)) {
+            $this->flash('error', 'No valid items selected');
+            $this->redirect('/admin/users');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE users SET is_active = 0, updated_at = NOW() WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' users deactivated');
+        $this->redirect('/admin/users');
+    }
+
     public function settings(): void
     {
         $content = $this->loadSiteContent();
+        $mediaImages = $this->getMediaImageOptions(Database::getInstance());
 
         $this->render('admin/settings', [
-            'settings' => $content['site']
+            'settings' => $content['site'],
+            'mediaImages' => $mediaImages
         ], 'layouts/admin');
     }
 
@@ -411,6 +550,29 @@ class AdminManagementController extends Controller
         $content['site']['tagline'] = trim((string) $this->post('tagline', $content['site']['tagline']));
         $content['site']['meta_description'] = trim((string) $this->post('meta_description', $content['site']['meta_description']));
         $content['site']['meta_keywords'] = trim((string) $this->post('meta_keywords', $content['site']['meta_keywords']));
+
+        // Handle Logo Upload or Library Selection
+        $uploaded = false;
+        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+            $success = \App\Core\ImageManager::replace($_FILES['logo'], 'img/logo.webp');
+            if (!$success) {
+                $this->flash('error', 'Failed to update logo. Please try a different image.');
+                $this->redirect('/admin/settings');
+            }
+            $content['site']['logo'] = '/img/logo.webp';
+            $uploaded = true;
+        }
+
+        if (!$uploaded) {
+            $libraryLogo = trim((string) $this->post('library_logo', ''));
+            if ($libraryLogo !== '') {
+                $cleanPath = ltrim(str_replace('\\', '/', $libraryLogo), '/');
+                if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
+                    $content['site']['logo'] = '/' . $cleanPath;
+                }
+            }
+        }
+
         $colorInputs = [
             'theme_primary' => '#D4A574',
             'theme_primary_dark' => '#B8935F',
@@ -426,6 +588,66 @@ class AdminManagementController extends Controller
             }
             $content['site'][$field] = $normalized;
         }
+
+        // Handle Hero Slides
+        $postSlides = (array) $this->post('hero_slides', []);
+        $processedSlides = [];
+        for ($i = 0; $i < 3; $i++) {
+            $slide = $postSlides[$i] ?? [];
+            $processedSlides[] = [
+                'image' => trim((string) ($slide['image'] ?? $content['site']['hero_slides'][$i]['image'] ?? '/img/hero-1.webp')),
+                'title' => trim((string) ($slide['title'] ?? '')),
+                'subtitle' => trim((string) ($slide['subtitle'] ?? '')),
+                'button_text' => trim((string) ($slide['button_text'] ?? '')),
+                'button_link' => trim((string) ($slide['button_link'] ?? ''))
+            ];
+        }
+        $content['site']['hero_slides'] = $processedSlides;
+
+
+
+        // Handle Instagram Images (Multiple)
+        $instagramPaths = $this->post('instagram_images');
+        if (is_array($instagramPaths)) {
+            $cleanInstagram = [];
+            foreach ($instagramPaths as $path) {
+                $p = trim((string) $path);
+                if ($p !== '') {
+                    $cleanInstagram[] = '/' . ltrim(str_replace('\\', '/', $p), '/');
+                }
+            }
+            $content['site']['instagram_images'] = $cleanInstagram;
+        }
+
+        // Handle Social Links
+        $social = (array) $this->post('social', []);
+        $processedSocial = [];
+        $platforms = ['instagram', 'tiktok', 'whatsapp'];
+        foreach ($platforms as $platform) {
+            $data = $social[$platform] ?? [];
+            $processedSocial[$platform] = [
+                'url' => trim((string) ($data['url'] ?? '')),
+                'enabled' => !empty($data['enabled'])
+            ];
+        }
+        $content['site']['social'] = $processedSocial;
+        
+        // Handle Shipping Settings
+        $content['site']['free_shipping_threshold'] = (float) $this->post('free_shipping_threshold', $content['site']['free_shipping_threshold'] ?? 3000);
+        $content['site']['shipping_cost'] = (float) $this->post('shipping_cost', $content['site']['shipping_cost'] ?? 50);
+        
+        $rates = (array) $this->post('shipping_rates', []);
+        $processedRates = [];
+        $regions = [
+            'Greater Accra', 'Ashanti', 'Central', 'Eastern', 'Volta', 
+            'Western', 'Bono', 'Bono East', 'Ahafo', 'Northern', 
+            'North East', 'Savannah', 'Upper East', 'Upper West', 
+            'Oti', 'Western North'
+        ];
+        foreach ($regions as $region) {
+            $processedRates[$region] = (float) ($rates[$region] ?? $content['site']['shipping_rates'][$region] ?? 50);
+        }
+        $content['site']['shipping_rates'] = $processedRates;
 
         $this->saveSiteContent($content);
 
@@ -502,8 +724,11 @@ class AdminManagementController extends Controller
         $params = [];
 
         if ($search !== '') {
-            $where[] = '(name LIKE :search OR email LIKE :search OR subject LIKE :search OR message LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $where[] = '(name LIKE :s1 OR email LIKE :s2 OR subject LIKE :s3 OR message LIKE :s4)';
+            $params['s1'] = '%' . $search . '%';
+            $params['s2'] = '%' . $search . '%';
+            $params['s3'] = '%' . $search . '%';
+            $params['s4'] = '%' . $search . '%';
         }
 
         if ($status === 'read') {
@@ -564,11 +789,15 @@ class AdminManagementController extends Controller
         $editId = max(0, (int) $this->get('edit', 0));
 
         $where = ['n.admin_id = :admin_id', 'n.is_archived = 0'];
+        if ($db->hasColumn('notes', 'deleted_at')) {
+            $where[] = 'n.deleted_at IS NULL';
+        }
         $params = ['admin_id' => (int) $this->user->id];
 
         if ($search !== '') {
-            $where[] = '(n.title LIKE :search OR n.content LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $where[] = '(n.title LIKE :s1 OR n.content LIKE :s2)';
+            $params['s1'] = '%' . $search . '%';
+            $params['s2'] = '%' . $search . '%';
         }
 
         $notes = $db->fetchAll(
@@ -657,12 +886,18 @@ class AdminManagementController extends Controller
         $db = Database::getInstance();
         $this->ensureNotesTable($db);
 
+        $payload = [
+            'is_archived' => 1,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+
+        if ($db->hasColumn('notes', 'deleted_at')) {
+            $payload['deleted_at'] = date('Y-m-d H:i:s');
+        }
+
         $db->update(
             'notes',
-            [
-                'is_archived' => 1,
-                'updated_at' => date('Y-m-d H:i:s')
-            ],
+            $payload,
             'id = :id AND admin_id = :admin_id',
             [
                 'id' => $id,
@@ -670,8 +905,112 @@ class AdminManagementController extends Controller
             ]
         );
 
-        $this->flash('success', 'Note archived');
+        $this->flash('success', 'Note moved to trash');
         $this->redirect('/admin/notes');
+    }
+
+    public function faqs(): void
+    {
+        $db = Database::getInstance();
+        $this->ensureFaqsTable($db);
+
+        $faqs = $db->fetchAll("SELECT * FROM faqs ORDER BY sort_order ASC, created_at DESC");
+
+        $this->render('admin/content/faqs', [
+            'faqs' => $faqs
+        ], 'layouts/admin');
+    }
+
+    public function saveFaq(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/faqs');
+        }
+
+        $db = Database::getInstance();
+        $this->ensureFaqsTable($db);
+
+        $id = (int) ($this->post('id') ?? 0);
+        $question = trim((string) $this->post('question', ''));
+        $answer = trim((string) $this->post('answer', ''));
+        $sortOrder = (int) $this->post('sort_order', 0);
+        $isActive = isset($_POST['is_active']) ? 1 : 0;
+
+        if ($question === '' || $answer === '') {
+            $this->flash('error', 'Question and answer are required');
+            $this->redirect('/admin/faqs');
+        }
+
+        $payload = [
+            'question' => $question,
+            'answer' => $answer,
+            'sort_order' => $sortOrder,
+            'is_active' => $isActive
+        ];
+
+        if ($id > 0) {
+            $db->update('faqs', $payload, 'id = :id', ['id' => $id]);
+            $this->flash('success', 'FAQ updated');
+        } else {
+            $db->insert('faqs', $payload);
+            $this->flash('success', 'FAQ created');
+        }
+
+        $this->redirect('/admin/faqs');
+    }
+
+    public function deleteFaq(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/faqs');
+        }
+
+        $db = Database::getInstance();
+        $this->ensureFaqsTable($db);
+
+        $db->delete('faqs', 'id = :id', ['id' => $id]);
+        $this->flash('success', 'FAQ deleted');
+        $this->redirect('/admin/faqs');
+    }
+
+    public function bulkDeleteFaqs(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/faqs');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/faqs');
+        }
+
+        $db = Database::getInstance();
+        $this->ensureFaqsTable($db);
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $db->query("DELETE FROM faqs WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' FAQs deleted');
+        $this->redirect('/admin/faqs');
+    }
+
+    private function ensureFaqsTable(Database $db): void
+    {
+        $db->query(
+            "CREATE TABLE IF NOT EXISTS faqs (
+                id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                question TEXT NOT NULL,
+                answer TEXT NOT NULL,
+                sort_order INT DEFAULT 0,
+                is_active TINYINT(1) DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+        );
     }
 
     public function mediaLibrary(): void
@@ -685,12 +1024,21 @@ class AdminManagementController extends Controller
         $mime = trim((string) $this->get('mime', 'images'));
         $sort = trim((string) $this->get('sort', 'newest'));
 
-        $where = ['1=1'];
+        $where = [];
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $where[] = 'deleted_at IS NULL';
+        } else {
+            $where[] = '1=1';
+        }
         $params = [];
 
         if ($search !== '') {
-            $where[] = '(file_name LIKE :search OR original_name LIKE :search OR file_path LIKE :search OR alt_text LIKE :search OR tags LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $where[] = '(file_name LIKE :s1 OR original_name LIKE :s2 OR file_path LIKE :s3 OR alt_text LIKE :s4 OR tags LIKE :s5)';
+            $params['s1'] = '%' . $search . '%';
+            $params['s2'] = '%' . $search . '%';
+            $params['s3'] = '%' . $search . '%';
+            $params['s4'] = '%' . $search . '%';
+            $params['s5'] = '%' . $search . '%';
         }
 
         if ($folder !== '') {
@@ -724,9 +1072,11 @@ class AdminManagementController extends Controller
             $params
         );
 
+        $folderWhere = $db->hasColumn('media_library', 'deleted_at') ? "WHERE deleted_at IS NULL" : "";
         $folderStats = $db->fetchAll(
             "SELECT folder, COUNT(*) as total
              FROM media_library
+             $folderWhere
              GROUP BY folder
              ORDER BY folder ASC"
         );
@@ -803,6 +1153,115 @@ class AdminManagementController extends Controller
         $this->redirect('/admin/media');
     }
 
+    public function renameMedia(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/media');
+        }
+
+        $id = (int) $this->post('id');
+        $newName = trim((string) $this->post('new_name'));
+
+        // Basic validation
+        if ($id <= 0 || $newName === '' || preg_match('/[^a-z0-9\.\-_]/i', $newName)) {
+            $this->flash('error', 'Invalid filename. Use alphanumeric, dash, underscore, and dot.');
+            $this->redirect('/admin/media');
+        }
+
+        $db = Database::getInstance();
+        $media = $db->fetchOne("SELECT * FROM media_library WHERE id = :id LIMIT 1", ['id' => $id]);
+        if (!$media) {
+            $this->flash('error', 'Media file not found');
+            $this->redirect('/admin/media');
+        }
+
+        $oldName = $media['file_name'];
+        if ($oldName === $newName) {
+            $this->flash('info', 'Name unchanged');
+            $this->redirect('/admin/media');
+        }
+        
+        // Ensure extension matches
+        $oldExt = pathinfo($oldName, PATHINFO_EXTENSION);
+        $newExt = pathinfo($newName, PATHINFO_EXTENSION);
+        if (strtolower($oldExt) !== strtolower($newExt)) {
+             $newName = preg_replace('/\.' . preg_quote($newExt, '/') . '$/', '', $newName) . '.' . $oldExt;
+        }
+
+        $folder = $media['folder']; 
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        $oldRelPath = $media['file_path'];
+        $oldAbsPath = $publicRoot . $oldRelPath;
+        
+        $dir = dirname($oldRelPath); 
+        $newRelPath = ($dir === '.' ? '' : $dir . '/') . $newName;
+        $newAbsPath = $publicRoot . $newRelPath;
+        
+        // Normalize slashes
+        $newRelPath = str_replace('\\', '/', $newRelPath);
+
+        if (!is_file($oldAbsPath)) {
+            $this->flash('error', 'File does not exist on disk');
+            $this->redirect('/admin/media');
+        }
+
+        if (file_exists($newAbsPath)) {
+            $this->flash('error', 'Destination file already exists');
+            $this->redirect('/admin/media');
+        }
+
+        if (rename($oldAbsPath, $newAbsPath)) {
+            // Update media_library
+            $db->update('media_library', [
+                'file_name' => $newName,
+                'file_path' => $newRelPath
+            ], 'id = :id', ['id' => $id]);
+
+            // references
+            
+            // 1. Direct filename match (files conceptually inside products folder)
+            if ($folder === 'products' || str_contains($oldRelPath, 'products/')) {
+                $db->query(
+                    "UPDATE product_images SET image_path = :new_name WHERE image_path = :old_name",
+                    ['new_name' => $newName, 'old_name' => $oldName]
+                );
+            }
+
+            // 2. Relative path match (files referenced via ../ or similar)
+            // Replace '/oldNAME' with '/newNAME' to avoid partial matches on prefixes
+            $db->query(
+                "UPDATE product_images SET image_path = REPLACE(image_path, :old_suffix, :new_suffix) WHERE image_path LIKE :pattern",
+                [
+                    'old_suffix' => '/' . $oldName, 
+                    'new_suffix' => '/' . $newName,
+                    'pattern' => '%/' . $oldName
+                ]
+            );
+
+            $db->query(
+                "UPDATE categories SET image = REPLACE(image, :old_path, :new_path)",
+                ['old_path' => $oldRelPath, 'new_path' => $newRelPath]
+            );
+            $db->query(
+                "UPDATE categories SET image = :new_name WHERE image = :old_name",
+                ['new_name' => $newName, 'old_name' => $oldName]
+            );
+
+            $db->query(
+                "UPDATE blog_posts SET featured_image = REPLACE(featured_image, :old_path, :new_path)",
+                ['old_path' => $oldRelPath, 'new_path' => $newRelPath]
+            );
+
+            $this->flash('success', 'File renamed to ' . htmlspecialchars($newName));
+        } else {
+            $this->flash('error', 'Failed to rename file');
+        }
+
+        $this->redirect('/admin/media');
+    }
+
     public function deleteMedia(int $id): void
     {
         if (!$this->validateCsrf()) {
@@ -819,16 +1278,55 @@ class AdminManagementController extends Controller
             $this->redirect('/admin/media');
         }
 
-        $relative = ltrim((string) ($item['file_path'] ?? ''), '/');
-        if ($relative !== '') {
-            $absolute = __DIR__ . '/../../public/' . $relative;
-            if (is_file($absolute)) {
-                @unlink($absolute);
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $db->update('media_library', ['deleted_at' => date('Y-m-d H:i:s')], 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Media file moved to trash');
+        } else {
+            // Revert to hard delete (unlink file)
+            $item = $db->fetchOne('SELECT file_path FROM media_library WHERE id = :id', ['id' => $id]);
+            if ($item) {
+                $relative = ltrim((string) $item['file_path'], '/');
+                $absolute = __DIR__ . '/../../public/' . $relative;
+                if (is_file($absolute)) @unlink($absolute);
             }
+            $db->delete('media_library', 'id = :id', ['id' => $id]);
+            $this->flash('success', 'Media file permanently deleted');
+        }
+        $this->redirect('/admin/media');
+    }
+
+    public function bulkDeleteMedia(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/media');
         }
 
-        $db->delete('media_library', 'id = :id', ['id' => $id]);
-        $this->flash('success', 'Media file deleted');
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/media');
+        }
+
+        $db = Database::getInstance();
+        if ($db->hasColumn('media_library', 'deleted_at')) {
+            $db->query(
+                "UPDATE media_library SET deleted_at = NOW() WHERE id IN (" . implode(',', array_fill(0, count($ids), '?')) . ")",
+                array_values($ids)
+            );
+            $this->flash('success', count($ids) . ' media files moved to trash');
+        } else {
+            // Permanent bulk delete fallback
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $items = $db->fetchAll("SELECT file_path FROM media_library WHERE id IN ($placeholders)", array_values($ids));
+            foreach ($items as $item) {
+                $relative = ltrim((string) $item['file_path'], '/');
+                $absolute = __DIR__ . '/../../public/' . $relative;
+                if (is_file($absolute)) @unlink($absolute);
+            }
+            $db->query("DELETE FROM media_library WHERE id IN ($placeholders)", array_values($ids));
+            $this->flash('success', count($ids) . ' media files permanently deleted');
+        }
         $this->redirect('/admin/media');
     }
 
@@ -878,6 +1376,7 @@ class AdminManagementController extends Controller
 
     public function search(): void
     {
+        // Keep existing search page logic
         $db = Database::getInstance();
         $query = trim((string) $this->get('q', ''));
 
@@ -950,10 +1449,64 @@ class AdminManagementController extends Controller
         ], 'layouts/admin');
     }
 
+    public function searchApi(): void
+    {
+        $db = Database::getInstance();
+        $query = trim((string) $this->get('q', ''));
+        
+        $results = [];
+        
+        if ($query !== '' && strlen($query) >= 2) {
+            $params = ['q' => '%' . $query . '%'];
+            
+            // Products
+            $products = $db->fetchAll("SELECT id, name, sku, price FROM products WHERE name LIKE :q OR sku LIKE :q LIMIT 5", $params);
+            foreach ($products as $p) {
+                $results[] = [
+                    'type' => 'Product',
+                    'title' => $p['name'],
+                    'detail' => $p['sku'],
+                    'url' => url('/admin/products/edit/' . $p['id']),
+                    'icon' => 'fas fa-box'
+                ];
+            }
+            
+            // Orders
+            $orders = $db->fetchAll("SELECT id, order_number, total FROM orders WHERE order_number LIKE :q LIMIT 5", $params);
+            foreach ($orders as $o) {
+                $results[] = [
+                    'type' => 'Order',
+                    'title' => $o['order_number'],
+                    'detail' => 'Total: GH₵ ' . number_format((float)$o['total'], 2),
+                    'url' => url('/admin/orders/' . $o['id']),
+                    'icon' => 'fas fa-shopping-cart'
+                ];
+            }
+            
+            // Users
+            $users = $db->fetchAll("SELECT id, first_name, last_name, email FROM users WHERE first_name LIKE :q OR last_name LIKE :q OR email LIKE :q LIMIT 5", $params);
+            foreach ($users as $u) {
+                $results[] = [
+                    'type' => 'User',
+                    'title' => $u['first_name'] . ' ' . $u['last_name'],
+                    'detail' => $u['email'],
+                    'url' => url('/admin/users/edit/' . $u['id']),
+                    'icon' => 'fas fa-user'
+                ];
+            }
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($results);
+        exit;
+    }
+
     public function profile(): void
     {
+        $mediaImages = $this->getMediaImageOptions(Database::getInstance());
         $this->render('admin/profile', [
-            'adminUser' => $this->user
+            'adminUser' => $this->user,
+            'mediaImages' => $mediaImages
         ], 'layouts/admin');
     }
 
@@ -1001,6 +1554,13 @@ class AdminManagementController extends Controller
         }
 
         $avatarFilename = $this->uploadAvatar('avatar', (string) ($this->user->avatar ?? ''));
+
+        if ($avatarFilename === null) {
+            $libraryAvatar = trim((string) $this->post('library_avatar', ''));
+            if ($libraryAvatar !== '') {
+               $avatarFilename = ltrim(str_replace('\\', '/', $libraryAvatar), '/');
+            }
+        }
 
         $profileData = [
             'first_name' => $firstName,
@@ -1076,12 +1636,43 @@ class AdminManagementController extends Controller
             'site' => [
                 'name' => 'Hair Aura',
                 'tagline' => 'Unlock Your Aura with Perfect Wigs',
+                'logo' => '/img/logo.webp',
                 'meta_description' => 'Premium wigs and hair extensions in Ghana.',
                 'meta_keywords' => 'wigs Ghana, hair extensions, lace fronts',
                 'theme_primary' => '#D4A574',
                 'theme_primary_dark' => '#B8935F',
                 'theme_secondary' => '#2C2C2C',
-                'theme_gold' => '#D4AF37'
+                'theme_gold' => '#D4AF37',
+                'virtual_tryon_image' => '/img/product-placeholder.webp',
+                'instagram_images' => [],
+                'social' => [
+                    'instagram' => ['url' => 'https://instagram.com/hairaura', 'enabled' => true],
+                    'tiktok' => ['url' => 'https://tiktok.com/@hairaura', 'enabled' => true],
+                    'whatsapp' => ['url' => '+233508007873', 'enabled' => true]
+                ],
+                'hero_slides' => [
+                    [
+                        'image' => '/img/hero-1.webp',
+                        'title' => 'Premium Human Hair Wigs',
+                        'subtitle' => 'Elegance and quality in every strand.',
+                        'button_text' => 'Shop Now',
+                        'button_link' => '/shop'
+                    ],
+                    [
+                        'image' => '/img/hero-2.webp',
+                        'title' => 'Explore Our New Collection',
+                        'subtitle' => 'Handcrafted wigs for a natural look.',
+                        'button_text' => 'Explore Collection',
+                        'button_link' => '/shop/human-hair-wigs'
+                    ],
+                    [
+                        'image' => '/img/hero-3.webp',
+                        'title' => 'Find Your Perfect Match',
+                        'subtitle' => 'Style tailored to your unique aura.',
+                        'button_text' => 'Shop Now',
+                        'button_link' => '/shop'
+                    ]
+                ]
             ]
         ];
     }
@@ -1115,8 +1706,16 @@ class AdminManagementController extends Controller
             'site' => (array) ($content['site'] ?? [])
         ];
 
-        $export = "<?php\nreturn " . var_export($payload, true) . ";\n";
-        file_put_contents($this->siteContentPath(), $export);
+        $export = "<?php\n/**\n * Auto-generated site content configuration\n * Last modified: " . date('Y-m-d H:i:s') . "\n */\nreturn " . var_export($payload, true) . ";\n";
+        
+        $path = $this->siteContentPath();
+        if (file_put_contents($path, $export, LOCK_EX) !== false) {
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($path, true);
+            }
+        } else {
+            error_log("Failed to write site content to: " . $path);
+        }
     }
 
     private function tableExists(Database $db, string $table): bool
@@ -1197,6 +1796,67 @@ class AdminManagementController extends Controller
         } catch (\Throwable $e) {
             return [];
         }
+    }
+
+    private function resolveMediaPathToFolder(string $rawPath, string $targetFolder): ?string
+    {
+        $value = trim($rawPath);
+        if ($value === '' || preg_match('#^https?://#i', $value)) {
+            return null;
+        }
+
+        $clean = ltrim(str_replace('\\', '/', $value), '/');
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        // 1. If file exists at exact path (e.g. 'uploads/media/file.webp'), link to it relatively
+        if (is_file($publicRoot . $clean)) {
+            $folder = trim($targetFolder, '/\\');
+            $targetPrefix = 'uploads/' . $folder . '/';
+            
+            // If strictly inside target folder, return basename
+            if (str_starts_with($clean, $targetPrefix)) {
+                return substr($clean, strlen($targetPrefix));
+            }
+            
+            // Calculate relative path from target folder
+            // From 'uploads/products/' (or 'uploads/blog/') to root is '../../'
+            if (str_starts_with($clean, 'uploads/')) {
+                // e.g. 'uploads/media/foo.webp' -> '../media/foo.webp'
+                return '../' . substr($clean, 8); 
+            }
+            
+            return '../../' . $clean;
+        }
+
+        // 2. Fallback: Copy logic (for legacy inputs or bare filenames)
+        $basename = basename($clean);
+        if ($basename === '') {
+            return null;
+        }
+
+        $folder = trim($targetFolder, '/\\');
+        $targetDir = $publicRoot . 'uploads/' . $folder . '/';
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
+        $sourceCandidates = [
+            $publicRoot . 'uploads/media/' . $basename,
+            $publicRoot . 'img/' . $basename,
+            $publicRoot . $clean
+        ];
+
+        foreach ($sourceCandidates as $source) {
+            if (is_file($source)) {
+                $ext = pathinfo($basename, PATHINFO_EXTENSION);
+                $newFilename = pathinfo($basename, PATHINFO_FILENAME) . '-' . time() . '.' . $ext;
+                if (copy($source, $targetDir . $newFilename)) {
+                    return $newFilename;
+                }
+            }
+        }
+
+        return null; // File not found in library
     }
 
     private function sanitizeMediaFolder(string $folder): string
@@ -1295,49 +1955,7 @@ class AdminManagementController extends Controller
         return true;
     }
 
-    private function resolveMediaPathToFolder(string $rawPath, string $targetFolder): ?string
-    {
-        $value = trim($rawPath);
-        if ($value === '' || preg_match('#^https?://#i', $value)) {
-            return null;
-        }
 
-        $clean = ltrim(str_replace('\\', '/', $value), '/');
-        $basename = basename($clean);
-        if ($basename === '') {
-            return null;
-        }
-
-        $folder = $this->sanitizeMediaFolder($targetFolder);
-        $targetDir = __DIR__ . '/../../public/uploads/' . $folder . '/';
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0755, true);
-        }
-
-        $sourceCandidates = [
-            __DIR__ . '/../../public/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $basename,
-            __DIR__ . '/../../public/uploads/' . $folder . '/' . $basename
-        ];
-
-        $sourcePath = null;
-        foreach ($sourceCandidates as $candidate) {
-            if (is_file($candidate)) {
-                $sourcePath = $candidate;
-                break;
-            }
-        }
-
-        $targetPath = $targetDir . $basename;
-        if (!is_file($targetPath)) {
-            if ($sourcePath === null || !@copy($sourcePath, $targetPath)) {
-                return null;
-            }
-        }
-
-        return $basename;
-    }
 
     private function syncMediaFromTableColumn(
         Database $db,
@@ -1463,13 +2081,19 @@ class AdminManagementController extends Controller
                 content TEXT NOT NULL,
                 is_pinned TINYINT(1) NOT NULL DEFAULT 0,
                 is_archived TINYINT(1) NOT NULL DEFAULT 0,
+                deleted_at TIMESTAMP NULL DEFAULT NULL,
                 created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP NULL DEFAULT NULL,
                 INDEX idx_notes_admin (admin_id),
                 INDEX idx_notes_archived (is_archived),
+                INDEX idx_notes_deleted (deleted_at),
                 CONSTRAINT fk_notes_admin FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
         );
+
+        if (!$db->hasColumn('notes', 'deleted_at')) {
+            $db->query("ALTER TABLE notes ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER is_archived, ADD INDEX idx_notes_deleted (deleted_at)");
+        }
     }
 
     private function slugify(string $value): string

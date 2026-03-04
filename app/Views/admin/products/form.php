@@ -77,7 +77,22 @@ $mediaImages = $mediaImages ?? [];
         </div>
         <div class="col-md-4">
             <label class="form-label text-dark fw-bold"><i class="fas fa-wind me-1"></i> Hair Type</label>
-            <input type="text" name="hair_type" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->hair_type ?? '') ?>">
+            <?php 
+            $hairTypes = ['Vietnamese', 'Brazilian', 'Cambodian', 'Burmese', 'Raw Donor'];
+            $currentHairType = $product?->hair_type ?? '';
+            $isCustomType = $currentHairType !== '' && !in_array($currentHairType, $hairTypes);
+            ?>
+            <select id="hairTypeSelect" class="form-select hover-shadow transition">
+                <option value="">Select origin</option>
+                <?php foreach ($hairTypes as $type): ?>
+                    <option value="<?= $type ?>" <?= $currentHairType === $type ? 'selected' : '' ?>><?= $type ?></option>
+                <?php endforeach; ?>
+                <option value="custom" <?= $isCustomType ? 'selected' : '' ?>>Other (Custom)</option>
+            </select>
+            <input type="text" name="hair_type" id="hairTypeCustom" 
+                   class="form-control hover-shadow transition mt-2 <?= $isCustomType ? '' : 'd-none' ?>" 
+                   value="<?= htmlspecialchars($currentHairType) ?>" 
+                   placeholder="Enter custom hair type">
         </div>
         <div class="col-md-4">
             <label class="form-label text-dark fw-bold"><i class="fas fa-fingerprint me-1"></i> Texture</label>
@@ -90,7 +105,29 @@ $mediaImages = $mediaImages ?? [];
         </div>
         <div class="col-md-4">
             <label class="form-label text-dark fw-bold"><i class="fas fa-palette me-1"></i> Color</label>
-            <input type="text" name="color" class="form-control hover-shadow transition" value="<?= htmlspecialchars($product?->color ?? '') ?>">
+            <?php 
+            $colors = [
+                'Natural Black (1B)', 
+                'Honey Blonde (27)', 
+                'Chocolate Brown (4)', 
+                'Burgundy (99J)', 
+                'Piano Color (P4/27)',
+                'Jet Black (1)'
+            ];
+            $currentColor = $product?->color ?? '';
+            $isCustomColor = $currentColor !== '' && !in_array($currentColor, $colors);
+            ?>
+            <select id="colorSelect" class="form-select hover-shadow transition">
+                <option value="">Select color</option>
+                <?php foreach ($colors as $color): ?>
+                    <option value="<?= $color ?>" <?= $currentColor === $color ? 'selected' : '' ?>><?= $color ?></option>
+                <?php endforeach; ?>
+                <option value="custom" <?= $isCustomColor ? 'selected' : '' ?>>Other (Custom)</option>
+            </select>
+            <input type="text" name="color" id="colorCustom" 
+                   class="form-control hover-shadow transition mt-2 <?= $isCustomColor ? '' : 'd-none' ?>" 
+                   value="<?= htmlspecialchars($currentColor) ?>" 
+                   placeholder="Enter custom color">
         </div>
         <div class="col-md-4">
             <label class="form-label text-dark fw-bold"><i class="fas fa-compress-arrows-alt me-1"></i> Density</label>
@@ -260,6 +297,40 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnAdd = document.getElementById('btnAddVariant');
     const btnGenerate = document.getElementById('btnGenerate');
     let variantIndex = <?= count($variants ?? []) ?>;
+
+    // Hair Type Dropdown Logic
+    const hairSelect = document.getElementById('hairTypeSelect');
+    const hairCustomInput = document.getElementById('hairTypeCustom');
+
+    if (hairSelect && hairCustomInput) {
+        hairSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                hairCustomInput.classList.remove('d-none');
+                hairCustomInput.value = ''; // Clear for fresh input
+                hairCustomInput.focus();
+            } else {
+                hairCustomInput.classList.add('d-none');
+                hairCustomInput.value = this.value;
+            }
+        });
+    }
+
+    // Color Dropdown Logic
+    const colorSelect = document.getElementById('colorSelect');
+    const colorCustomInput = document.getElementById('colorCustom');
+
+    if (colorSelect && colorCustomInput) {
+        colorSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                colorCustomInput.classList.remove('d-none');
+                colorCustomInput.value = '';
+                colorCustomInput.focus();
+            } else {
+                colorCustomInput.classList.add('d-none');
+                colorCustomInput.value = this.value;
+            }
+        });
+    }
 
     // Add Single Variant
     btnAdd.addEventListener('click', function() {

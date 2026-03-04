@@ -39,7 +39,7 @@
                 Something went wrong on our end. Please try again later.
             </p>
             <div class="error-actions">
-                <a href="/" class="btn btn-primary btn-lg">
+                <a href="<?= url('/') ?>" class="btn btn-primary btn-lg">
                     <i class="fas fa-home"></i> Go Home
                 </a>
                 <a href="javascript:location.reload()" class="btn btn-outline-primary btn-lg">

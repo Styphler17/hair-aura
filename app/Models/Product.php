@@ -154,12 +154,12 @@ class Product extends Model
         if ($image) {
             $path = $image['image_path'];
             if (str_starts_with($path, 'uploads/') || str_starts_with($path, 'img/')) {
-                return '/' . ltrim($path, '/');
+                return ltrim($path, '/');
             }
-            return '/uploads/products/' . $path;
+            return 'uploads/products/' . ltrim($path, '/');
         }
         
-        return '/img/product-placeholder.webp';
+        return 'img/product-placeholder.webp';
     }
     
     /**

@@ -145,11 +145,10 @@ $mediaImages = $mediaImages ?? [];
                                         </div>
                                     </td>
                                     <td data-label="Status">
-                                        <?php if (!empty($category['is_active'])): ?>
-                                            <span class="badge bg-success">Active</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">Inactive</span>
-                                        <?php endif; ?>
+                                        <select class="form-select form-select-sm category-status-dropdown" data-id="<?= $catId ?>" style="width: auto;">
+                                            <option value="1" <?= !empty($category['is_active']) ? 'selected' : '' ?>>Active</option>
+                                            <option value="0" <?= empty($category['is_active']) ? 'selected' : '' ?>>Inactive</option>
+                                        </select>
                                     </td>
                                     <td data-label="Action" class="text-end">
                                         <div class="d-flex justify-content-end gap-1">
@@ -169,7 +168,7 @@ $mediaImages = $mediaImages ?? [];
                                             </button>
                                             <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#editCategory<?= $catId ?>">Edit</button>
                                             <button type="button" 
-                                                    class="btn btn-sm btn-outline-danger" 
+                                                    class="btn btn-sm btn-outline-danger btn-delete-category" 
                                                     data-bs-toggle="modal" 
                                                     data-bs-target="#deleteItemModal" 
                                                     data-id="<?= $catId ?>"

@@ -4,7 +4,7 @@
         <h1>Shopping Cart</h1>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
                 <li class="breadcrumb-item active">Cart</li>
             </ol>
         </nav>
@@ -38,7 +38,7 @@
             <i class="fas fa-shopping-bag fa-5x text-muted mb-4"></i>
             <h3>Your cart is empty</h3>
             <p class="text-muted">Looks like you haven't added anything to your cart yet.</p>
-            <a href="/shop" class="btn btn-primary btn-lg mt-3">
+            <a href="<?= url('/shop') ?>" class="btn btn-primary btn-lg mt-3">
                 <i class="fas fa-arrow-left"></i> Continue Shopping
             </a>
         </div>
@@ -78,7 +78,7 @@
                             <!-- Middle: Product Info -->
                                 <header class="cart-item-center">
                                     <h4 class="cart-item-title">
-                                        <a href="/product/<?= $item['product']->slug ?>"><?= htmlspecialchars($item['name']) ?></a>
+                                        <a href="<?= url('/product/' . $item['product']->slug) ?>"><?= htmlspecialchars($item['name']) ?></a>
                                     </h4>
                                 <div class="cart-item-meta">
                                     <div class="cart-item-price fw-bold mb-1">
@@ -121,10 +121,10 @@
                 </div>
                 
                 <div class="cart-actions mt-4">
-                    <a href="/shop" class="btn btn-outline-primary">
+                    <a href="<?= url('/shop') ?>" class="btn btn-outline-primary">
                         <i class="fas fa-arrow-left"></i> Continue Shopping
                     </a>
-                    <form action="/cart/clear" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to clear your cart?')">
+                    <form action="<?= url('/cart/clear') ?>" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to clear your cart?')">
                         <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
                         <button type="submit" class="btn btn-outline-danger">
                             <i class="fas fa-trash"></i> Clear Cart
@@ -184,7 +184,7 @@
                         </div>
                     </div>
                     
-                    <a href="/checkout" class="btn btn-primary btn-lg w-100 rounded-pill mb-3 py-2 fw-bold">
+                    <a href="<?= url('/checkout') ?>" class="btn btn-primary btn-lg w-100 rounded-pill mb-3 py-2 fw-bold">
                         Proceed to Checkout
                     </a>
                     
@@ -199,10 +199,8 @@
                     </div>
 
                     <div class="payment-trust text-center">
-                        <p class="small text-muted mb-3"><i class="fas fa-lock me-1"></i> Secure Transaction</p>
-                        <div class="d-flex justify-content-center align-items-center gap-3 fs-3 text-muted">
-                            <span class="momo-badge fw-bold border rounded px-1" style="font-size: 0.8rem; color: #333; height: 1.5rem; display: flex; align-items: center;">MoMo Only</span>
-                        </div>
+                        <p class="small text-muted mb-2"><i class="fas fa-lock me-1"></i> Secure Transaction</p>
+                        <img src="<?= asset('/img/momo-payment-banner.png') ?>" alt="Accepted MoMo Payments" class="payment-banner cart-payment-banner mx-auto">
                     </div>
                 </aside>
                 
@@ -212,7 +210,7 @@
                     <p><i class="fas fa-phone"></i> <a href="tel:<?= htmlspecialchars($supportPhone) ?>"><?= htmlspecialchars($supportPhone) ?></a></p>
                     <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/<?= htmlspecialchars($supportWhatsappDigits) ?>" target="_blank" rel="noopener">WhatsApp us</a></p>
                     <p><i class="fas fa-envelope"></i> <?= htmlspecialchars($supportEmail) ?></p>
-                    <a href="/faq" class="btn btn-outline-secondary btn-sm">View FAQ</a>
+                    <a href="<?= url('/faq') ?>" class="btn btn-outline-secondary btn-sm">View FAQ</a>
                 </div>
             </div>
         </div>

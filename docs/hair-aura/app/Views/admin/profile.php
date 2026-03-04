@@ -6,14 +6,31 @@
             <div class="card-body row g-3">
                 <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
 
-                <div class="col-12 d-flex align-items-center gap-3">
-                    <img src="<?= asset($adminUser->getAvatarUrl()) ?>" alt="<?= htmlspecialchars($adminUser->getFullName()) ?>" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid rgba(212,165,116,.45);">
-                    <div class="flex-grow-1">
-                        <label class="form-label">Profile Avatar</label>
-                        <input type="file" name="avatar" class="form-control" accept=".jpg,.jpeg,.png,.webp">
-                        <div class="form-text">Recommended square image, max 2MB.</div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Profile Avatar</label>
+                    <div class="d-flex align-items-center gap-3 p-3 border rounded bg-light">
+                         <img src="<?= asset($adminUser->getAvatarUrl()) ?>" alt="<?= htmlspecialchars($adminUser->getFullName()) ?>" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid rgba(212,165,116,.45);">
+                         <div>
+                             <div class="fw-bold">Current Avatar</div>
+                             <code class="text-muted"><?= htmlspecialchars($adminUser->avatar ?? 'Default') ?></code>
+                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Upload New Avatar</label>
+                    <input type="file" name="avatar" class="form-control" accept=".jpg,.jpeg,.png,.webp">
+                    <div class="form-text">Uploading creates a new avatar file.</div>
+                </div>
+
+                <?php
+                    // Setup for partial
+                    $inputName = 'library_avatar';
+                    $isMultiple = false;
+                    $currentValue = $adminUser->avatar ?? '';
+                    $label = 'Or Pick From Media Library';
+                    include __DIR__ . '/partials/media_library_selector.php';
+                ?>
 
                 <div class="col-md-6">
                     <label class="form-label">First Name</label>

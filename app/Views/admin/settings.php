@@ -119,7 +119,7 @@
                                     ?>
                                 </div>
                                 <div class="mt-2 text-center">
-                                    <img src="<?= asset($slide['image'] ?? '/img/hero-1.webp') ?>" class="img-thumbnail" style="height: 60px; object-fit: cover;" onerror="this.src='/img/product-placeholder.webp'">
+                                    <img src="<?= asset($slide['image'] ?? '/uploads/hero/hero-'.($i+1).'.png') ?>" class="img-thumbnail" style="height: 60px; object-fit: cover;" onerror="this.src='/img/product-placeholder.webp'">
                                 </div>
                             </div>
                         </div>
@@ -192,6 +192,17 @@
                             $label = 'Pick Instagram Images';
                             include __DIR__ . '/partials/media_library_selector.php';
                         ?>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mt-4">
+                <h4>Featured Reels</h4>
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <label class="form-label small text-muted">Paste Instagram Reel URLs (One per line)</label>
+                        <textarea name="instagram_reels" class="form-control" rows="5" placeholder="https://www.instagram.com/reels/C4p...&#10;https://www.instagram.com/reels/D5q..."><?= htmlspecialchars(implode("\n", (array) ($settings['instagram_reels'] ?? []))) ?></textarea>
+                        <div class="form-text mt-2">These will be displayed in a premium video grid on the homepage.</div>
                     </div>
                 </div>
             </div>

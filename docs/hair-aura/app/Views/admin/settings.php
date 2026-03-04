@@ -1,8 +1,39 @@
 <h2 class="mb-3">Site Settings</h2>
 
-<form method="post" action="<?= url('/admin/settings') ?>" class="card">
+<form method="post" action="<?= url('/admin/settings') ?>" class="card" enctype="multipart/form-data">
     <div class="card-body row g-3">
         <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+
+        <div class="col-12 mb-3">
+            <label class="form-label">Site Logo</label>
+            
+            <div class="mb-3">
+                <div class="d-flex align-items-center gap-3 p-3 border rounded bg-light">
+                    <img src="<?= asset($settings['logo'] ?? '/img/logo.webp') ?>" alt="Current Logo" style="height: 60px;">
+                    <div>
+                        <div class="fw-bold">Current Logo</div>
+                        <code class="text-muted"><?= htmlspecialchars($settings['logo'] ?? '/img/logo.webp') ?></code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Upload New Logo</label>
+                    <input type="file" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.webp">
+                    <div class="form-text">Uploading a file will replace <code>/img/logo.webp</code> and set it as active.</div>
+                </div>
+
+                <?php
+                    // Setup for partial
+                    $inputName = 'library_logo';
+                    $isMultiple = false;
+                    $currentValue = $settings['logo'] ?? '';
+                    $label = 'Or Pick From Media Library';
+                    include __DIR__ . '/partials/media_library_selector.php';
+                ?>
+            </div>
+        </div>
 
         <div class="col-md-6">
             <label class="form-label">Site Name</label>
@@ -48,8 +79,159 @@
             <input type="text" name="theme_gold" class="form-control" value="<?= htmlspecialchars($settings['theme_gold'] ?? '#D4AF37') ?>" pattern="^#[0-9A-Fa-f]{6}$" required>
         </div>
 
-        <div class="col-12">
-            <button type="submit" class="btn btn-primary">Save Site Settings</button>
+        <div class="col-12 mt-4">
+            <h4>Hero Slider Control</h4>
+            <p class="text-muted">Manage the 3 slides on the homepage hero section.</p>
+            <div class="row g-4">
+                <?php for ($i = 0; $i < 3; $i++): ?>
+                    <?php $slide = $settings['hero_slides'][$i] ?? []; ?>
+                    <div class="col-lg-4">
+                        <div class="card bg-light border-0">
+                            <div class="card-header bg-dark text-white p-2 text-center h6 mb-0">Slide <?= $i + 1 ?></div>
+                            <div class="card-body p-3">
+                                <div class="mb-3">
+                                    <label class="form-label font-monospace small">Title</label>
+                                    <input type="text" name="hero_slides[<?= $i ?>][title]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['title'] ?? '') ?>" placeholder="Main headline">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label font-monospace small">Subtitle</label>
+                                    <textarea name="hero_slides[<?= $i ?>][subtitle]" class="form-control form-control-sm" rows="2" placeholder="Sub headline"><?= htmlspecialchars($slide['subtitle'] ?? '') ?></textarea>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-7">
+                                        <label class="form-label font-monospace small">Button Text</label>
+                                        <input type="text" name="hero_slides[<?= $i ?>][button_text]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['button_text'] ?? '') ?>" placeholder="e.g. Shop Now">
+                                    </div>
+                                    <div class="col-5">
+                                        <label class="form-label font-monospace small">Link</label>
+                                        <input type="text" name="hero_slides[<?= $i ?>][button_link]" class="form-control form-control-sm" value="<?= htmlspecialchars($slide['button_link'] ?? '') ?>" placeholder="/shop">
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label font-monospace small mb-1">Slide Image</label>
+                                    <?php
+                                        // Reuse partial for slide image
+                                        $inputName = "hero_slides[$i][image]";
+                                        $isMultiple = false;
+                                        $currentValue = $slide['image'] ?? '';
+                                        $label = ''; // Hide label to save space
+                                        include __DIR__ . '/partials/media_library_selector.php';
+                                    ?>
+                                </div>
+                                <div class="mt-2 text-center">
+                                    <img src="<?= asset($slide['image'] ?? '/img/hero-1.webp') ?>" class="img-thumbnail" style="height: 60px; object-fit: cover;" onerror="this.src='/img/product-placeholder.webp'">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <h4>Delivery Configuration</h4>
+            <p class="text-muted">Manage global delivery threshold and regional rates.</p>
+            <div class="card bg-light border-0 shadow-sm p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Free Delivery Threshold (GH₵)</label>
+                        <input type="number" name="free_shipping_threshold" class="form-control" value="<?= htmlspecialchars($settings['free_shipping_threshold'] ?? 3000) ?>" step="0.01">
+                        <div class="form-text">Orders above this amount get free delivery.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Standard Delivery Cost (GH₵)</label>
+                        <input type="number" name="shipping_cost" class="form-control" value="<?= htmlspecialchars($settings['shipping_cost'] ?? 50) ?>" step="0.01">
+                        <div class="form-text">Fallback cost if a region rate isn't found.</div>
+                    </div>
+                    
+                    <div class="col-12 mt-3">
+                        <h6 class="fw-bold border-bottom pb-2">Region Specific Rates</h6>
+                        <div class="row g-2 mt-1">
+                            <?php 
+                            $regions = [
+                                'Greater Accra', 'Ashanti', 'Central', 'Eastern', 'Volta', 
+                                'Western', 'Bono', 'Bono East', 'Ahafo', 'Northern', 
+                                'North East', 'Savannah', 'Upper East', 'Upper West', 
+                                'Oti', 'Western North'
+                            ];
+                            $rates = $settings['shipping_rates'] ?? [];
+                            foreach ($regions as $region): 
+                            ?>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1"><?= $region ?></label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">GH₵</span>
+                                        <input type="number" name="shipping_rates[<?= $region ?>]" class="form-control" value="<?= htmlspecialchars($rates[$region] ?? 50) ?>" step="0.01">
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+
+            <div class="col-md-6 mt-4">
+                <h4>Instagram Feed</h4>
+                <div class="card bg-light border-0">
+                    <div class="card-body">
+                        <p class="small text-muted mb-2">Select up to 6 images to display in the Instagram feed.</p>
+                        <div class="d-flex gap-2 mb-3 overflow-auto pb-2">
+                            <?php foreach (($settings['instagram_images'] ?? []) as $img): ?>
+                                <img src="<?= asset($img) ?>" class="img-thumbnail" style="height: 50px; width: 50px; object-fit: cover;">
+                            <?php endforeach; ?>
+                        </div>
+                        <?php
+                            // Setup for partial
+                            $inputName = 'instagram_images';
+                            $isMultiple = true;
+                            $currentValue = implode(',', (array) ($settings['instagram_images'] ?? []));
+                            $label = 'Pick Instagram Images';
+                            include __DIR__ . '/partials/media_library_selector.php';
+                        ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <h4 class="mb-3">Social Media Links</h4>
+            <div class="row g-3">
+                <?php 
+                $platforms = [
+                    'instagram' => ['label' => 'Instagram', 'icon' => 'fab fa-instagram', 'placeholder' => 'https://instagram.com/...'],
+                    'tiktok' => ['label' => 'TikTok', 'icon' => 'fab fa-tiktok', 'placeholder' => 'https://tiktok.com/@...'],
+                    'whatsapp' => ['label' => 'WhatsApp', 'icon' => 'fab fa-whatsapp', 'placeholder' => '+233...'],
+                ];
+                
+                $socialSettings = $settings['social'] ?? [];
+                
+                foreach ($platforms as $key => $p): 
+                    $val = $socialSettings[$key] ?? ['url' => '', 'enabled' => false];
+                ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card bg-light border-0 shadow-sm">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0 fw-bold small text-uppercase"><i class="<?= $p['icon'] ?> me-2"></i><?= $p['label'] ?></label>
+                                    <div class="form-check form-switch m-0">
+                                        <input class="form-check-input" type="checkbox" name="social[<?= $key ?>][enabled]" value="1" <?= (!empty($val['enabled'])) ? 'checked' : '' ?>>
+                                        <label class="form-check-label small">Show</label>
+                                    </div>
+                                </div>
+                                <input type="text" name="social[<?= $key ?>][url]" class="form-control form-control-sm" value="<?= htmlspecialchars((string)($val['url'] ?? '')) ?>" placeholder="<?= $p['placeholder'] ?>">
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Save Site Settings</button>
         </div>
     </div>
 </form>

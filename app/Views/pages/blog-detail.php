@@ -1,36 +1,5 @@
-<?php
-$categories = $categories ?? [];
-$relatedPosts = $relatedPosts ?? [];
+<?php $featuredImagePath = resolve_blog_image($post['featured_image'] ?? null); ?>
 
-$resolveBlogImage = function(?string $rawImage): string {
-    if (empty($rawImage)) {
-        return asset('/img/product-placeholder.webp');
-    }
-
-    $image = trim((string) $rawImage);
-    if ($image === '') {
-        return asset('/img/product-placeholder.webp');
-    }
-
-    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-        return $image;
-    }
-
-    if (str_starts_with($image, '/')) {
-        return $image;
-    }
-
-    // If explicit path from root (e.g. uploads/ or img/)
-    if (str_starts_with($image, 'uploads/') || str_starts_with($image, 'img/')) {
-        return asset('/' . ltrim($image, '/'));
-    }
-
-    // Otherwise, treat as relative to blog uploads folder (supporting ../)
-    return asset('/uploads/blog/' . ltrim($image, '/'));
-};
-
-$featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
-?>
 
 <section class="blog-detail-page py-5">
     <div class="container">
@@ -59,7 +28,7 @@ $featuredImagePath = $resolveBlogImage($post['featured_image'] ?? null);
                     <h3 class="mb-3">Related Posts</h3>
                     <div class="row g-3">
                         <?php foreach ($relatedPosts as $related): ?>
-                        <?php $relatedImage = $resolveBlogImage($related['featured_image'] ?? null); ?>
+                        <?php $relatedImage = resolve_blog_image($related['featured_image'] ?? null); ?>
                         <div class="col-md-6">
                             <article class="card border-0 shadow-sm h-100">
                                 <a href="<?= url('/blog/' . $related['slug']) ?>">

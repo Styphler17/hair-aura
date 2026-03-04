@@ -20,32 +20,7 @@ $buildBlogUrl = function(int $page = 1, ?string $category = null, ?string $query
     return empty($params) ? $base : $base . '?' . http_build_query($params);
 };
 
-$resolveBlogImage = function(array $post): string {
-    if (empty($post['featured_image'])) {
-        return asset('/img/product-placeholder.webp');
-    }
-
-    $image = trim((string) $post['featured_image']);
-    if ($image === '') {
-        return asset('/img/product-placeholder.webp');
-    }
-
-    if (str_starts_with($image, 'http://') || str_starts_with($image, 'https://')) {
-        return $image;
-    }
-
-    if (str_starts_with($image, '/')) {
-        return $image;
-    }
-
-    // If explicit path from root (e.g. uploads/ or img/)
-    if (str_starts_with($image, 'uploads/') || str_starts_with($image, 'img/')) {
-        return asset('/' . ltrim($image, '/'));
-    }
-
-    // Otherwise, treat as relative to blog uploads folder (supporting ../)
-    return asset('/uploads/blog/' . ltrim($image, '/'));
-};
+// Image resolution is now handled by the global resolve_blog_image() helper in public/index.php
 ?>
 
 <section class="blog-page py-5">
@@ -65,12 +40,12 @@ $resolveBlogImage = function(array $post): string {
                         <h5 class="mb-3">Filter Posts</h5>
                         <form method="get" action="<?= url('/blog') ?>" class="search-form blog-filter-form" data-live-search="blog">
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Search</label>
-                                <input type="text" name="q" class="form-control" placeholder="Search posts..." value="<?= htmlspecialchars($searchQuery) ?>" autocomplete="off">
+                                <label for="blog-search" class="form-label small text-muted">Search</label>
+                                <input type="text" id="blog-search" name="q" class="form-control" placeholder="Search posts..." value="<?= htmlspecialchars($searchQuery) ?>" autocomplete="off">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label small text-muted">Category</label>
-                                <select name="category" class="form-select">
+                                <label for="blog-category" class="form-label small text-muted">Category</label>
+                                <select id="blog-category" name="category" class="form-select">
                                     <option value="">All Categories</option>
                                     <?php foreach ($categories as $category): ?>
                                     <option value="<?= htmlspecialchars($category['category']) ?>" <?= $selectedCategory === $category['category'] ? 'selected' : '' ?>>
@@ -117,8 +92,8 @@ $resolveBlogImage = function(array $post): string {
                 <?php else: ?>
                     <div class="row g-4">
                         <?php foreach ($posts as $post): ?>
-                            <?php $imagePath = $resolveBlogImage($post); ?>
-                            <div class="col-md-6">
+                            <?php $imagePath = resolve_blog_image($post['featured_image'] ?? null); ?>
+                            <div class="col-sm-6 col-md-4">
                                 <article class="card h-100 shadow-sm border-0 blog-card">
                                     <a href="<?= url('/blog/' . $post['slug']) ?>">
                                         <img src="<?= htmlspecialchars($imagePath) ?>" class="card-img-top blog-card-image" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
@@ -139,24 +114,33 @@ $resolveBlogImage = function(array $post): string {
                         <?php endforeach; ?>
                     </div>
 
+
                     <?php if (($pagination['last_page'] ?? 1) > 1): ?>
-                    <nav class="mt-4" aria-label="Blog pagination">
-                        <ul class="pagination justify-content-center">
-                            <?php $currentPage = (int) ($pagination['current_page'] ?? 1); ?>
-                            <?php $lastPage = (int) ($pagination['last_page'] ?? 1); ?>
-
-                            <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($buildBlogUrl(max(1, $currentPage - 1), $selectedCategory, $searchQuery)) ?>">Previous</a>
+                    <?php $currentPage = (int) ($pagination['current_page'] ?? 1); ?>
+                    <?php $lastPage = (int) ($pagination['last_page'] ?? 1); ?>
+                    <nav class="mt-5 d-flex justify-content-center" aria-label="Blog pagination">
+                        <ul class="blog-pagination">
+                            <li>
+                                <a class="blog-page-btn <?= $currentPage <= 1 ? 'disabled' : '' ?>"
+                                   href="<?= $currentPage > 1 ? htmlspecialchars($buildBlogUrl($currentPage - 1, $selectedCategory, $searchQuery)) : '#' ?>"
+                                   aria-label="Previous">
+                                    <i class="fas fa-chevron-left"></i>
+                                </a>
                             </li>
-
                             <?php for ($i = 1; $i <= $lastPage; $i++): ?>
-                            <li class="page-item <?= $i === $currentPage ? 'active' : '' ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($buildBlogUrl($i, $selectedCategory, $searchQuery)) ?>"><?= $i ?></a>
+                            <li>
+                                <a class="blog-page-btn <?= $i === $currentPage ? 'active' : '' ?>"
+                                   href="<?= htmlspecialchars($buildBlogUrl($i, $selectedCategory, $searchQuery)) ?>">
+                                    <?= $i ?>
+                                </a>
                             </li>
                             <?php endfor; ?>
-
-                            <li class="page-item <?= $currentPage >= $lastPage ? 'disabled' : '' ?>">
-                                <a class="page-link" href="<?= htmlspecialchars($buildBlogUrl(min($lastPage, $currentPage + 1), $selectedCategory, $searchQuery)) ?>">Next</a>
+                            <li>
+                                <a class="blog-page-btn <?= $currentPage >= $lastPage ? 'disabled' : '' ?>"
+                                   href="<?= $currentPage < $lastPage ? htmlspecialchars($buildBlogUrl($currentPage + 1, $selectedCategory, $searchQuery)) : '#' ?>"
+                                   aria-label="Next">
+                                    <i class="fas fa-chevron-right"></i>
+                                </a>
                             </li>
                         </ul>
                     </nav>
@@ -166,3 +150,61 @@ $resolveBlogImage = function(array $post): string {
         </div>
     </div>
 </section>
+
+<script>
+// Clean up empty URL parameters on blog filter submit
+document.querySelector('.blog-filter-form')?.addEventListener('submit', function(e) {
+    const inputs = this.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        if (!input.value || input.value.trim() === '') {
+            input.disabled = true; // Disable empty inputs so they aren't sent in the GET request
+        }
+    });
+});
+</script>
+
+<style>
+/* ── Blog Pagination ─────────────────────────────── */
+.blog-pagination {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.blog-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 50px;
+    border: 1.5px solid #e0c89a;
+    color: #8B6914;
+    background: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.blog-page-btn:hover:not(.disabled):not(.active) {
+    background: #fdf3e3;
+    border-color: #D4A574;
+    color: #6b4f10;
+    transform: translateY(-1px);
+}
+.blog-page-btn.active {
+    background: #D4A574;
+    border-color: #D4A574;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(212,165,116,0.4);
+}
+.blog-page-btn.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+</style>
+

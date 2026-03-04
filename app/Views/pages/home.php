@@ -97,7 +97,7 @@
             <?php endforeach; ?>
         </div> <!-- end row -->
         <div class="text-center mt-5">
-            <a href="/shop" class="btn btn-outline-primary btn-lg">View All Categories</a>
+            <a href="<?= url('/shop') ?>" class="btn btn-outline-primary btn-lg">View All Categories</a>
         </div>
     </div> <!-- end container -->
 </section>
@@ -256,8 +256,10 @@
 
 <?php 
 $instagramImages = (array) ($siteSettings['instagram_images'] ?? []);
-if (empty($instagramImages)) {
-    // Fallback to local files if settings is empty
+$instagramReels = (array) ($siteSettings['instagram_reels'] ?? []);
+
+if (empty($instagramImages) && empty($instagramReels)) {
+    // Fallback to local files if settings are empty
     $instagramDir = __DIR__ . '/../../../public/img/instagram';
     if (is_dir($instagramDir)) {
         $matches = glob($instagramDir . '/*.{jpg,jpeg,png,webp}', GLOB_BRACE);
@@ -268,27 +270,52 @@ if (empty($instagramImages)) {
     }
 }
 ?>
-<?php if (!empty($instagramImages)): ?>
+<?php if (!empty($instagramImages) || !empty($instagramReels)): ?>
 <!-- Instagram Feed -->
 <section class="instagram-section py-5">
     <div class="container">
-        <div class="section-header text-center">
+        <div class="section-header text-center mb-5">
             <h2 class="section-title">Follow Us on Instagram</h2>
-            <p class="section-subtitle">@hairaura</p>
+            <p class="section-subtitle">@hair_aura_official</p>
         </div>
         
-        <div class="row g-2">
-            <?php foreach ($instagramImages as $img): ?>
-                <div class="col-4 col-md-2">
-                    <a href="https://instagram.com/hairaura" target="_blank" rel="noopener" class="instagram-item">
-                        <img src="<?= asset($img) ?>" alt="Instagram" loading="lazy">
-                        <div class="instagram-overlay">
-                            <i class="fab fa-instagram"></i>
+        <?php if (!empty($instagramReels)): ?>
+            <!-- Featured Reels -->
+            <div class="row g-5 mb-5 justify-content-center">
+                <?php foreach ($instagramReels as $reelUrl): ?>
+                    <?php 
+                        $code = '';
+                        if (preg_match('/(?:reels?|p)\/([A-Za-z0-9_-]+)/', $reelUrl, $matches)) {
+                            $code = $matches[1];
+                        }
+                    ?>
+                    <?php if ($code): ?>
+                        <div class="col-md-6 col-lg-5">
+                            <div class="reel-card shadow-lg rounded-4 overflow-hidden border-0 bg-white p-2">
+                                <blockquote class="instagram-media" data-instgrm-permalink="https://www.instagram.com/reel/<?= $code ?>/" data-instgrm-version="14" style="background:#FFF; border:0; border-radius:12px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 0; min-width:326px; padding:0; width:100%;"></blockquote>
+                            </div>
                         </div>
-                    </a>
-                </div>
-            <?php endforeach; ?>
-        </div>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </div>
+            <script async src="//www.instagram.com/embed.js"></script>
+        <?php endif; ?>
+
+        <?php if (!empty($instagramImages)): ?>
+            <!-- Static Feed -->
+            <div class="row g-2">
+                <?php foreach ($instagramImages as $img): ?>
+                    <div class="col-4 col-md-2">
+                        <a href="https://instagram.com/hair_aura_official" target="_blank" rel="noopener" class="instagram-item">
+                            <img src="<?= asset($img) ?>" alt="Instagram" loading="lazy">
+                            <div class="instagram-overlay">
+                                <i class="fab fa-instagram"></i>
+                            </div>
+                        </a>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 <?php endif; ?>

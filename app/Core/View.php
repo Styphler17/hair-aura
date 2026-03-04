@@ -46,8 +46,13 @@ class View
     {
         // Merge shared data
         $data = array_merge(self::$sharedData, $data);
-        
+
+        // Clear sections from any previous render so stale content doesn't bleed through
+        self::$sections = [];
+
         // Extract data for view
+        // Note: unset $content from the extracted vars so it doesn't shadow the layout's $content
+        unset($data['content']);
         extract($data);
         
         // Start output buffering

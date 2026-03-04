@@ -84,10 +84,14 @@
                                             data-note-pinned="<?= !empty($note['is_pinned']) ? '1' : '0' ?>"
                                         >Open</button>
                                         <a href="<?= url('/admin/notes?edit=' . (int) $note['id']) ?>" class="btn btn-sm btn-outline-primary">Edit</a>
-                                        <form method="post" action="<?= url('/admin/notes/delete/' . (int) $note['id']) ?>" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">Archive</button>
-                                        </form>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteNoteModal" 
+                                                data-id="<?= (int) $note['id'] ?>"
+                                                data-title="<?= htmlspecialchars((string) ($note['title'] ?? 'Untitled')) ?>">
+                                            <i class="fas fa-trash-can"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <textarea id="noteContent<?= (int) $note['id'] ?>" class="d-none"><?= htmlspecialchars((string) ($note['content'] ?? '')) ?></textarea>
@@ -119,3 +123,68 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteNoteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash-can me-2"></i> Move to Trash</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="mb-0">Are you sure you want to move "<strong><span id="deleteNoteTitle"></span></strong>" to trash?</p>
+                <div class="alert alert-warning mt-3 mb-0 small">
+                    <i class="fas fa-info-circle me-1"></i> You can recover this note from the trash section later.
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Keep Note</button>
+                <form id="deleteNoteForm" method="post" action="">
+                    <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
+                    <button type="submit" class="btn btn-danger px-4">Move to Trash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = document.getElementById('deleteNoteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            
+            deleteModal.querySelector('#deleteNoteTitle').textContent = title;
+            deleteModal.querySelector('#deleteNoteForm').action = '<?= url("/admin/notes/delete/") ?>' + id;
+        });
+    }
+    
+    const openBtns = document.querySelectorAll('.js-note-open');
+    openBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-note-id');
+            const title = this.getAttribute('data-note-title');
+            const updated = this.getAttribute('data-note-updated');
+            const pinned = this.getAttribute('data-note-pinned') === '1';
+            const content = document.getElementById('noteContent' + id).value;
+            
+            const modal = new bootstrap.Modal(document.getElementById('notePreviewModal'));
+            document.querySelector('#notePreviewModal [data-note-title]').textContent = title;
+            document.querySelector('#notePreviewModal [data-note-updated]').textContent = updated;
+            document.querySelector('#notePreviewModal [data-note-content]').textContent = content;
+            
+            const badge = document.querySelector('#notePreviewModal [data-note-pinned-badge]');
+            if (pinned) {
+                badge.classList.remove('d-none');
+            } else {
+                badge.classList.add('d-none');
+            }
+            
+            modal.show();
+        });
+    });
+});
+</script>

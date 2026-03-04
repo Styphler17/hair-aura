@@ -58,10 +58,15 @@
                                     <td data-label="Phone"><?= htmlspecialchars($account['phone'] ?? '') ?></td>
                                     <td data-label="Role"><span class="badge bg-<?= ($account['role'] ?? '') === 'admin' ? 'dark' : 'secondary' ?>"><?= htmlspecialchars(ucfirst($account['role'] ?? 'customer')) ?></span></td>
                                     <td data-label="Status">
-                                        <?php if (!empty($account['is_active'])): ?>
+                                        <?php if ((int)$account['id'] === (int)(\App\Core\Auth::user()->id)): ?>
                                             <span class="badge bg-success">Active</span>
                                         <?php else: ?>
-                                            <span class="badge bg-danger">Inactive</span>
+                                            <select class="form-select form-select-sm status-dropdown user-status-select" 
+                                                    data-id="<?= $account['id'] ?>"
+                                                    data-url="<?= url('/admin/users/update-status/' . $account['id']) ?>">
+                                                <option value="active" <?= !empty($account['is_active']) ? 'selected' : '' ?>>Active</option>
+                                                <option value="inactive" <?= empty($account['is_active']) ? 'selected' : '' ?>>Inactive</option>
+                                            </select>
                                         <?php endif; ?>
                                     </td>
                                     <td data-label="Actions" class="text-end">
@@ -163,18 +168,50 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Single Deactivation
+    // Single Deactivation via AJAX/DELETE
     const deactivateModal = document.getElementById('deactivateUserModal');
     if (deactivateModal) {
+        let currentUserId = null;
+        let currentUserName = null;
+        let triggerButton = null;
+
         deactivateModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const userId = button.getAttribute('data-id');
-            const userName = button.getAttribute('data-name');
-            const form = document.getElementById('deactivateUserForm');
-            const nameSpan = document.getElementById('userNameToDeactivate');
-            
-            form.action = '<?= url('/admin/users/delete/') ?>' + userId;
-            nameSpan.textContent = userName;
+            triggerButton = event.relatedTarget;
+            currentUserId = triggerButton.getAttribute('data-id');
+            currentUserName = triggerButton.getAttribute('data-name');
+            document.getElementById('userNameToDeactivate').textContent = currentUserName;
+        });
+
+        const deactivateForm = document.getElementById('deactivateUserForm');
+        deactivateForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = deactivateForm.querySelector('button[type="submit"]');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Deactivating...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('<?= url('/admin/users/delete/') ?>' + currentUserId, {
+                    method: 'POST', // The route is POST in index.php line 467: $router->post('/users/delete/{id:\d+}', ['AdminManagementController', 'deleteUser']);
+                    body: new FormData(deactivateForm),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    bootstrap.Modal.getInstance(deactivateModal).hide();
+                    showToast(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Error deactivating user', 'danger');
+                    btn.innerHTML = originalHtml;
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                showToast('Connection error', 'danger');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
         });
     }
 
@@ -216,9 +253,78 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (confirmBulk) {
-        confirmBulk.addEventListener('click', function() {
-            bulkForm.submit();
+        confirmBulk.addEventListener('click', async function() {
+            const originalHtml = confirmBulk.innerHTML;
+            confirmBulk.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing...';
+            confirmBulk.disabled = true;
+
+            try {
+                const response = await fetch('<?= url('/admin/users/bulk-deactivate') ?>', {
+                    method: 'POST',
+                    body: new FormData(bulkForm),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('bulkDeactivateModal')).hide();
+                    showToast(data.message, 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showToast(data.message || 'Error processing request', 'danger');
+                    confirmBulk.innerHTML = originalHtml;
+                    confirmBulk.disabled = false;
+                }
+            } catch (error) {
+                showToast('Connection error', 'danger');
+                confirmBulk.innerHTML = originalHtml;
+                confirmBulk.disabled = false;
+            }
         });
     }
+
+    // Individual Status Change (if we want to use the dropdown)
+    document.querySelectorAll('.user-status-select').forEach(select => {
+        select.addEventListener('change', async function() {
+            const id = this.dataset.id;
+            const url = this.dataset.url;
+            const status = this.value;
+            const originalValue = this.querySelector('[selected]')?.value || 'active';
+
+            if (status === 'inactive' && !confirm('Are you sure you want to deactivate this user?')) {
+                this.value = originalValue;
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('csrf_token', '<?= \App\Core\Auth::csrfToken() ?>');
+
+            try {
+                this.classList.add('loading');
+                // Use the deleteUser endpoint for deactivation if status is inactive
+                const targetUrl = status === 'inactive' ? '<?= url('/admin/users/delete/') ?>' + id : url;
+                
+                const response = await fetch(targetUrl, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    if (status === 'inactive') setTimeout(() => window.location.reload(), 500);
+                } else {
+                    showToast(data.message || 'Error updating status', 'danger');
+                    this.value = originalValue;
+                }
+            } catch (error) {
+                showToast('Connection error', 'danger');
+                this.value = originalValue;
+            } finally {
+                this.classList.remove('loading');
+            }
+        });
+    });
 });
 </script>

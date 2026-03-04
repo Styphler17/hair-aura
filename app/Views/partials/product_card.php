@@ -6,7 +6,7 @@
  * @var callable $resolveProductImage Function to resolve product image path
  */
 
-$productUrl = "/product/" . htmlspecialchars($product['slug']);
+$productUrl = url("/product/" . $product['slug']);
 $productName = htmlspecialchars($product['name']);
 $imageSrc = $resolveProductImage($product['primary_image'] ?? '');
 $placeholder = asset('/img/product-placeholder.webp');
@@ -17,65 +17,82 @@ $hasSale = !empty($product['sale_price']) && $product['sale_price'] < $product['
 $discount = $hasSale ? round((($product['price'] - $product['sale_price']) / $product['price']) * 100) : 0;
 ?>
 
-<article class="product-card" data-product-id="<?= $product['id'] ?>">
-    <figure class="product-image">
-        <a href="<?= $productUrl ?>" aria-label="View <?= $productName ?>">
-            <img src="<?= $imageSrc ?>" 
-                 alt="<?= $productName ?>" 
-                 loading="lazy"
-                 onerror="this.onerror=null;this.src='<?= $placeholder ?>';">
-        </a>
+<article class="product-card premium-card" data-product-id="<?= $product['id'] ?>">
+    <div class="card-inner">
+        <figure class="product-image-wrapper">
+            <a href="<?= $productUrl ?>" class="image-link" aria-label="View <?= $productName ?>">
+                <div class="image-overlay"></div>
+                <img src="<?= $imageSrc ?>" 
+                     alt="<?= $productName ?>" 
+                     class="main-image"
+                     loading="lazy"
+                     onerror="this.onerror=null;this.src='<?= $placeholder ?>';">
+                <?php if ($hasSale): ?>
+                    <div class="discount-pill">
+                        <span class="pill-label">Save</span>
+                        <span class="pill-value"><?= $discount ?>%</span>
+                    </div>
+                <?php endif; ?>
+            </a>
+            
+            <div class="quick-actions">
+                <button class="action-btn wishlist-btn <?= ($product['in_wishlist'] ?? false) ? 'active' : '' ?>" 
+                        data-product-id="<?= $product['id'] ?>" 
+                        title="Add to Wishlist">
+                    <i class="<?= ($product['in_wishlist'] ?? false) ? 'fas' : 'far' ?> fa-heart"></i>
+                </button>
+                <button class="action-btn quickview-btn" 
+                        data-product-id="<?= $product['id'] ?>" 
+                        title="Quick View">
+                    <i class="fas fa-expand-alt"></i>
+                </button>
+            </div>
+        </figure>
         
-        <?php if ($hasSale): ?>
-            <span class="product-badge sale">-<?= $discount ?>%</span>
-        <?php elseif (!empty($product['new_arrival'])): ?>
-            <span class="product-badge new">New</span>
-        <?php endif; ?>
-        
-        <div class="product-actions">
-            <button class="btn btn-wishlist <?= ($product['in_wishlist'] ?? false) ? 'active' : '' ?>" 
-                    data-product-id="<?= $product['id'] ?>" 
-                    aria-label="Add to wishlist">
-                <i class="<?= ($product['in_wishlist'] ?? false) ? 'fas' : 'far' ?> fa-heart"></i>
-            </button>
-            <button class="btn btn-quickview" 
-                    data-product-id="<?= $product['id'] ?>" 
-                    aria-label="Quick view">
-                <i class="fas fa-eye"></i>
-            </button>
-        </div>
-    </figure>
-    
-    <div class="product-info">
-        <header>
-            <span class="product-category"><?= $categoryName ?></span>
-            <h3 class="product-title">
+        <div class="product-details">
+            <div class="detail-header">
+                <span class="category-tag"><?= $categoryName ?></span>
+                <?php if (!empty($product['color'])): ?>
+                    <div class="color-indicator" title="Color: <?= htmlspecialchars($product['color']) ?>">
+                        <span class="color-dot" style="background: <?= strtolower($product['color']) === 'jet black' || strtolower($product['color']) === 'natural black (1b)' ? '#0a0a0a' : (str_contains(strtolower($product['color']), 'blonde') ? '#e9d2a0' : '#222') ?>"></span>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <h3 class="product-name">
                 <a href="<?= $productUrl ?>"><?= $productName ?></a>
             </h3>
-        </header>
-        
-        <?php if (isset($product['rating_avg'])): ?>
-        <div class="product-rating" aria-label="Rating: <?= $product['rating_avg'] ?> out of 5">
-            <?php for ($i = 1; $i <= 5; $i++): ?>
-                <i class="fas fa-star<?= $i > $product['rating_avg'] ? '-empty' : '' ?>" aria-hidden="true"></i>
-            <?php endfor; ?>
-            <span>(<?= $product['review_count'] ?? 0 ?>)</span>
+
+            <div class="product-rating mb-1">
+                <div class="stars">
+                    <?php 
+                    $ratingAvg = (float) ($product['rating_avg'] ?? 0);
+                    $reviewCount = (int) ($product['review_count'] ?? 0);
+                    if ($reviewCount > 0):
+                        echo \App\Models\Review::getStarRating($ratingAvg);
+                    ?>
+                        <span class="rating-count">(<?= $reviewCount ?>)</span>
+                    <?php else: ?>
+                        <span class="no-rating text-muted small">No reviews yet</span>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <div class="price-wrapper">
+                <?php if ($hasSale): ?>
+                    <span class="price-original"><?= money($product['price']) ?></span>
+                    <span class="price-sale"><?= money($product['sale_price']) ?></span>
+                <?php else: ?>
+                    <span class="price-regular"><?= money($product['price']) ?></span>
+                <?php endif; ?>
+            </div>
+
+            <div class="card-footer-actions">
+                <button class="btn btn-premium-add btn-add-cart" data-product-id="<?= $product['id'] ?>">
+                    <span class="btn-text">Add to Cart</span>
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
         </div>
-        <?php endif; ?>
-        
-        <div class="product-price">
-            <?php if ($hasSale): ?>
-                <span class="old-price"><?= money($product['price']) ?></span>
-                <span class="current-price"><?= money($product['sale_price']) ?></span>
-            <?php else: ?>
-                <span class="current-price"><?= money($product['price']) ?></span>
-            <?php endif; ?>
-        </div>
-        
-        <footer class="product-card-footer">
-            <button class="btn btn-primary btn-add-cart" data-product-id="<?= $product['id'] ?>">
-                <i class="fas fa-shopping-bag"></i> Add to Cart
-            </button>
-        </footer>
     </div>
 </article>

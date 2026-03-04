@@ -1,12 +1,16 @@
 <?php
+/** @var \App\Models\Product|array $product */
+$p = $productObject ?? $product ?? null;
+if (!$p instanceof \App\Models\Product) {
+    $p = new \App\Models\Product((array)$p);
+}
+// Now use $p as the main product object
+$productObject = $p;
+
 $shareUrl = (string) ($shareUrl ?? '');
 if ($shareUrl === '') {
-    $configuredBaseUrl = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
-    $requestHost = (string) ($_SERVER['HTTP_HOST'] ?? '');
-    $requestScheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-    $runtimeBaseUrl = $requestHost !== '' ? ($requestScheme . '://' . $requestHost . rtrim((string) ($GLOBALS['app_base_url'] ?? ''), '/')) : '';
-    $siteBaseUrl = $configuredBaseUrl !== '' ? $configuredBaseUrl : rtrim($runtimeBaseUrl, '/');
-    $shareUrl = $siteBaseUrl . '/product/' . ltrim((string) ($product->slug ?? ''), '/');
+    $siteBaseUrl = rtrim((string) ($_ENV['APP_URL'] ?? ''), '/');
+    $shareUrl = url('/product/' . ltrim((string) ($productObject->slug ?? ''), '/'));
 }
 
 $resolveProductImage = function($path) {
@@ -18,7 +22,7 @@ $resolveProductImage = function($path) {
 };
 
 // Split price for Amazon styling
-$priceParts = explode('.', number_format((float)$product->getCurrentPrice(), 2, '.', ''));
+$priceParts = explode('.', number_format((float)$productObject->getCurrentPrice(), 2, '.', ''));
 $priceInt = $priceParts[0];
 $priceDec = $priceParts[1] ?? '00';
 ?>
@@ -28,12 +32,12 @@ $priceDec = $priceParts[1] ?? '00';
         <!-- Breadcrumbs -->
         <nav aria-label="breadcrumb" class="amazon-breadcrumb">
             <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="/">Home</a></li>
-                <li class="breadcrumb-item"><a href="/shop">Shop</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
+                <li class="breadcrumb-item"><a href="<?= url('/shop') ?>">Shop</a></li>
                 <?php if ($category): ?>
-                <li class="breadcrumb-item"><a href="/shop/<?= htmlspecialchars($category['slug']) ?>"><?= htmlspecialchars($category['name']) ?></a></li>
+                <li class="breadcrumb-item"><a href="<?= url('/shop/' . $category['slug']) ?>"><?= htmlspecialchars($category['name']) ?></a></li>
                 <?php endif; ?>
-                <li class="breadcrumb-item active"><?= htmlspecialchars($product->name) ?></li>
+                <li class="breadcrumb-item active"><?= htmlspecialchars($productObject->name) ?></li>
             </ol>
         </nav>
 
@@ -46,16 +50,16 @@ $priceDec = $priceParts[1] ?? '00';
                         <?php foreach ($images as $index => $image): ?>
                             <?php $imgUrl = $resolveProductImage($image['image_path']); ?>
                             <div class="vertical-thumb <?= $image['is_primary'] ? 'active' : '' ?>" data-image="<?= $imgUrl ?>">
-                                <img src="<?= $imgUrl ?>" alt="<?= htmlspecialchars($product->name) ?>">
+                                <img src="<?= $imgUrl ?>" alt="<?= htmlspecialchars($productObject->name) ?>">
                             </div>
                         <?php endforeach; ?>
                     </div>
 
                     <!-- Main Image -->
                     <div class="main-image-display border rounded p-2">
-                        <img src="<?= $product->getPrimaryImage() ?>" id="mainImage" alt="<?= htmlspecialchars($product->name) ?>" class="img-fluid">
-                        <?php if ($product->isOnSale()): ?>
-                            <span class="badge bg-danger position-absolute top-0 end-0 m-3 p-2 rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">-<?= $product->getDiscountPercent() ?>%</span>
+                        <img src="<?= asset($productObject->getPrimaryImage()) ?>" id="mainImage" alt="<?= htmlspecialchars($productObject->name) ?>" class="img-fluid">
+                        <?php if ($productObject->isOnSale()): ?>
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-3 p-2 rounded-circle" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;">-<?= $productObject->getDiscountPercent() ?>%</span>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -75,18 +79,16 @@ $priceDec = $priceParts[1] ?? '00';
 
             <!-- Column 2: Details -->
             <div class="col-lg-4 amazon-info-col">
-                <h1 class="mb-1"><?= htmlspecialchars($product->name) ?></h1>
-                <a href="/shop/<?= htmlspecialchars($category['slug'] ?? 'all') ?>" class="amazon-brand-link mb-2 d-inline-block">Visit the <?= htmlspecialchars($product->brand ?: 'Hair Aura') ?> Store</a>
+                <h1 class="mb-1"><?= htmlspecialchars($productObject->name) ?></h1>
+                <a href="<?= url('/shop/' . ($category['slug'] ?? 'all')) ?>" class="amazon-brand-link mb-2 d-inline-block">Visit the <?= htmlspecialchars($productObject->brand ?: 'Hair Aura') ?> Store</a>
                 
-                <div class="amazon-rating">
+                <a href="#reviews" class="amazon-rating text-decoration-none">
                     <div class="stars">
-                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                            <i class="<?= $i <= round($product->rating_avg) ? 'fas' : 'far' ?> fa-star"></i>
-                        <?php endfor; ?>
+                        <?= \App\Models\Review::getStarRating($productObject->rating_avg) ?>
                         <i class="fas fa-chevron-down ms-1" style="font-size: 0.6rem; color: #565959;"></i>
                     </div>
-                    <a href="#reviews" class="rating-text"><?= $product->review_count ?> ratings</a>
-                </div>
+                    <span class="rating-text"><?= $productObject->review_count ?> ratings</span>
+                </a>
 
                 <div class="amazon-divider"></div>
 
@@ -94,8 +96,8 @@ $priceDec = $priceParts[1] ?? '00';
                     <span class="price-symbol">GH₵</span>
                     <span class="price-large" id="displayPriceInt"><?= $priceInt ?></span>
                     <span class="price-decimal" id="displayPriceDec"><?= $priceDec ?></span>
-                    <?php if ($product->isOnSale()): ?>
-                        <span class="old-price">List: <span class="text-decoration-line-through"><?= money($product->price) ?></span></span>
+                    <?php if ($productObject->isOnSale()): ?>
+                        <span class="old-price">List: <span class="text-decoration-line-through"><?= money($productObject->price) ?></span></span>
                     <?php endif; ?>
                 </div>
 
@@ -106,7 +108,7 @@ $priceDec = $priceParts[1] ?? '00';
                     <div class="amazon-variant-switches">
                         <?php foreach ($variants as $index => $variant): ?>
                             <?php 
-                                $vFinal = $product->sale_price ? ($product->sale_price + $variant['price_adjustment']) : ($product->price + $variant['price_adjustment']);
+                                $vFinal = $productObject->sale_price ? ($productObject->sale_price + $variant['price_adjustment']) : ($productObject->price + $variant['price_adjustment']);
                                 $vParts = explode('.', number_format((float)$vFinal, 2, '.', ''));
                             ?>
                             <div class="amazon-swatch <?= $index === 0 ? 'active' : '' ?>" 
@@ -128,7 +130,7 @@ $priceDec = $priceParts[1] ?? '00';
                 <h6 class="fw-bold mb-3">About this item</h6>
                 <ul class="amazon-bullet-points">
                     <?php 
-                        $bullets = array_filter(explode("\n", strip_tags($product->short_description ?: $product->description)));
+                        $bullets = array_filter(explode("\n", strip_tags($productObject->short_description ?: $productObject->description)));
                         foreach (array_slice($bullets, 0, 5) as $bullet): 
                     ?>
                         <li><?= htmlspecialchars(trim($bullet)) ?></li>
@@ -138,17 +140,17 @@ $priceDec = $priceParts[1] ?? '00';
                 <!-- Characteristics Table -->
                 <table class="table table-sm border-0 amazon-meta-table mb-4">
                     <tbody>
-                        <?php if($product->hair_type): ?>
-                        <tr><td class="fw-bold">Hair Type</td><td><?= ucwords(str_replace('_', ' ', $product->hair_type)) ?></td></tr>
+                        <?php if($productObject->hair_type): ?>
+                        <tr><td class="fw-bold">Hair Type</td><td><?= ucwords(str_replace('_', ' ', $productObject->hair_type)) ?></td></tr>
                         <?php endif; ?>
-                        <?php if($product->texture): ?>
-                        <tr><td class="fw-bold">Texture</td><td><?= ucwords(str_replace('_', ' ', $product->texture)) ?></td></tr>
+                        <?php if($productObject->texture): ?>
+                        <tr><td class="fw-bold">Texture</td><td><?= ucwords(str_replace('_', ' ', $productObject->texture)) ?></td></tr>
                         <?php endif; ?>
-                        <?php if($product->color): ?>
-                        <tr><td class="fw-bold">Color</td><td><?= htmlspecialchars($product->color) ?></td></tr>
+                        <?php if($productObject->color): ?>
+                        <tr><td class="fw-bold">Color</td><td><?= htmlspecialchars($productObject->color) ?></td></tr>
                         <?php endif; ?>
-                        <?php if($product->brand): ?>
-                        <tr><td class="fw-bold">Brand</td><td><?= htmlspecialchars($product->brand) ?></td></tr>
+                        <?php if($productObject->brand): ?>
+                        <tr><td class="fw-bold">Brand</td><td><?= htmlspecialchars($productObject->brand) ?></td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -165,26 +167,26 @@ $priceDec = $priceParts[1] ?? '00';
                         FREE delivery <strong>Tomorrow</strong>. Order within <span class="text-success fw-bold">4 hrs 12 mins.</span>
                     </div>
 
-                    <div class="amazon-stock-status <?= $product->isInStock() ? 'in-stock' : 'out-of-stock' ?>" id="buyBoxStock">
-                        <?= $product->isInStock() ? 'In Stock' : 'Out of Stock' ?>
+                    <div class="amazon-stock-status <?= $productObject->isInStock() ? 'in-stock' : 'out-of-stock' ?>" id="buyBoxStock">
+                        <?= $productObject->isInStock() ? 'In Stock' : 'Out of Stock' ?>
                     </div>
 
                     <form id="amazonAddToCartForm">
                         <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                        <input type="hidden" name="product_id" value="<?= $product->id ?>">
+                        <input type="hidden" name="product_id" value="<?= $productObject->id ?>">
                         <input type="hidden" name="variant_id" id="buyBoxVariantId" value="<?= !empty($variants) ? $variants[0]['id'] : '' ?>">
                         
                         <label class="small fw-bold mb-1">Quantity:</label>
                         <select name="quantity" class="amazon-qty-select mb-3" id="qtySelect">
-                            <?php for($i=1; $i <= min(10, $product->stock_quantity); $i++): ?>
+                            <?php for($i=1; $i <= min(10, $productObject->stock_quantity); $i++): ?>
                                 <option value="<?= $i ?>"><?= $i ?></option>
                             <?php endfor; ?>
                         </select>
 
-                        <button type="submit" class="btn btn-amazon-cart" <?= !$product->isInStock() ? 'disabled' : '' ?>>
+                        <button type="submit" class="btn btn-amazon-cart" <?= !$productObject->isInStock() ? 'disabled' : '' ?>>
                             Add to Cart
                         </button>
-                        <button type="button" class="btn btn-amazon-buy" onclick="document.getElementById('amazonAddToCartForm').submit();" <?= !$product->isInStock() ? 'disabled' : '' ?>>
+                        <button type="submit" name="buy_now" value="1" class="btn btn-amazon-buy" <?= !$productObject->isInStock() ? 'disabled' : '' ?>>
                             Buy Now
                         </button>
                     </form>
@@ -193,6 +195,8 @@ $priceDec = $priceParts[1] ?? '00';
                         <i class="fas fa-lock text-muted"></i>
                         <span>Secure transaction</span>
                     </div>
+
+                    <img src="<?= asset('/img/momo-payment-banner.png') ?>" alt="Secure MoMo Payment" class="payment-banner product-buybox-banner">
 
                     <table class="amazon-meta-table mt-3">
                         <tr><td>Delivery from</td><td><strong>Hair Aura</strong></td></tr>
@@ -203,7 +207,7 @@ $priceDec = $priceParts[1] ?? '00';
 
                     <div class="amazon-divider"></div>
 
-                    <button class="btn btn-outline-secondary btn-sm w-100 btn-wishlist <?= $inWishlist ? 'active' : '' ?>" data-product-id="<?= $product->id ?>">
+                    <button class="btn btn-outline-secondary btn-sm w-100 btn-wishlist <?= $inWishlist ? 'active' : '' ?>" data-product-id="<?= $productObject->id ?>">
                         <i class="<?= $inWishlist ? 'fas' : 'far' ?> fa-heart me-2"></i>
                         Add to Wish List
                     </button>
@@ -217,7 +221,7 @@ $priceDec = $priceParts[1] ?? '00';
                 <section class="product-description-section">
                     <h4 class="fw-bold mb-4">Product Description</h4>
                     <div class="px-3" style="font-size: 0.95rem; line-height: 1.6;">
-                        <?= $product->description ?>
+                        <?= $productObject->description ?>
                     </div>
                 </section>
 
@@ -228,19 +232,17 @@ $priceDec = $priceParts[1] ?? '00';
                     <div class="col-lg-4">
                         <h4 class="fw-bold mb-3">Customer reviews</h4>
                         <div class="d-flex align-items-center mb-1">
-                            <div class="stars me-2 text-warning" style="font-size: 1.2rem;">
-                                <?php for($i=1; $i<=5; $i++): ?>
-                                    <i class="<?= $i <= round($product->rating_avg) ? 'fas' : 'far' ?> fa-star"></i>
-                                <?php endfor; ?>
+                            <div class="stars me-2" style="font-size: 1.2rem;">
+                                <?= \App\Models\Review::getStarRating($productObject->rating_avg) ?>
                             </div>
-                            <span class="fw-bold fs-5"><?= number_format($product->rating_avg, 1) ?> out of 5</span>
+                            <span class="fw-bold fs-5"><?= number_format($productObject->rating_avg, 1) ?> out of 5</span>
                         </div>
-                        <div class="text-muted small mb-4"><?= $product->review_count ?> global ratings</div>
+                        <div class="text-muted small mb-4"><?= $productObject->review_count ?> global ratings</div>
 
                         <!-- Rating Bars -->
                         <?php foreach (array_reverse($ratingDistribution, true) as $star => $data): ?>
                         <div class="d-flex align-items-center mb-2" style="font-size: 0.88rem;">
-                            <a href="#" class="text-primary text-decoration-none me-2" style="width: 50px;"><?= $star ?> star</a>
+                            <span class="text-primary me-2" style="width: 50px; cursor: default;"><?= $star ?> star</span>
                             <div class="progress flex-grow-1" style="height: 20px; background: #f0f2f2; border: 1px solid #ddd; border-radius: 4px;">
                                 <div class="progress-bar bg-warning" style="width: <?= $data['percentage'] ?>"></div>
                             </div>
@@ -254,9 +256,9 @@ $priceDec = $priceParts[1] ?? '00';
                         <?php if ($canReview): ?>
                             <button class="btn btn-outline-secondary w-100 rounded-pill py-1" data-bs-toggle="collapse" data-bs-target="#reviewForm">Write a customer review</button>
                             <div class="collapse mt-3" id="reviewForm">
-                                <form action="/product/<?= $product->id ?>/review" method="post" class="bg-light p-3 rounded shadow-sm">
+                                <form action="<?= url('/product/' . $productObject->id . '/review') ?>" method="post" class="bg-light p-3 rounded shadow-sm">
                                     <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
-                                    <input type="hidden" name="slug" value="<?= $product->slug ?>">
+                                    <input type="hidden" name="slug" value="<?= $productObject->slug ?>">
                                     <div class="mb-3">
                                         <label class="form-label small fw-bold">Overall rating</label>
                                         <div class="text-warning fs-4 rating-selector" style="cursor: pointer;">
@@ -279,8 +281,12 @@ $priceDec = $priceParts[1] ?? '00';
                                     <button type="submit" class="btn btn-amazon-buy btn-sm rounded-pill w-100">Submit</button>
                                 </form>
                             </div>
-                        <?php else: ?>
-                            <button class="btn btn-outline-secondary w-100 rounded-pill py-1 disabled">Sign in to review</button>
+                        <?php elseif ($reviewStatus === 'already_reviewed'): ?>
+                            <button class="btn btn-outline-secondary w-100 rounded-pill py-1 disabled">You have already reviewed this product</button>
+                        <?php elseif ($reviewStatus === 'no_purchase'): ?>
+                            <button class="btn btn-outline-secondary w-100 rounded-pill py-1 disabled">Only verified purchasers can review this item</button>
+                        <?php else: // guest ?>
+                            <a href="<?= url('/login?redirect=' . urlencode('/product/' . $productObject->slug)) ?>" class="btn animated-review-btn w-100 rounded-pill py-2">Sign in to review</a>
                         <?php endif; ?>
                     </div>
 
@@ -301,9 +307,7 @@ $priceDec = $priceParts[1] ?? '00';
                                     </div>
                                     <div class="d-flex align-items-center mb-1">
                                         <div class="text-warning small me-2">
-                                            <?php for($i=1; $i<=5; $i++): ?>
-                                                <i class="<?= $i <= $rev['rating'] ? 'fas' : 'far' ?> fa-star"></i>
-                                            <?php endfor; ?>
+                                            <?= \App\Models\Review::getStarRating($rev['rating']) ?>
                                         </div>
                                         <span class="small fw-bold pt-1"><?= htmlspecialchars($rev['title'] ?: 'Verified Purchase') ?></span>
                                     </div>
@@ -407,19 +411,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if(addForm) {
         addForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const btn = this.querySelector('.btn-amazon-cart');
+            
+            // Check if this was a "Buy Now" click
+            const isBuyNow = e.submitter && e.submitter.name === 'buy_now';
+            
+            const btn = isBuyNow ? this.querySelector('.btn-amazon-buy') : this.querySelector('.btn-amazon-cart');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
             btn.disabled = true;
 
             const formData = new FormData(this);
-            fetch('/cart/add', {
+            fetch('<?= url('/cart/add') ?>', {
                 method: 'POST',
                 body: formData
             })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
+                    if(isBuyNow) {
+                        window.location.href = '<?= url('/checkout') ?>';
+                        return;
+                    }
+
                     // Update header cart count if possible
                     const cartCount = document.querySelector('.cart-count');
                     if(cartCount) cartCount.textContent = data.cart_count;
@@ -451,7 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.addEventListener('click', function() {
             const productId = this.dataset.productId;
             const isActive = this.classList.contains('active');
-            const url = isActive ? '/account/wishlist/remove' : '/account/wishlist/add';
+            const url = isActive ? '<?= url('/account/wishlist/remove') ?>' : '<?= url('/account/wishlist/add') ?>';
             
             const formData = new FormData();
             formData.append('product_id', productId);

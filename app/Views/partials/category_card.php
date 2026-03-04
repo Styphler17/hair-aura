@@ -10,7 +10,7 @@
 $imageName = $category['image'] ?? '';
 $imagePathForColor = str_starts_with($imageName, 'uploads/') ? $imageName : 'uploads/categories/' . $imageName;
 $bgColor = \App\Core\ImageManager::getDominantColor($imagePathForColor, '#FDFBFA');
-$categoryUrl = "/shop/" . htmlspecialchars($category['slug']);
+$categoryUrl = url("/shop/" . $category['slug']);
 $categoryName = htmlspecialchars($category['name']);
 $categoryDesc = htmlspecialchars($category['description'] ?? 'Shop Now');
 $imageSrc = htmlspecialchars($resolveCategoryImage((array) $category));

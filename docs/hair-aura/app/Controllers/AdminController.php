@@ -54,11 +54,16 @@ class AdminController extends Controller
         
         // Get low stock products
         $db = Database::getInstance();
+        $where = "p.stock_quantity <= 5 AND p.is_active = 1";
+        if ($db->hasColumn('products', 'deleted_at')) {
+            $where .= " AND p.deleted_at IS NULL";
+        }
+        
         $lowStock = $db->fetchAll(
             "SELECT p.*, c.name as category_name 
              FROM products p 
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.stock_quantity <= 5 AND p.is_active = 1
+             WHERE {$where}
              ORDER BY p.stock_quantity ASC
              LIMIT 10"
         );
@@ -93,6 +98,7 @@ class AdminController extends Controller
         $page = (int) ($this->get('page') ?? 1);
         $search = $this->get('search', '');
         $category = $this->get('category', '');
+        $status = $this->get('status', '');
         
         $db = Database::getInstance();
         
@@ -100,13 +106,22 @@ class AdminController extends Controller
         $params = [];
         
         if ($search) {
-            $where .= " AND (p.name LIKE :search OR p.sku LIKE :search)";
-            $params['search'] = "%{$search}%";
+            $where .= " AND (p.name LIKE :s1 OR p.sku LIKE :s2)";
+            $params['s1'] = "%{$search}%";
+            $params['s2'] = "%{$search}%";
         }
         
         if ($category) {
             $where .= " AND p.category_id = :category";
             $params['category'] = $category;
+        }
+
+        if ($status !== '') {
+            if ($status === 'active') {
+                $where .= " AND p.is_active = 1";
+            } elseif ($status === 'inactive') {
+                $where .= " AND p.is_active = 0";
+            }
         }
         
         $perPage = 25;
@@ -139,7 +154,8 @@ class AdminController extends Controller
                 'total' => $total
             ],
             'search' => $search,
-            'categoryFilter' => $category
+            'categoryFilter' => $category,
+            'statusFilter' => $status
         ], 'layouts/admin');
     }
     
@@ -212,22 +228,28 @@ class AdminController extends Controller
             $this->redirect($id ? "/admin/products/edit/{$id}" : '/admin/products/add');
         }
         
+        // Ensure SKU is unique if not provided
+        $sku = trim((string)($data['sku'] ?? ''));
+        if ($sku === '') {
+            $sku = 'SKU-' . strtoupper(uniqid());
+        }
+
         $productData = [
             'name' => $data['name'],
             'slug' => !empty($data['slug']) ? $data['slug'] : strtolower(trim((string) preg_replace('/[^a-z0-9]+/i', '-', (string) $data['name']), '-')),
             'description' => $data['description'] ?? '',
             'short_description' => $data['short_description'] ?? '',
             'price' => $data['price'],
-            'sale_price' => $data['sale_price'] ?: null,
-            'sku' => $data['sku'] ?? '',
+            'sale_price' => !empty($data['sale_price']) ? $data['sale_price'] : null,
+            'sku' => $sku,
             'stock_quantity' => $data['stock_quantity'],
             'stock_status' => $data['stock_status'] ?? 'in_stock',
             'category_id' => $data['category_id'],
             'brand' => $data['brand'] ?? null,
             'hair_type' => $data['hair_type'] ?? null,
             'texture' => $data['texture'] ?? null,
-            'length_inches' => $data['length_inches'] ?: null,
-            'weight_grams' => $data['weight_grams'] ?: null,
+            'length_inches' => !empty($data['length_inches']) ? $data['length_inches'] : null,
+            'weight_grams' => !empty($data['weight_grams']) ? $data['weight_grams'] : null,
             'cap_size' => $data['cap_size'] ?? null,
             'lace_type' => $data['lace_type'] ?? null,
             'density' => $data['density'] ?? null,
@@ -268,11 +290,114 @@ class AdminController extends Controller
             $this->attachLibraryImagesToProduct((int) $product->id, $libraryImages);
         }
         
+        // Handle Variants
+        $db = Database::getInstance();
+        $variantsData = $data['variants'] ?? [];
+        
+        // 1. Get existing variant IDs
+        $existingVariants = $db->fetchAll(
+            "SELECT id FROM product_variants WHERE product_id = :id", 
+            ['id' => $product->id]
+        );
+        $existingIds = array_column($existingVariants, 'id');
+        $submittedIds = [];
+        
+        // 2. Process submitted variants
+        foreach ($variantsData as $v) {
+            // Skip empty names
+            if (empty($v['variant_name'])) continue;
+            
+            $variantId = !empty($v['id']) ? (int)$v['id'] : null;
+            
+            $variantRow = [
+                'variant_name' => $v['variant_name'],
+                'variant_value' => $v['variant_value'] ?? '',
+                'sku' => $v['sku'] ?? '',
+                'price_adjustment' => $v['price_adjustment'] ?? 0,
+                'stock_quantity' => $v['stock_quantity'] ?? 0,
+                'is_active' => isset($v['is_active']) ? 1 : 0,
+                // Simple sort order based on input order if needed, but for now we rely on index?
+                // If the form sends index keys, we can use them as sort_order.
+                // But usually the array comes in order.
+                'sort_order' => 0 // Default
+            ];
+            
+            if ($variantId && in_array($variantId, $existingIds)) {
+                // Update
+                $submittedIds[] = $variantId;
+                $db->update('product_variants', $variantRow, 'id = :id', ['id' => $variantId]);
+            } else {
+                // Insert
+                $variantRow['product_id'] = $product->id;
+                $db->insert('product_variants', $variantRow);
+            }
+        }
+        
+        // 3. Delete removed variants
+        $toDelete = array_diff($existingIds, $submittedIds);
+        if (!empty($toDelete)) {
+            // Safe delete? Or force delete?
+            // Variants might be in order_items. If so, soft delete?
+            // The schema has is_active but user removed from UI implies "Delete".
+            // But if they are in orders, we can't delete easily without cascade.
+            // Let's try hard delete, if it fails (constraint), we soft delete?
+            // But earlier I just implemented Force Delete for Products.
+            // Here, if a variant is in an order, we probably shouldn't delete it?
+            // But the user removed it.
+            // I will try to delete. If it fails, I'll delete the variant but keep the order_item (order_items usually store snapshot).
+            // Wait, order_items.variant_id is Foreign Key?
+            // If so, set to NULL?
+            // I'll check schema. `variant_id` int(10) UNSIGNED DEFAULT NULL.
+            // So I can set order_items.variant_id to NULL before deleting unique variant.
+            
+            foreach ($toDelete as $delId) {
+                try {
+                    // Unlink from orders first to allow deletion
+                    $db->update('order_items', ['variant_id' => null], 'variant_id = :id', ['id' => $delId]);
+                    $db->delete('product_variants', 'id = :id', ['id' => $delId]);
+                } catch (\Throwable $e) {
+                    error_log("Failed to delete variant $delId: " . $e->getMessage());
+                }
+            }
+        }
+        
         $this->redirect('/admin/products/edit/' . (int) $product->id);
     }
     
+    public function deleteProductImage(int $imageId): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+        $image = $db->fetchOne("SELECT * FROM product_images WHERE id = :id LIMIT 1", ['id' => $imageId]);
+
+        if ($image) {
+            $productId = $image['product_id'];
+            $db->delete('product_images', 'id = :id', ['id' => $imageId]);
+            
+            // If primary image was deleted, promote another one
+            if ($image['is_primary']) {
+                $nextImage = $db->fetchOne(
+                    "SELECT id FROM product_images WHERE product_id = :product_id ORDER BY sort_order ASC LIMIT 1",
+                    ['product_id' => $productId]
+                );
+                if ($nextImage) {
+                    $db->update('product_images', ['is_primary' => 1], 'id = :id', ['id' => $nextImage['id']]);
+                }
+            }
+
+            $this->flash('success', 'Image removed');
+            $this->redirect('/admin/products/edit/' . $productId);
+        }
+
+        $this->redirect('/admin/products');
+    }
+
     /**
-     * Delete product
+     * Delete product (Soft delete)
      */
     public function deleteProduct(int $id): void
     {
@@ -284,39 +409,212 @@ class AdminController extends Controller
         $product = Product::find($id);
         
         if ($product) {
-            $product->update(['is_active' => 0]);
-            $this->flash('success', 'Product deleted successfully');
+            $product->delete(); // Uses Model soft-delete
+            $this->flash('success', 'Product moved to trash');
+        } else {
+            $this->flash('error', 'Product not found');
         }
         
         $this->redirect('/admin/products');
     }
+
+    public function bulkDeleteProducts(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/products');
+        }
+
+        $successCount = 0;
+        foreach ($ids as $id) {
+            $product = Product::find($id);
+            if ($product && $product->delete()) {
+                $successCount++;
+            }
+        }
+
+        if ($successCount > 0) {
+            $this->flash('success', "$successCount products moved to trash");
+        } else {
+            $this->flash('error', "Failed to delete selected products");
+        }
+        
+        $this->redirect('/admin/products');
+    }
+
+    public function updateStock(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $id = (int) $this->post('product_id');
+        $stock = (int) $this->post('stock');
+
+        if ($id <= 0) {
+            $this->flash('error', 'Invalid product');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+        $db->update('products', [
+            'stock_quantity' => $stock,
+            'updated_at' => date('Y-m-d H:i:s')
+        ], 'id = :id', ['id' => $id]);
+
+        $this->flash('success', 'Stock updated');
+        $this->redirect('/admin/products');
+    }
+
+    /**
+     * Duplicate product
+     */
+    public function duplicateProduct(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/products');
+        }
+
+        $product = Product::find($id);
+        if (!$product) {
+            $this->flash('error', 'Product not found');
+            $this->redirect('/admin/products');
+        }
+
+        $db = Database::getInstance();
+
+        // 1. Prepare new data
+        $newData = [
+            'name' => 'Copy of ' . $product->name,
+            'slug' => $product->slug . '-copy-' . time(),
+            'description' => $product->description,
+            'short_description' => $product->short_description,
+            'price' => $product->price,
+            'sale_price' => $product->sale_price,
+            'sku' => $product->sku . '-COPY-' . time(), // Ensure uniqueness
+            'stock_quantity' => $product->stock_quantity,
+            'stock_status' => $product->stock_status,
+            'category_id' => $product->category_id,
+            'brand' => $product->brand,
+            'hair_type' => $product->hair_type,
+            'texture' => $product->texture,
+            'length_inches' => $product->length_inches,
+            'weight_grams' => $product->weight_grams,
+            'cap_size' => $product->cap_size,
+            'lace_type' => $product->lace_type,
+            'density' => $product->density,
+            'color' => $product->color,
+            'featured' => 0, // Reset featured
+            'bestseller' => 0, // Reset bestseller
+            'new_arrival' => 0, // Reset new arrival
+            'meta_title' => $product->meta_title,
+            'meta_description' => $product->meta_description,
+            'meta_keywords' => $product->meta_keywords,
+            'is_active' => 1 
+        ];
+
+        // 2. Create the new product
+        $newProduct = Product::create($newData);
+        
+        if (!$newProduct || !$newProduct->id) {
+            $this->flash('error', 'Failed to duplicate product');
+            $this->redirect('/admin/products');
+        }
+
+        // 3. Copy Images
+        $images = $db->fetchAll("SELECT * FROM product_images WHERE product_id = :id", ['id' => $id]);
+        foreach ($images as $img) {
+            $db->insert('product_images', [
+                'product_id' => $newProduct->id,
+                'image_path' => $img['image_path'],
+                'alt_text' => $img['alt_text'],
+                'is_primary' => $img['is_primary'],
+                'sort_order' => $img['sort_order']
+            ]);
+        }
+
+        // 4. Copy Variants
+        $variants = $db->fetchAll("SELECT * FROM product_variants WHERE product_id = :id", ['id' => $id]);
+        foreach ($variants as $var) {
+             $variantData = [
+                'product_id' => $newProduct->id,
+                'variant_name' => $var['variant_name'], // Changed from 'name' to 'variant_name' based on schema
+                'variant_value' => $var['variant_value'], // Added 'variant_value'
+                'sku' => $var['sku'] . '-' . time(), // Ensure unique SKU
+                'price_adjustment' => $var['price_adjustment'],
+                'stock_quantity' => $var['stock_quantity'],
+                'is_active' => $var['is_active'],
+                'sort_order' => $var['sort_order'] ?? 0
+            ];
+            
+            $db->insert('product_variants', $variantData);
+        }
+
+        $this->flash('success', 'Product duplicated successfully. You are now editing the copy.');
+        $this->redirect('/admin/products/edit/' . $newProduct->id);
+    }
+
+
     
     /**
      * Upload product images
      */
     private function uploadProductImages(int $productId): void
     {
-        $uploadDir = __DIR__ . '/../../public/uploads/products/';
-        
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        $files = $_FILES['images'];
+        if (!isset($files['name'][0])) {
+            return;
         }
+
+        $count = count($files['name']);
         
-        foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-            if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-                $filename = uniqid() . '_' . $_FILES['images']['name'][$key];
-                $filepath = $uploadDir . $filename;
-                
-                if (move_uploaded_file($tmpName, $filepath)) {
-                    $db = Database::getInstance();
-                    $db->insert('product_images', [
-                        'product_id' => $productId,
-                        'image_path' => $filename,
-                        'alt_text' => $_FILES['images']['name'][$key],
-                        'is_primary' => $key === 0 ? 1 : 0,
-                        'sort_order' => $key
-                    ]);
-                }
+        for ($i = 0; $i < $count; $i++) {
+            if ($files['error'][$i] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            // Construct single file array for ImageManager
+            $file = [
+                'name' => $files['name'][$i],
+                'type' => $files['type'][$i],
+                'tmp_name' => $files['tmp_name'][$i],
+                'error' => $files['error'][$i],
+                'size' => $files['size'][$i]
+            ];
+
+            // Use ImageManager to upload and convert
+            // Prefix filename to ensure uniqueness
+            $filename = \App\Core\ImageManager::upload($file, 'uploads/products/', null);
+
+            if ($filename) {
+                // Determine sort order
+                $db = Database::getInstance();
+                $sort = (int) $db->fetchColumn(
+                    "SELECT COALESCE(MAX(sort_order), -1) + 1 FROM product_images WHERE product_id = :pid", 
+                    ['pid' => $productId]
+                );
+
+                // Determine if primary (first image uploaded for this product?)
+                $hasPrimary = (int) $db->fetchColumn(
+                    "SELECT COUNT(*) FROM product_images WHERE product_id = :pid AND is_primary = 1",
+                    ['pid' => $productId]
+                );
+
+                $db->insert('product_images', [
+                    'product_id' => $productId,
+                    'image_path' => $filename, // Now a .webp file usually
+                    'alt_text' => pathinfo($files['name'][$i], PATHINFO_FILENAME),
+                    'is_primary' => ($hasPrimary === 0 && $i === 0) ? 1 : 0,
+                    'sort_order' => $sort
+                ]);
             }
         }
     }
@@ -341,10 +639,17 @@ class AdminController extends Controller
         ) > 0;
 
         foreach ($libraryPaths as $rawPath) {
-            $resolvedFilename = $this->resolveMediaPathToFolder((string) $rawPath, 'products');
-            if ($resolvedFilename === null || $resolvedFilename === '') {
+            // Library selection: store the path directly (no copying)
+            $cleanPath = ltrim(str_replace('\\', '/', (string) $rawPath), '/');
+            
+            // Validate file exists
+            if (!file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
                 continue;
             }
+            
+            // For product_images table, we need just the filename portion
+            // But we'll store the full relative path from public root
+            $resolvedFilename = $cleanPath;
 
             $alreadyExists = (int) $db->fetchColumn(
                 "SELECT COUNT(*) FROM product_images WHERE product_id = :product_id AND image_path = :image_path",
@@ -386,22 +691,45 @@ class AdminController extends Controller
         }
 
         $clean = ltrim(str_replace('\\', '/', $value), '/');
+        $publicRoot = __DIR__ . '/../../public/';
+        
+        // 1. If file exists at exact path (e.g. 'uploads/media/file.webp'), link to it relatively
+        if (is_file($publicRoot . $clean)) {
+            $folder = trim($targetFolder, '/\\'); // e.g. 'products'
+            $targetPrefix = 'uploads/' . $folder . '/'; // e.g. 'uploads/products/'
+            
+            // If strictly inside target folder, return basename
+            if (str_starts_with($clean, $targetPrefix)) {
+                return substr($clean, strlen($targetPrefix));
+            }
+            
+            // Calculate relative path from target folder
+            // From 'uploads/products/' to root is '../../'
+            if (str_starts_with($clean, 'uploads/')) {
+                // e.g. 'uploads/media/foo.webp' -> '../media/foo.webp'
+                return '../' . substr($clean, 8); 
+            }
+            
+            return '../../' . $clean;
+        }
+
+        // 2. Fallback: Copy logic (for legacy inputs or bare filenames)
         $basename = basename($clean);
         if ($basename === '') {
             return null;
         }
 
         $folder = trim($targetFolder, '/\\');
-        $targetDir = __DIR__ . '/../../public/uploads/' . $folder . '/';
+        $targetDir = $publicRoot . 'uploads/' . $folder . '/';
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
 
         $sourceCandidates = [
-            __DIR__ . '/../../public/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $clean,
-            __DIR__ . '/../../public/uploads/' . $basename,
-            __DIR__ . '/../../public/uploads/' . $folder . '/' . $basename
+            $publicRoot . $clean,
+            $publicRoot . 'uploads/' . $clean,
+            $publicRoot . 'uploads/' . $basename,
+            $publicRoot . 'uploads/' . $folder . '/' . $basename
         ];
 
         $sourcePath = null;
@@ -415,7 +743,7 @@ class AdminController extends Controller
         $targetPath = $targetDir . $basename;
         if (!is_file($targetPath)) {
             if ($sourcePath === null || !@copy($sourcePath, $targetPath)) {
-                return null;
+                return null; // File not found anywhere
             }
         }
 
@@ -535,8 +863,14 @@ class AdminController extends Controller
         }
         
         $status = $this->post('status');
+        $paymentStatus = $this->post('payment_status');
         $trackingNumber = $this->post('tracking_number');
         
+        // Update payment status if provided
+        if ($paymentStatus) {
+            $order->updatePaymentStatus($paymentStatus);
+        }
+
         if ($trackingNumber) {
             $order->addTracking($trackingNumber);
         } else {
@@ -545,6 +879,44 @@ class AdminController extends Controller
         
         $this->flash('success', 'Order updated successfully');
         $this->redirect('/admin/orders/' . $id);
+    }
+    
+    /**
+     * Delete order
+     */
+    public function deleteOrder(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/orders');
+        }
+
+        $order = Order::find($id);
+        
+        if (!$order) {
+            $this->flash('error', 'Order not found');
+            $this->redirect('/admin/orders');
+        }
+
+        $db = Database::getInstance();
+        
+        try {
+            $db->beginTransaction();
+            
+            // Delete order items first
+            $db->delete('order_items', 'order_id = :id', ['id' => $id]);
+            
+            // Delete the order
+            $order->delete();
+            
+            $db->commit();
+            $this->flash('success', 'Order deleted successfully');
+        } catch (\Exception $e) {
+            $db->rollBack();
+            $this->flash('error', 'Error deleting order: ' . $e->getMessage());
+        }
+        
+        $this->redirect('/admin/orders');
     }
     
     // ==================== CUSTOMERS ====================
@@ -563,8 +935,10 @@ class AdminController extends Controller
         $params = [];
         
         if ($search) {
-            $where .= " AND (first_name LIKE :search OR last_name LIKE :search OR email LIKE :search)";
-            $params['search'] = "%{$search}%";
+            $where .= " AND (first_name LIKE :s1 OR last_name LIKE :s2 OR email LIKE :s3)";
+            $params['s1'] = "%{$search}%";
+            $params['s2'] = "%{$search}%";
+            $params['s3'] = "%{$search}%";
         }
         
         $perPage = 25;
@@ -595,6 +969,73 @@ class AdminController extends Controller
             ],
             'search' => $search
         ], 'layouts/admin');
+    }
+
+    public function bulkDeleteCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        // Soft delete/deactivate
+        $db->query("UPDATE users SET is_active = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers deactivated');
+        $this->redirect('/admin/customers');
+    }
+
+    public function bulkBanCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE users SET is_banned = 1 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers banned');
+        $this->redirect('/admin/customers');
+    }
+
+    public function bulkUnbanCustomers(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/customers');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/customers');
+        }
+
+        $db = Database::getInstance();
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        
+        $db->query("UPDATE users SET is_banned = 0 WHERE id IN ($placeholders) AND role = 'customer'", array_values($ids));
+
+        $this->flash('success', count($ids) . ' customers unbanned');
+        $this->redirect('/admin/customers');
     }
     
     /**
@@ -759,18 +1200,24 @@ class AdminController extends Controller
         $nextImage = $currentImage;
 
         if ($uploadedImage !== null) {
+            // Direct upload: store relative path
             $nextImage = $uploadedImage;
-            if ($currentImage !== '') {
+            if ($currentImage !== '' && str_contains($currentImage, 'uploads/categories/')) {
+                // Only delete if it's a direct upload (not a library link)
                 $this->deleteCategoryImageFile($currentImage);
             }
         } elseif ($removeImage && $currentImage !== '') {
-            $this->deleteCategoryImageFile($currentImage);
+            if (str_contains($currentImage, 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($currentImage);
+            }
             $nextImage = '';
         } elseif ($libraryImage !== '') {
-            $resolvedImage = $this->resolveMediaPathToFolder($libraryImage, 'categories');
-            if ($resolvedImage !== null) {
-                $nextImage = $resolvedImage;
-                if ($currentImage !== '' && $currentImage !== $nextImage) {
+            // Library selection: store the path directly (no copying)
+            $cleanPath = ltrim(str_replace('\\', '/', $libraryImage), '/');
+            if (file_exists(__DIR__ . '/../../public/' . $cleanPath)) {
+                $nextImage = $cleanPath;
+                // Don't delete old image if it was also from library
+                if ($currentImage !== '' && str_contains($currentImage, 'uploads/categories/')) {
                     $this->deleteCategoryImageFile($currentImage);
                 }
             }
@@ -798,6 +1245,118 @@ class AdminController extends Controller
         $this->redirect('/admin/categories');
     }
 
+    /**
+     * Delete category
+     */
+    public function deleteCategory(int $id): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        
+        // Check if category exists
+        $category = $db->fetchOne("SELECT id, image FROM categories WHERE id = :id", ['id' => $id]);
+        if (!$category) {
+            $this->flash('error', 'Category not found');
+            $this->redirect('/admin/categories');
+        }
+
+        // Check for products in this category
+        $hasProducts = (int) $db->fetchColumn("SELECT COUNT(*) FROM products WHERE category_id = :id", ['id' => $id]) > 0;
+        if ($hasProducts) {
+            $this->flash('error', 'Cannot delete category that contains products. Please move or delete the products first.');
+            $this->redirect('/admin/categories');
+        }
+
+        try {
+            // Delete image file if exists and is local
+            if (!empty($category['image']) && str_contains($category['image'], 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($category['image']);
+            }
+
+            $db->query("DELETE FROM categories WHERE id = :id", ['id' => $id]);
+            $this->flash('success', 'Category deleted successfully');
+        } catch (\Exception $e) {
+            $this->flash('error', 'Error deleting category: ' . $e->getMessage());
+        }
+
+        $this->redirect('/admin/categories');
+    }
+
+    public function bulkDeleteCategories(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $ids = $this->post('ids');
+        if (empty($ids) || !is_array($ids)) {
+            $this->flash('error', 'No items selected');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        
+        // We need to check each one for products
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $withProducts = $db->fetchColumn(
+            "SELECT COUNT(*) FROM products WHERE category_id IN ($placeholders) AND is_active = 1",
+            array_values($ids)
+        );
+
+        if ((int) $withProducts > 0) {
+            $this->flash('error', 'Some selected categories contain products and cannot be deleted.');
+            $this->redirect('/admin/categories');
+        }
+
+        $categories = $db->fetchAll(
+            "SELECT image FROM categories WHERE id IN ($placeholders)",
+            array_values($ids)
+        );
+
+        foreach ($categories as $cat) {
+             if (!empty($cat['image']) && str_contains($cat['image'], 'uploads/categories/')) {
+                $this->deleteCategoryImageFile($cat['image']);
+            }
+        }
+
+        $db->query("DELETE FROM categories WHERE id IN ($placeholders)", array_values($ids));
+
+        $this->flash('success', count($ids) . ' categories deleted');
+        $this->redirect('/admin/categories');
+    }
+
+    /**
+     * Update categories sort order
+     */
+    public function updateCategoryOrder(): void
+    {
+        if (!$this->validateCsrf()) {
+            $this->flash('error', 'Invalid request');
+            $this->redirect('/admin/categories');
+        }
+
+        $sortData = $this->post('sort');
+        if (empty($sortData) || !is_array($sortData)) {
+            $this->flash('error', 'No sort data received');
+            $this->redirect('/admin/categories');
+        }
+
+        $db = Database::getInstance();
+        $count = 0;
+
+        foreach ($sortData as $id => $order) {
+            $db->update('categories', ['sort_order' => (int) $order], 'id = :id', ['id' => (int) $id]);
+            $count++;
+        }
+
+        $this->flash('success', "Order updated for $count categories");
+        $this->redirect('/admin/categories');
+    }
     private function uploadCategoryImage(string $inputName): ?string
     {
         if (!isset($_FILES[$inputName])) {
@@ -805,40 +1364,13 @@ class AdminController extends Controller
         }
 
         $file = $_FILES[$inputName];
-        $error = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
-        if ($error === UPLOAD_ERR_NO_FILE) {
+        if ($file['error'] !== UPLOAD_ERR_OK) {
             return null;
         }
 
-        if ($error !== UPLOAD_ERR_OK) {
-            return null;
-        }
-
-        $tmp = (string) ($file['tmp_name'] ?? '');
-        $original = (string) ($file['name'] ?? '');
-        if ($tmp === '' || $original === '') {
-            return null;
-        }
-
-        $extension = strtolower(pathinfo($original, PATHINFO_EXTENSION));
-        $allowed = ['jpg', 'jpeg', 'png', 'webp'];
-        if (!in_array($extension, $allowed, true)) {
-            return null;
-        }
-
-        $uploadDir = __DIR__ . '/../../public/uploads/categories/';
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
-        }
-
-        $filename = uniqid('cat_', true) . '.' . $extension;
-        $target = $uploadDir . $filename;
-
-        if (!move_uploaded_file($tmp, $target)) {
-            return null;
-        }
-
-        return $filename;
+        // Use ImageManager to upload and convert
+        // Prefix with 'cat_'
+        return \App\Core\ImageManager::upload($file, 'uploads/categories/', 'cat_');
     }
 
     private function deleteCategoryImageFile(string $image): void

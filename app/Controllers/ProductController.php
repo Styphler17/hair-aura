@@ -186,12 +186,29 @@ class ProductController extends Controller
             }
         }
         
-        // Check if user can review
+        // Check review eligibility
         $canReview = false;
+        $reviewStatus = 'guest'; // guest, eligible, already_reviewed, no_purchase
+        
         if ($this->isLoggedIn) {
             $userId = (int) ($this->user->id ?? 0);
             if ($userId > 0) {
-                $canReview = Review::canReview($userId, $productId);
+                $hasReviewed = (Database::getInstance())->fetchOne(
+                    "SELECT id FROM reviews WHERE user_id = :user_id AND product_id = :product_id LIMIT 1",
+                    ['user_id' => $userId, 'product_id' => $productId]
+                );
+
+                if ($hasReviewed) {
+                    $reviewStatus = 'already_reviewed';
+                } else {
+                    $purchaseInfo = Review::getPurchaseInfo($userId, $productId);
+                    if ($purchaseInfo) {
+                        $canReview = true;
+                        $reviewStatus = 'eligible';
+                    } else {
+                        $reviewStatus = 'no_purchase';
+                    }
+                }
             }
         }
         
@@ -241,7 +258,7 @@ class ProductController extends Controller
         ];
         
         $this->render('pages/product', [
-            'product' => $product,
+            'productObject' => $product,
             'images' => $images,
             'variants' => $variants,
             'reviews' => $reviews,
@@ -250,6 +267,7 @@ class ProductController extends Controller
             'category' => $category,
             'inWishlist' => $inWishlist,
             'canReview' => $canReview,
+            'reviewStatus' => $reviewStatus,
             'shareUrl' => $this->absoluteUrl('/product/' . $product->slug),
             'seo' => $seo,
             'productSchema' => $productSchema,

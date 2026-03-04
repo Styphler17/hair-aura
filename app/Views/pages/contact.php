@@ -15,36 +15,47 @@
                     Send us a message and our team will get back to you as soon as possible.
                 </p>
                 <address class="contact-address-info fs-6">
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <i class="fas fa-envelope text-primary me-2"></i>
-                            <strong>Email:</strong> 
-                            <a href="mailto:<?= htmlspecialchars($contactEmail) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactEmail) ?></a>
+                    <ul class="list-unstyled contact-info-list">
+                        <li class="mb-4 d-flex align-items-start gap-3">
+                            <span class="contact-icon-wrap"><i class="fas fa-envelope"></i></span>
+                            <div>
+                                <strong class="d-block mb-1">Email</strong>
+                                <a href="mailto:<?= htmlspecialchars($contactEmail) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactEmail) ?></a>
+                            </div>
                         </li>
-                        <li class="mb-3">
-                            <i class="fas fa-phone text-primary me-2"></i>
-                            <strong>Phone:</strong> 
-                            <a href="tel:<?= htmlspecialchars($contactPhone) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactPhone) ?></a>
+                        <li class="mb-4 d-flex align-items-start gap-3">
+                            <span class="contact-icon-wrap"><i class="fas fa-phone"></i></span>
+                            <div>
+                                <strong class="d-block mb-1">Phone</strong>
+                                <a href="tel:<?= htmlspecialchars($contactPhone) ?>" class="text-decoration-none text-dark"><?= htmlspecialchars($contactPhone) ?></a>
+                            </div>
                         </li>
-                        <li class="mb-3">
-                            <i class="fab fa-whatsapp text-primary me-2"></i>
-                            <strong>WhatsApp:</strong> 
-                            <a href="https://wa.me/<?= htmlspecialchars($waDigits) ?>" target="_blank" rel="noopener" class="text-decoration-none text-dark"><?= htmlspecialchars($contactWhatsapp) ?></a>
+                        <li class="mb-4 d-flex align-items-start gap-3">
+                            <span class="contact-icon-wrap"><i class="fab fa-whatsapp"></i></span>
+                            <div>
+                                <strong class="d-block mb-1">WhatsApp</strong>
+                                <a href="https://wa.me/<?= htmlspecialchars($waDigits) ?>" target="_blank" rel="noopener" class="text-decoration-none text-dark"><?= htmlspecialchars($contactWhatsapp) ?></a>
+                            </div>
                         </li>
-                        <li class="mb-3">
-                            <i class="fas fa-location-dot text-primary me-2"></i>
-                            <strong>Location:</strong> 
-                            <span class="text-dark"><?= htmlspecialchars($contactLocation) ?></span>
+                        <li class="mb-4 d-flex align-items-start gap-3">
+                            <span class="contact-icon-wrap"><i class="fas fa-location-dot"></i></span>
+                            <div>
+                                <strong class="d-block mb-1">Location</strong>
+                                <span class="text-dark"><?= htmlspecialchars($contactLocation) ?></span>
+                            </div>
                         </li>
                         <?php if ($contactHours !== ''): ?>
-                            <li class="mb-3">
-                                <i class="fas fa-clock text-primary me-2"></i>
-                                <strong>Business Hours:</strong> 
+                        <li class="mb-4 d-flex align-items-start gap-3">
+                            <span class="contact-icon-wrap"><i class="fas fa-clock"></i></span>
+                            <div>
+                                <strong class="d-block mb-1">Business Hours</strong>
                                 <span class="text-dark"><?= htmlspecialchars($contactHours) ?></span>
-                            </li>
+                            </div>
+                        </li>
                         <?php endif; ?>
                     </ul>
                 </address>
+
             </div>
             <div class="col-lg-7">
                 <div class="card shadow-sm">
@@ -53,24 +64,24 @@
                             <input type="hidden" name="csrf_token" value="<?= \App\Core\Auth::csrfToken() ?>">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="name" class="form-control" required>
+                                    <label for="contact-name" class="form-label">Name</label>
+                                    <input type="text" id="contact-name" name="name" class="form-control" required autocomplete="name">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email" class="form-control" required>
+                                    <label for="contact-email" class="form-label">Email</label>
+                                    <input type="email" id="contact-email" name="email" class="form-control" required autocomplete="email">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Phone</label>
-                                    <input type="text" name="phone" class="form-control">
+                                    <label for="contact-phone" class="form-label">Phone</label>
+                                    <input type="text" id="contact-phone" name="phone" class="form-control" autocomplete="tel">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Subject</label>
-                                    <input type="text" name="subject" class="form-control" required>
+                                    <label for="contact-subject" class="form-label">Subject</label>
+                                    <input type="text" id="contact-subject" name="subject" class="form-control" required autocomplete="off">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label">Message</label>
-                                    <textarea name="message" class="form-control" rows="5" required></textarea>
+                                    <label for="contact-message" class="form-label">Message</label>
+                                    <textarea id="contact-message" name="message" class="form-control" rows="5" required autocomplete="off"></textarea>
                                 </div>
                                 <div class="col-12">
                                     <button type="submit" class="btn btn-primary">Send Message</button>
@@ -131,5 +142,30 @@
     border: 1px solid #eee !important;
     background: #fff;
 }
+
+/* ── Contact Icon Badges ─────────────────────────── */
+.contact-icon-wrap {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5e6d0, #edd9b8);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #9a6120;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(212,165,116,0.25);
+}
+.contact-info-list li strong {
+    color: #2c2c2c;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.contact-info-list a:hover {
+    color: #D4A574 !important;
+}
 </style>
+
 <?php endif; ?>

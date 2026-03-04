@@ -12,7 +12,7 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
             <!-- Branding & About -->
             <div class="col-lg-4 col-md-6">
                 <div class="footer-brand mb-4">
-                    <img src="<?= asset($site['logo'] ?? '/img/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="footer-logo mb-3" style="max-height: 50px;">
+                    <img src="<?= asset($site['logo'] ?? 'uploads/logos/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="footer-logo mb-3" style="max-height: 50px;">
                     <p class="footer-description text-muted small mb-3">
                         Hair Aura is Ghana's premier destination for luxury human hair wigs and extensions. Based in the heart of Accra, we specialize in 100% authentic Vietnamese and Cambodian hair. Our mission is to provide every woman with the confidence she deserves through premium, long-lasting hair units tailored for the modern African woman.
                     </p>
@@ -64,11 +64,16 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
                 <nav aria-label="Categories">
                     <h5 class="footer-title text-uppercase mb-4">Categories</h5>
                     <ul class="list-unstyled footer-links">
-                        <li><a href="<?= url('/shop/human-hair-wigs') ?>" class="footer-link">Human Hair Wigs</a></li>
-                        <li><a href="<?= url('/shop/lace-front-wigs') ?>" class="footer-link">Lace Front Wigs</a></li>
-                        <li><a href="<?= url('/shop/synthetic-wigs') ?>" class="footer-link">Synthetic Wigs</a></li>
-                        <li><a href="<?= url('/shop/hair-extensions') ?>" class="footer-link">Hair Extensions</a></li>
-                        <li><a href="<?= url('/shop/hair-accessories') ?>" class="footer-link">Accessories</a></li>
+                        <?php if (!empty($footerCategories)): ?>
+                            <?php foreach ($footerCategories as $cat): ?>
+                                <li><a href="<?= url('/shop/' . $cat['slug']) ?>" class="footer-link"><?= htmlspecialchars($cat['name']) ?></a></li>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <li><a href="<?= url('/shop/human-hair-wigs') ?>" class="footer-link">Human Hair Wigs</a></li>
+                            <li><a href="<?= url('/shop/lace-front-wigs') ?>" class="footer-link">Lace Front Wigs</a></li>
+                            <li><a href="<?= url('/shop/synthetic-wigs') ?>" class="footer-link">Synthetic Wigs</a></li>
+                            <li><a href="<?= url('/shop/hair-extensions') ?>" class="footer-link">Hair Extensions</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
             </div>
@@ -103,11 +108,11 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
 
         <div class="row align-items-center g-3">
             <div class="col-md-6">
-                <p class="copyright mb-0 text-muted">&copy; <?= date('Y') ?> <strong>Hair Aura</strong>. All Rights Reserved. Designed by <a href="https://debesties.com" target="_blank" class="text-white text-decoration-none">Debesties</a></p>
+                <p class="copyright mb-0" style="color: var(--primary, #D4A574) !important;">&copy; <?= date('Y') ?> <strong>Hair Aura</strong>. All Rights Reserved. Designed by <a href="#" target="_blank" style="color: #ffffff !important; font-weight: 600; text-decoration: underline;">Stiffler Bernard Awuah</a></p>
             </div>
             <div class="col-md-6 text-md-end">
                 <div class="payment-methods d-flex gap-3 justify-content-md-end align-items-center">
-                    <span class="momo-badge bg-white text-dark rounded px-2 py-0 border fw-bold small" title="Mobile Money">MoMo Only</span>
+                    <img src="<?= asset('/img/momo-payment-banner.png') ?>" alt="Accepted MoMo Payments" class="payment-banner footer-payment-banner">
                 </div>
             </div>
         </div>
