@@ -1,0 +1,37 @@
+# Implementation Plan - TinyMCE Integration
+
+This plan outlines the steps to integrate TinyMCE into the Hair Aura admin panel to provide rich text editing capabilities for blog posts and products.
+
+## User Review Required
+
+> [!NOTE]
+> TinyMCE will be applied to all textareas in the blog and product forms by default, as per the requested configuration. If some textareas should remain plain text, we can refine the selector.
+
+## Proposed Changes
+
+### Admin Layout
+
+#### [MODIFY] [admin.php](file:///c:/MAMP/htdocs/hair-aura/app/Views/layouts/admin.php)
+- Add TinyMCE script tag to the `<head>` section.
+
+### Blog Form
+
+#### [MODIFY] [form.php](file:///c:/MAMP/htdocs/hair-aura/app/Views/admin/blogs/form.php)
+- Add initialization script for TinyMCE.
+- Target the `content` and `excerpt` textareas.
+
+### Product Form
+
+#### [MODIFY] [form.php](file:///c:/MAMP/htdocs/hair-aura/app/Views/admin/products/form.php)
+- Add initialization script for TinyMCE.
+- Target the `description` and `short_description` textareas.
+
+## Verification Plan
+
+### Automated Tests
+- N/A (UI-based verification)
+
+### Manual Verification
+- Navigate to Admin -> Blogs -> Add/Edit Post and verify the textareas are replaced by TinyMCE.
+- Navigate to Admin -> Products -> Add/Edit Product and verify the textareas are replaced by TinyMCE.
+- Test saving a blog post with rich text and verify it renders correctly on the frontend.

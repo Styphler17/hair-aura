@@ -24,6 +24,9 @@ abstract class Controller
 
     /** @var bool Whether current request is authenticated */
     protected bool $isLoggedIn = false;
+
+    /** @var array Site settings */
+    protected array $siteSettings = [];
     
     /**
      * Constructor
@@ -36,15 +39,15 @@ abstract class Controller
         $this->cart = new CartSession();
         
         // Share common data with all views
-        $siteSettings = $this->loadSiteSettings();
+        $this->siteSettings = $this->loadSiteSettings();
         View::share([
             'cartCount' => $this->cart->count(),
             'cartSummary' => $this->cart->getSummary(),
             'user' => $this->user,
             'isLoggedIn' => $this->isLoggedIn,
             'isAdmin' => Auth::isAdmin(),
-            'siteSettings' => $siteSettings,
-            'themeVars' => $this->resolveThemeVars($siteSettings),
+            'siteSettings' => $this->siteSettings,
+            'themeVars' => $this->resolveThemeVars($this->siteSettings),
             'localBusinessSchema' => [
                 '@context' => 'https://schema.org',
                 '@type' => 'LocalBusiness',

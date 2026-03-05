@@ -117,3 +117,17 @@ if (!empty($post['published_at'])) {
         </div>
     </div>
 </form>
+
+<script>
+    if (window.tinymce) {
+        tinymce.init({
+            selector: 'textarea[name="content"]',
+            plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat',
+            height: 400,
+            branding: false,
+            promotion: false,
+            content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; }'
+        });
+    }
+</script>

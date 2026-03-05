@@ -50,7 +50,7 @@ A complete, production-ready PHP MVC e-commerce platform for **hair-aura.debesti
 ### Step 1: Clone/Download
 ```bash
 cd /var/www/html
-git clone https://github.com/yourusername/hair-aura.git
+git clone https://github.com/styphler17/hair-aura.git
 cd hair-aura
 ```
 

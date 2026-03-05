@@ -29,6 +29,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- TinyMCE -->
+    <script src="https://cdn.tiny.cloud/1/ky4xtv1lrw74kgz3s89jm1m0tw6d1supmj4xpnbibfjk5qkz/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
+    
     <!-- Admin CSS -->
     <link rel="stylesheet" href="<?= asset('/css/admin.css') ?>?v=<?= htmlspecialchars($adminCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/admin.css') ?>?v=<?= htmlspecialchars($adminCssVersion) ?>';">
     <link rel="stylesheet" href="<?= asset('/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>" onerror="this.onerror=null;this.href='<?= url('/public/css/password-toggle.css') ?>?v=<?= htmlspecialchars($passwordCssVersion) ?>';">

@@ -12,7 +12,7 @@ $supportWhatsappDigits = preg_replace('/\D+/', '', $supportWhatsapp);
             <!-- Branding & About -->
             <div class="col-lg-4 col-md-6">
                 <div class="footer-brand mb-4">
-                    <img src="<?= asset($site['logo'] ?? 'uploads/logos/logo.webp') ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="footer-logo mb-3" style="max-height: 50px;">
+                    <img src="<?= asset($site['footer_logo'] ?? ($site['logo'] ?? 'uploads/logos/logo.webp')) ?>" alt="<?= htmlspecialchars($site['name'] ?? 'Hair Aura') ?>" class="footer-logo mb-3" style="max-height: 50px;">
                     <p class="footer-description text-muted small mb-3">
                         Hair Aura is Ghana's premier destination for luxury human hair wigs and extensions. Based in the heart of Accra, we specialize in 100% authentic Vietnamese and Cambodian hair. Our mission is to provide every woman with the confidence she deserves through premium, long-lasting hair units tailored for the modern African woman.
                     </p>

@@ -30,15 +30,16 @@
         ? $canonicalRaw
         : $siteBaseUrl . '/' . ltrim($canonicalRaw, '/');
 
-    $faviconIco = $resolvePublicAsset(['/uploads/favicons/favicon.ico', '/uploads/favicons/favicon.webp', '/img/favicon.webp']);
+    $faviconIco = $resolvePublicAsset([$siteSettings['favicon'] ?? '', '/uploads/favicons/favicon.ico', '/uploads/favicons/favicon.webp', '/img/favicon.webp']);
     // SVG is scalable and good for modern browsers, keeping it or preferring webp if available
     $faviconSvg = $resolvePublicAsset(['/uploads/favicons/favicon.svg', '/img/favicon.svg']); 
     $faviconPng96 = $resolvePublicAsset(['/uploads/favicons/favicon-96x96.webp', '/img/favicon-96x96.webp']);
     $appleTouchIcon = $resolvePublicAsset(['/uploads/favicons/apple-touch-icon.webp', '/img/apple-touch-icon.webp']);
-    $webManifest = '/uploads/favicons/site.webmanifest';
+    $webManifest = $siteSettings['web_manifest'] ?? '/uploads/favicons/site.webmanifest';
 
     // Define preferred default images in order (WebP only)
     $defaultImages = [
+        $siteSettings['og_image'] ?? '',
         '/uploads/logos/og-image.webp',
         $siteSettings['logo'] ?? '/uploads/logos/logo.webp',
         '/uploads/hero/hero-1.png'
@@ -69,14 +70,14 @@
     <meta name="csrf-token" content="<?= \App\Core\Auth::csrfToken() ?>">
     
     <!-- SEO Meta Tags -->
-    <title><?= htmlspecialchars($seo['title'] ?? 'Hair Aura | Premium Wigs & Hair Extensions Ghana') ?></title>
-    <meta name="description" content="<?= htmlspecialchars($seo['description'] ?? 'Shop premium human hair wigs, lace fronts, synthetic wigs & hair extensions in Ghana. Unlock your aura with perfect wigs.') ?>">
-    <meta name="keywords" content="<?= htmlspecialchars($seo['keywords'] ?? 'wigs Ghana, human hair wigs, lace front wigs, synthetic wigs, hair extensions') ?>">
+    <title><?= htmlspecialchars($seo['title'] ?? ($siteSettings['name'] ?? 'Hair Aura') . ' | Premium Wigs & Hair Extensions Ghana') ?></title>
+    <meta name="description" content="<?= htmlspecialchars($seo['description'] ?? ($siteSettings['meta_description'] ?? 'Shop premium human hair wigs, lace fronts, synthetic wigs & hair extensions in Ghana.')) ?>">
+    <meta name="keywords" content="<?= htmlspecialchars($seo['keywords'] ?? ($siteSettings['meta_keywords'] ?? 'wigs Ghana, human hair wigs, lace front wigs, synthetic wigs, hair extensions')) ?>">
     <link rel="canonical" href="<?= htmlspecialchars($canonicalUrl) ?>">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="<?= htmlspecialchars($seo['title'] ?? 'Hair Aura') ?>">
-    <meta property="og:description" content="<?= htmlspecialchars($seo['description'] ?? 'Premium Wigs & Hair Extensions Ghana') ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($seo['title'] ?? ($siteSettings['name'] ?? 'Hair Aura')) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($seo['description'] ?? ($siteSettings['meta_description'] ?? 'Premium Wigs & Hair Extensions Ghana')) ?>">
     <meta property="og:type" content="<?= htmlspecialchars($ogType) ?>">
     <meta property="og:url" content="<?= htmlspecialchars($canonicalUrl) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($ogImageUrl) ?>">
@@ -86,7 +87,7 @@
     <link rel="icon" type="image/svg+xml" href="<?= asset($faviconSvg) ?>">
     <link rel="icon" type="image/png" sizes="96x96" href="<?= asset($faviconPng96) ?>">
     <link rel="apple-touch-icon" href="<?= asset($appleTouchIcon) ?>">
-    <link rel="manifest" href="<?= asset('/uploads/favicons/site.webmanifest') ?>">
+    <link rel="manifest" href="<?= asset($webManifest) ?>">
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">

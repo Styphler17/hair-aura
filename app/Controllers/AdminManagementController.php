@@ -628,6 +628,33 @@ class AdminManagementController extends Controller
             }
         }
 
+        // Handle Favicon
+        if (isset($_FILES['favicon']) && $_FILES['favicon']['error'] === UPLOAD_ERR_OK) {
+            \App\Core\ImageManager::replace($_FILES['favicon'], 'uploads/favicons/favicon.webp');
+            $content['site']['favicon'] = '/uploads/favicons/favicon.webp';
+        } else {
+            $libFavicon = trim((string) $this->post('library_favicon', ''));
+            if ($libFavicon !== '') $content['site']['favicon'] = '/' . ltrim(str_replace('\\', '/', $libFavicon), '/');
+        }
+
+        // Handle OG Image
+        if (isset($_FILES['og_image']) && $_FILES['og_image']['error'] === UPLOAD_ERR_OK) {
+            \App\Core\ImageManager::replace($_FILES['og_image'], 'uploads/logos/og-image.webp');
+            $content['site']['og_image'] = '/uploads/logos/og-image.webp';
+        } else {
+            $libOg = trim((string) $this->post('library_og_image', ''));
+            if ($libOg !== '') $content['site']['og_image'] = '/' . ltrim(str_replace('\\', '/', $libOg), '/');
+        }
+
+        // Handle Footer Logo
+        if (isset($_FILES['footer_logo']) && $_FILES['footer_logo']['error'] === UPLOAD_ERR_OK) {
+            \App\Core\ImageManager::replace($_FILES['footer_logo'], 'uploads/logos/footer-logo.webp');
+            $content['site']['footer_logo'] = '/uploads/logos/footer-logo.webp';
+        } else {
+            $libFooter = trim((string) $this->post('library_footer_logo', ''));
+            if ($libFooter !== '') $content['site']['footer_logo'] = '/' . ltrim(str_replace('\\', '/', $libFooter), '/');
+        }
+
         $colorInputs = [
             'theme_primary' => '#D4A574',
             'theme_primary_dark' => '#B8935F',
@@ -1914,39 +1941,37 @@ class AdminManagementController extends Controller
 
         $clean = ltrim(str_replace('\\', '/', $value), '/');
         $publicRoot = __DIR__ . '/../../public/';
-        
-        // 1. If file exists at exact path (e.g. 'uploads/media/file.webp'), link to it relatively
+        $folder = trim($targetFolder, '/\\');
+        $targetPrefix = 'uploads/' . $folder . '/';
+        $targetDir = $publicRoot . $targetPrefix;
+
+        // 1. File exists at exact relative path from public root (e.g. 'uploads/blog/file.webp')
         if (is_file($publicRoot . $clean)) {
-            $folder = trim($targetFolder, '/\\');
-            $targetPrefix = 'uploads/' . $folder . '/';
-            
-            // If strictly inside target folder, return basename
+            // Already inside the target upload folder — just return the basename
             if (str_starts_with($clean, $targetPrefix)) {
-                return substr($clean, strlen($targetPrefix));
+                return basename($clean);
             }
-            
-            // Calculate relative path from target folder
-            // From 'uploads/products/' (or 'uploads/blog/') to root is '../../'
+            // In another uploads subfolder (e.g. uploads/media/) — relative path notation
             if (str_starts_with($clean, 'uploads/')) {
-                // e.g. 'uploads/media/foo.webp' -> '../media/foo.webp'
-                return '../' . substr($clean, 8); 
+                return '../' . substr($clean, 8);
             }
-            
             return '../../' . $clean;
         }
 
-        // 2. Fallback: Copy logic (for legacy inputs or bare filenames)
         $basename = basename($clean);
         if ($basename === '') {
             return null;
         }
 
-        $folder = trim($targetFolder, '/\\');
-        $targetDir = $publicRoot . 'uploads/' . $folder . '/';
+        // 2. Bare filename already exists inside the target upload folder (most common case)
+        if (is_file($targetDir . $basename)) {
+            return $basename;
+        }
+
+        // 3. Try copying from other known locations (media, img, or public root)
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0755, true);
         }
-
         $sourceCandidates = [
             $publicRoot . 'uploads/media/' . $basename,
             $publicRoot . 'img/' . $basename,
@@ -1955,20 +1980,13 @@ class AdminManagementController extends Controller
 
         foreach ($sourceCandidates as $source) {
             if (is_file($source)) {
-                // Copy to target folder, preserving original name; dedup only on collision.
-                $destFilename = $basename;
-                if (file_exists($targetDir . $destFilename)) {
-                    $ext = pathinfo($basename, PATHINFO_EXTENSION);
-                    $base = pathinfo($basename, PATHINFO_FILENAME);
-                    $destFilename = $base . '-' . time() . '.' . $ext;
-                }
-                if (copy($source, $targetDir . $destFilename)) {
-                    return $destFilename;
+                if (copy($source, $targetDir . $basename)) {
+                    return $basename;
                 }
             }
         }
 
-        return null; // File not found in library
+        return null; // File not found anywhere
     }
 
     private function sanitizeMediaFolder(string $folder): string

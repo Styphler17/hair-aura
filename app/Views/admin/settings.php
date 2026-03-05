@@ -21,18 +21,62 @@
                 <div class="col-md-6">
                     <label class="form-label">Upload New Logo</label>
                     <input type="file" name="logo" class="form-control" accept=".png,.jpg,.jpeg,.webp">
-                    <div class="form-text">Uploading a file will replace <code>/img/logo.webp</code> and set it as active.</div>
+                    <div class="form-text">Uploading a file will replace <code>/uploads/logos/logo.webp</code>.</div>
                 </div>
 
                 <?php
-                    // Setup for partial
                     $inputName = 'library_logo';
                     $isMultiple = false;
                     $currentValue = $settings['logo'] ?? '';
-                    $label = 'Or Pick From Media Library';
+                    $label = 'Or Pick From Media';
                     include __DIR__ . '/partials/media_library_selector.php';
                 ?>
             </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Favicon</label>
+            <div class="mb-2">
+                <img src="<?= asset($settings['favicon'] ?? '/uploads/favicons/favicon.webp') ?>" alt="Favicon" style="height: 32px;">
+            </div>
+            <input type="file" name="favicon" class="form-control mb-2" accept=".png,.jpg,.jpeg,.webp">
+            <?php
+                $inputName = 'library_favicon';
+                $isMultiple = false;
+                $currentValue = $settings['favicon'] ?? '';
+                $label = 'Library Favicon';
+                include __DIR__ . '/partials/media_library_selector.php';
+            ?>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">OG Image (1200x630)</label>
+            <div class="mb-2">
+                <img src="<?= asset($settings['og_image'] ?? '/uploads/logos/og-image.webp') ?>" alt="OG Image" style="height: 32px; width: 60px; object-fit: cover;">
+            </div>
+            <input type="file" name="og_image" class="form-control mb-2" accept=".png,.jpg,.jpeg,.webp">
+            <?php
+                $inputName = 'library_og_image';
+                $isMultiple = false;
+                $currentValue = $settings['og_image'] ?? '';
+                $label = 'Library OG Image';
+                include __DIR__ . '/partials/media_library_selector.php';
+            ?>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Footer Logo</label>
+            <div class="mb-2">
+                <img src="<?= asset($settings['footer_logo'] ?? '/uploads/logos/logo.webp') ?>" alt="Footer Logo" style="height: 32px; background: #333;">
+            </div>
+            <input type="file" name="footer_logo" class="form-control mb-2" accept=".png,.jpg,.jpeg,.webp">
+            <?php
+                $inputName = 'library_footer_logo';
+                $isMultiple = false;
+                $currentValue = $settings['footer_logo'] ?? '';
+                $label = 'Library Footer Logo';
+                include __DIR__ . '/partials/media_library_selector.php';
+            ?>
         </div>
 
         <div class="col-md-6">

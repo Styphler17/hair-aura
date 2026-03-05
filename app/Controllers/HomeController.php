@@ -44,9 +44,9 @@ class HomeController extends Controller
         
         // SEO data
         $seo = [
-            'title' => 'Hair Aura | Premium Wigs & Hair Extensions Ghana',
-            'description' => 'Shop premium human hair wigs, lace fronts, synthetic wigs & hair extensions in Ghana. Unlock your aura with perfect wigs. Free delivery in Accra.',
-            'keywords' => 'wigs Ghana, human hair wigs, lace front wigs, synthetic wigs, hair extensions, Brazilian hair, Peruvian hair',
+            'title' => 'Hair Aura | Premium Wigs & Hair Extensions Ghana (2026)',
+            'description' => $this->siteSettings['meta_description'] ?? 'Shop premium human hair wigs, lace fronts, and hair extensions in Ghana. Free delivery in Accra.',
+            'keywords' => $this->siteSettings['meta_keywords'] ?? 'wigs Ghana, human hair wigs, lace front wigs, hair extensions',
             'canonical' => '/',
             'og_image' => '/img/og-image.webp'
         ];
