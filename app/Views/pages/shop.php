@@ -44,7 +44,9 @@ $resolveProductImage = function($path) {
                     <!-- Categories -->
                     <div class="sidebar-widget">
                         <h4>Categories</h4>
-                        <ul class="category-list">
+                        
+                        <!-- Desktop Category List -->
+                        <ul class="category-list d-none d-lg-block">
                             <li>
                                 <a href="<?= url('/shop') ?>" class="<?= !($currentCategory ?? null) ? 'active' : '' ?>">
                                     All Products
@@ -61,6 +63,21 @@ $resolveProductImage = function($path) {
                             </li>
                             <?php endforeach; ?>
                         </ul>
+
+                        <!-- Mobile Category Dropdown -->
+                        <div class="d-lg-none mt-2">
+                            <select class="form-select" onchange="window.location.href=this.value">
+                                <option value="<?= url('/shop') ?>" <?= !($currentCategory ?? null) ? 'selected' : '' ?>>
+                                    All Products (<?= array_sum(array_column($categories, 'product_count')) ?>)
+                                </option>
+                                <?php foreach ($categories as $cat): ?>
+                                <option value="<?= url('/shop/' . (string) $cat['slug']) ?>" 
+                                    <?= ($currentCategory ?? null) && $currentCategory['id'] == $cat['id'] ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($cat['name']) ?> (<?= $cat['product_count'] ?>)
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
 
                     <form action="<?= url($filterAction) ?>" method="get" class="shop-filter-form">
@@ -176,7 +193,7 @@ $resolveProductImage = function($path) {
                     </div>
                     <?php else: ?>
                     <?php foreach ($products as $product): ?>
-                    <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="col-6 col-md-6 col-lg-4 mb-4">
                         <?php \App\Core\View::partial('product_card', ['product' => $product, 'resolveProductImage' => $resolveProductImage]); ?>
                     </div>
                     <?php endforeach; ?>

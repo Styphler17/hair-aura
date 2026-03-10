@@ -93,7 +93,7 @@ $buildBlogUrl = function(int $page = 1, ?string $category = null, ?string $query
                     <div class="row g-4">
                         <?php foreach ($posts as $post): ?>
                             <?php $imagePath = resolve_blog_image($post['featured_image'] ?? null); ?>
-                            <div class="col-sm-6 col-md-4">
+                            <div class="col-6 col-sm-6 col-md-4">
                                 <article class="card h-100 shadow-sm border-0 blog-card">
                                     <a href="<?= url('/blog/' . $post['slug']) ?>">
                                         <img src="<?= htmlspecialchars($imagePath) ?>" class="card-img-top blog-card-image" alt="<?= htmlspecialchars($post['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">
@@ -103,11 +103,8 @@ $buildBlogUrl = function(int $page = 1, ?string $category = null, ?string $query
                                             <?= htmlspecialchars($post['category'] ?? 'General') ?> •
                                             <?= date('M d, Y', strtotime($post['published_at'] ?: $post['created_at'])) ?>
                                         </div>
-                                        <h5 class="card-title"><?= htmlspecialchars($post['title']) ?></h5>
-                                        <p class="card-text text-muted flex-grow-1">
-                                            <?= htmlspecialchars($post['excerpt'] ?: substr(strip_tags($post['content'] ?? ''), 0, 130) . '...') ?>
-                                        </p>
-                                        <a href="<?= url('/blog/' . $post['slug']) ?>" class="btn btn-primary mt-2">Read More</a>
+                                        <h5 class="card-title flex-grow-1 mb-3"><?= htmlspecialchars($post['title']) ?></h5>
+                                        <a href="<?= url('/blog/' . $post['slug']) ?>" class="btn btn-primary mt-auto">Read More</a>
                                     </div>
                                 </article>
                             </div>

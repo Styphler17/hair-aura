@@ -70,7 +70,7 @@ html {
 
 body {
     font-family: var(--font-body);
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 0.75rem + 1vw, 1rem);
     line-height: 1.6;
     color: var(--gray-800);
     background-color: var(--white);
@@ -106,7 +106,7 @@ img {
     gap: 0.5rem;
     padding: 0.75rem 1.5rem;
     font-family: var(--font-body);
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
     font-weight: 500;
     border-radius: var(--radius);
     transition: var(--transition);
@@ -150,7 +150,7 @@ img {
 
 .btn-lg {
     padding: 1rem 2rem;
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
 }
 
 .btn-gold {
@@ -295,7 +295,7 @@ img {
     gap: 12px;
     color: var(--white);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -322,7 +322,7 @@ img {
     color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.3em;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     font-weight: 700;
     margin-bottom: 2rem;
     position: relative;
@@ -340,7 +340,7 @@ img {
 }
 
 .hero-display-title {
-    font-size: 5.5rem;
+    font-size: clamp(4.4rem, 4.125rem + 1vw, 5.5rem);
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 1.5rem;
@@ -350,7 +350,7 @@ img {
 }
 
 .hero-description {
-    font-size: 1.2rem;
+    font-size: clamp(0.96rem, 0.9rem + 1vw, 1.2rem);
     color: rgba(255, 255, 255, 0.85);
     margin-bottom: 3rem;
     line-height: 1.8;
@@ -434,7 +434,7 @@ img {
 }
 
 .hero-scroll-anchor i {
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     animation: bounce 2s infinite;
 }
 
@@ -526,7 +526,7 @@ img {
 
 @media (max-width: 768px) {
     .hero-display-title {
-        font-size: 3rem;
+        font-size: clamp(2.4rem, 2.25rem + 1vw, 3rem);
     }
     .hero-content-glass {
         padding: 2rem;
@@ -541,7 +541,7 @@ img {
     padding: 4px 0;
     overflow: hidden;
     position: relative;
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
     font-weight: 500;
     letter-spacing: 0.5px;
 }
@@ -577,7 +577,7 @@ img {
     background: var(--secondary);
     color: var(--gray-300);
     padding: 0.25rem 0;
-    font-size: 0.875rem;
+    font-size: clamp(0.7rem, 0.656rem + 1vw, 0.875rem);
 }
 
 .top-bar-text i {
@@ -617,14 +617,14 @@ img {
     align-items: center;
     gap: 0.5rem;
     font-family: var(--font-heading);
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     font-weight: 700;
     color: var(--secondary);
 }
 
 .navbar-brand i {
     color: var(--primary);
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
 }
 
 .navbar-brand .brand-logo-img {
@@ -723,7 +723,7 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: clamp(0.96rem, 0.9rem + 1vw, 1.2rem);
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }
@@ -735,19 +735,19 @@ img {
 
 .shop-dropdown-all strong {
     display: block;
-    font-size: 1rem;
+    font-size: clamp(0.8rem, 0.75rem + 1vw, 1rem);
     font-family: var(--font-heading);
 }
 
 .shop-dropdown-all small {
     display: block;
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     opacity: 0.8;
 }
 
 .shop-dropdown-arrow {
     margin-left: auto;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     opacity: 0.5;
 }
 
@@ -792,7 +792,7 @@ img {
     background: var(--gray-100);
     color: var(--gray-600);
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     transition: var(--transition);
 }
 
@@ -803,13 +803,13 @@ img {
 
 .shop-dropdown-text strong {
     display: block;
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
     font-weight: 600;
 }
 
 .shop-dropdown-text small {
     display: block;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     color: var(--gray-500);
 }
 
@@ -863,20 +863,20 @@ img {
 
 .user-dropdown-meta strong {
     display: block;
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
     color: var(--secondary);
     line-height: 1.2;
 }
 
 .user-dropdown-meta small {
     display: block;
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     color: var(--gray-600);
 }
 
 .user-dropdown-menu .dropdown-item {
     padding: 0.85rem 1.25rem;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     font-weight: 500;
     transition: var(--transition);
 }
@@ -943,7 +943,7 @@ img {
 .header-actions > a,
 .header-user > a {
     color: var(--gray-700);
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 0.938rem + 1vw, 1.25rem);
     position: relative;
     display: inline-flex;
     align-items: center;
@@ -972,7 +972,7 @@ img {
     height: 20px;
     background: var(--accent);
     color: var(--white);
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     font-weight: 600;
     border-radius: 50%;
     display: flex;
@@ -997,7 +997,7 @@ img {
 }
 
 .sidebar-widget h4 {
-    font-size: 1.15rem;
+    font-size: clamp(0.92rem, 0.862rem + 1vw, 1.15rem);
     margin-bottom: 0.8rem;
 }
 
@@ -1053,7 +1053,7 @@ img {
 }
 
 .category-list .count {
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     opacity: 0.85;
 }
 
@@ -1076,7 +1076,7 @@ img {
     display: flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.98rem;
+    font-size: clamp(0.784rem, 0.735rem + 1vw, 0.98rem);
     color: var(--gray-800);
 }
 
@@ -1099,7 +1099,7 @@ img {
 
 .results-info {
     color: var(--gray-600);
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
 }
 
 .toolbar-right {
@@ -1171,7 +1171,7 @@ img {
     color: var(--white);
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
-    font-size: 0.875rem;
+    font-size: clamp(0.7rem, 0.656rem + 1vw, 0.875rem);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1179,14 +1179,14 @@ img {
 }
 
 .hero-title {
-    font-size: 3.5rem;
+    font-size: clamp(2.8rem, 2.625rem + 1vw, 3.5rem);
     color: var(--white);
     margin-bottom: 1rem;
     line-height: 1.2;
 }
 
 .hero-text {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 0.938rem + 1vw, 1.25rem);
     margin-bottom: 2rem;
     opacity: 0.9;
 }
@@ -1220,7 +1220,7 @@ img {
 
 .hero-swiper .swiper-button-prev:after,
 .hero-swiper .swiper-button-next:after {
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 0.938rem + 1vw, 1.25rem);
 }
 
 /* ==================== FEATURES SECTION ==================== */
@@ -1234,19 +1234,19 @@ img {
 }
 
 .feature-box i {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 1.875rem + 1vw, 2.5rem);
     color: var(--primary);
     margin-bottom: 1rem;
 }
 
 .feature-box h4 {
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
     margin-bottom: 0.5rem;
 }
 
 .feature-box p {
     color: var(--gray-600);
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     margin: 0;
 }
 
@@ -1256,7 +1256,7 @@ img {
 }
 
 .section-title {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 1.875rem + 1vw, 2.5rem);
     margin-bottom: 0.5rem;
     position: relative;
     display: inline-block;
@@ -1275,7 +1275,7 @@ img {
 
 .section-subtitle {
     color: var(--gray-600);
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
 }
 
 /* ==================== CATEGORY CARDS REDESIGN ==================== */
@@ -1318,12 +1318,13 @@ img {
 }
 
 .shop-now-text {
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--primary);
     transition: var(--transition);
+    white-space: nowrap;
 }
 
 .category-card-new:hover .shop-now-text {
@@ -1341,7 +1342,7 @@ img {
 }
 
 .category-card-title {
-    font-size: 1.85rem;
+    font-size: clamp(1.48rem, 1.388rem + 1vw, 1.85rem);
     color: var(--secondary);
     font-weight: 800;
     margin-bottom: 0.75rem;
@@ -1350,7 +1351,7 @@ img {
 
 .category-card-subtitle {
     color: var(--gray-600);
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
     margin-bottom: 1.5rem;
     line-height: 1.5;
     opacity: 0.9;
@@ -1409,7 +1410,7 @@ img {
         height: 220px;
     }
     .category-card-title {
-        font-size: 1.5rem;
+        font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
     }
 }
 
@@ -1422,15 +1423,14 @@ img {
         flex-direction: column; /* Image top, text bottom */
     }
     .category-card-info {
-        padding: 2rem;
+        padding: 1rem;
         order: 2;
         align-items: center;
         text-align: center;
         flex: none;
     }
     .category-card-subtitle {
-        margin-bottom: 1.5rem;
-        max-width: 100%;
+        display: none;
     }
     .category-card-media {
         height: 220px;
@@ -1444,6 +1444,10 @@ img {
     }
     .category-card-action {
         justify-content: center;
+    }
+    .arrow-circle {
+        width: 36px;
+        height: 36px;
     }
 }
 
@@ -1521,7 +1525,7 @@ img {
     display: flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     font-weight: 700;
     z-index: 10;
     transform: translateY(0);
@@ -1591,7 +1595,7 @@ img {
 }
 
 .category-tag {
-    font-size: 0.7rem;
+    font-size: clamp(0.56rem, 0.525rem + 1vw, 0.7rem);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
@@ -1613,7 +1617,7 @@ img {
 }
 
 .product-name {
-    font-size: 1.15rem;
+    font-size: clamp(0.92rem, 0.862rem + 1vw, 1.15rem);
     font-weight: 700;
     line-height: 1.3;
     margin-bottom: 0.75rem;
@@ -1635,16 +1639,17 @@ img {
     gap: 0.75rem;
     margin-bottom: 1.5rem;
     font-family: var(--font-secondary);
+    flex-wrap: wrap;
 }
 
 .price-regular, .price-sale {
-    font-size: 1.35rem;
+    font-size: clamp(0.92rem, 0.862rem + 1vw, 1.15rem);
     font-weight: 800;
     color: var(--secondary);
 }
 
 .price-original {
-    font-size: 1rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     color: var(--gray-400);
     text-decoration: line-through;
 }
@@ -1663,12 +1668,14 @@ img {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: 0.4rem;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
     transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
     position: relative;
     overflow: hidden;
+    white-space: nowrap;
+    padding: 0 10px;
 }
 
 .btn-premium-add::before {
@@ -1692,7 +1699,7 @@ img {
 }
 
 .btn-premium-add i {
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
     transition: transform 0.3s ease;
 }
 
@@ -1721,7 +1728,7 @@ img {
     align-items: center;
     gap: 0.5rem;
     font-family: var(--font-heading);
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     font-weight: 700;
     color: var(--white);
     margin-bottom: 0.5rem;
@@ -1746,7 +1753,7 @@ img {
 }
 
 .footer-about {
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     line-height: 1.8;
     margin-bottom: 1.5rem;
 }
@@ -1775,7 +1782,7 @@ img {
 
 .footer-title {
     color: var(--white);
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
     margin-bottom: 1.5rem;
     position: relative;
     padding-bottom: 0.75rem;
@@ -1803,7 +1810,7 @@ img {
 
 .footer-links a {
     color: var(--gray-400);
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 .footer-links a:hover {
@@ -1830,7 +1837,7 @@ img {
 }
 
 .footer-contact {
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 .footer-contact p {
@@ -1850,7 +1857,7 @@ img {
 
 .copyright {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 .footer-bottom-links {
@@ -1864,12 +1871,12 @@ img {
 
 .footer-bottom-links a {
     color: var(--gray-400);
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
 }
 
 .payment-methods {
     color: var(--gray-500);
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
 }
 
 .payment-methods i {
@@ -1941,7 +1948,7 @@ img {
     background: var(--primary);
     color: var(--white);
     border: none;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     font-weight: 600;
     letter-spacing: 0.5px;
     vertical-align: middle;
@@ -2004,7 +2011,7 @@ img {
 
 .live-search-section-title {
     padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     font-weight: 600;
     color: var(--gray-600);
     background: var(--gray-100);
@@ -2065,14 +2072,14 @@ img {
 }
 
 .live-search-item-meta {
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     color: var(--gray-600);
 }
 
 .live-search-empty {
     padding: 0.75rem;
     color: var(--gray-600);
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 /* ==================== BLOG ==================== */
@@ -2117,7 +2124,7 @@ img {
 }
 
 .page-header h1 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 1.875rem + 1vw, 2.5rem);
     margin-bottom: 0.5rem;
 }
 
@@ -2148,11 +2155,11 @@ img {
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 991.98px) {
     .hero-title {
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 1.875rem + 1vw, 2.5rem);
     }
     
     .section-title {
-        font-size: 2rem;
+        font-size: clamp(1.6rem, 1.5rem + 1vw, 2rem);
     }
     
     .header-search .form-control {
@@ -2185,11 +2192,11 @@ img {
     }
     
     .hero-title {
-        font-size: 2rem;
+        font-size: clamp(1.6rem, 1.5rem + 1vw, 2rem);
     }
     
     .hero-text {
-        font-size: 1rem;
+        font-size: clamp(0.8rem, 0.75rem + 1vw, 1rem);
     }
     
     .hero-buttons {
@@ -2197,7 +2204,7 @@ img {
     }
     
     .section-title {
-        font-size: 1.75rem;
+        font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     }
     
     .footer-bottom-links {
@@ -2252,7 +2259,7 @@ img {
 .amazon-breadcrumb .breadcrumb {
     background: transparent;
     padding: 0;
-    font-size: 0.82rem;
+    font-size: clamp(0.656rem, 0.615rem + 1vw, 0.82rem);
     margin-bottom: 1.5rem;
 }
 
@@ -2260,7 +2267,7 @@ img {
     content: "\f105";
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
-    font-size: 0.7rem;
+    font-size: clamp(0.56rem, 0.525rem + 1vw, 0.7rem);
     color: var(--gray-500);
 }
 
@@ -2322,14 +2329,14 @@ img {
 /* Central Info Column */
 .amazon-info-col h1 {
     font-family: var(--font-body);
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
     font-weight: 500;
     line-height: 1.3;
     margin-bottom: 0.5rem;
 }
 
 .amazon-brand-link {
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     color: var(--primary);
 }
 
@@ -2343,7 +2350,7 @@ img {
     align-items: center;
     gap: 8px;
     margin-bottom: 1rem;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
 }
 
 .amazon-rating .stars {
@@ -2370,24 +2377,24 @@ img {
 }
 
 .amazon-price-row .price-symbol {
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     vertical-align: super;
 }
 
 .amazon-price-row .price-large {
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     font-weight: 500;
 }
 
 .amazon-price-row .price-decimal {
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     vertical-align: super;
 }
 
 .amazon-price-row .old-price {
     color: var(--gray-600);
     text-decoration: line-through;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     margin-left: 5px;
 }
 
@@ -2397,7 +2404,7 @@ img {
 
 .amazon-variant-section label {
     display: block;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     font-weight: 700;
     margin-bottom: 8px;
 }
@@ -2412,7 +2419,7 @@ img {
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 10px;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     cursor: pointer;
     background: #fff;
     transition: var(--transition);
@@ -2427,12 +2434,12 @@ img {
     display: block;
     font-weight: 700;
     margin-bottom: 2px;
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
 }
 
 .amazon-swatch .swatch-price {
     display: block;
-    font-size: 0.82rem;
+    font-size: clamp(0.656rem, 0.615rem + 1vw, 0.82rem);
     color: #565959;
 }
 
@@ -2458,7 +2465,7 @@ img {
 }
 
 .amazon-bullet-points li {
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     margin-bottom: 8px;
     line-height: 1.4;
 }
@@ -2475,12 +2482,12 @@ img {
 
 .amazon-buy-box .price-large {
     display: inline-block;
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     margin-bottom: 10px;
 }
 
 .amazon-delivery-info {
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     margin-bottom: 15px;
     line-height: 1.3;
 }
@@ -2490,7 +2497,7 @@ img {
 }
 
 .amazon-stock-status {
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
     font-weight: 500;
     margin-bottom: 15px;
 }
@@ -2511,7 +2518,7 @@ img {
     border: 1px solid #ddd;
     box-shadow: 0 2px 5px rgba(15,17,17,.15);
     background: #f0f2f2;
-    font-size: 0.82rem;
+    font-size: clamp(0.656rem, 0.615rem + 1vw, 0.82rem);
 }
 
 .btn-amazon-cart {
@@ -2522,7 +2529,7 @@ img {
     color: #0f1111;
     padding: 8px;
     margin-bottom: 10px;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     font-weight: 500;
 }
 
@@ -2539,7 +2546,7 @@ img {
     color: #0f1111;
     padding: 8px;
     margin-bottom: 15px;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     font-weight: 500;
 }
 
@@ -2552,7 +2559,7 @@ img {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.82rem;
+    font-size: clamp(0.656rem, 0.615rem + 1vw, 0.82rem);
     color: var(--primary);
     cursor: pointer;
     margin-bottom: 15px;
@@ -2560,7 +2567,7 @@ img {
 
 .amazon-meta-table {
     width: 100%;
-    font-size: 0.75rem;
+    font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
     color: #565959;
 }
 
@@ -2631,7 +2638,7 @@ img {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     transition: background 0.2s;
 }
 
@@ -2647,7 +2654,7 @@ img {
 .qty-value {
     width: 30px;
     text-align: center;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     font-weight: 500;
 }
 
@@ -2664,7 +2671,7 @@ img {
 }
 
 .cart-item-title {
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
     margin-bottom: 8px;
     font-family: inherit;
     font-weight: 500;
@@ -2681,7 +2688,7 @@ img {
 }
 
 .cart-item-price {
-    font-size: 1.15rem;
+    font-size: clamp(0.92rem, 0.862rem + 1vw, 1.15rem);
 }
 
 .stock-badge.in-stock {
@@ -2709,7 +2716,7 @@ img {
     }
     
     .cart-item-title {
-        font-size: 1rem;
+        font-size: clamp(0.8rem, 0.75rem + 1vw, 1rem);
     }
 }
 /* ==================== CHECKOUT REDESIGN ==================== */
@@ -2744,13 +2751,13 @@ img {
 }
 
 .summary-totals .text-muted {
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 .checkout-section-title {
     font-family: var(--font-heading);
     font-weight: 600;
-    font-size: 1.25rem;
+    font-size: clamp(1rem, 0.938rem + 1vw, 1.25rem);
     margin-bottom: 1.25rem;
     position: relative;
     padding-bottom: 0.5rem;
@@ -2856,14 +2863,14 @@ img {
 }
 
 .section-header .section-title {
-    font-size: 2.25rem;
+    font-size: clamp(1.8rem, 1.688rem + 1vw, 2.25rem);
     font-weight: 800;
     color: var(--secondary);
     margin-bottom: 0.5rem;
 }
 
 .section-header .section-subtitle {
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
     color: var(--primary);
     font-weight: 600;
 }
@@ -2909,7 +2916,7 @@ img {
     align-items: center;
     justify-content: center;
     color: var(--white);
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
     opacity: 0;
     transition: opacity 0.3s ease;
 }

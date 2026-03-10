@@ -17,7 +17,7 @@ $imageSrc = htmlspecialchars($resolveCategoryImage((array) $category));
 $placeholder = asset('/img/product-placeholder.webp');
 ?>
 
-<article class="col-lg-6 col-md-6 mb-4">
+<article class="col-6 col-lg-6 col-md-6 mb-4">
     <div class="category-card-new">
         <a href="<?= $categoryUrl ?>" class="category-card-link" aria-label="Shop <?= $categoryName ?>">
             <div class="category-card-inner">

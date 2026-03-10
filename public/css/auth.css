@@ -71,7 +71,7 @@
     align-items: center;
     background: linear-gradient(135deg, var(--secondary) 0%, #444 100%);
     color: #fff;
-    font-size: 0.72rem;
+    font-size: clamp(0.576rem, 0.54rem + 1vw, 0.72rem);
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -82,7 +82,7 @@
 
 .auth-title {
     font-family: 'Playfair Display', serif;
-    font-size: 2rem;
+    font-size: clamp(1.6rem, 1.5rem + 1vw, 2rem);
     font-weight: 700;
     color: var(--secondary);
     line-height: 1.2;
@@ -90,7 +90,7 @@
 }
 
 .auth-subtitle {
-    font-size: 0.92rem;
+    font-size: clamp(0.736rem, 0.69rem + 1vw, 0.92rem);
     color: #888;
     font-weight: 400;
 }
@@ -109,7 +109,7 @@
 }
 
 .auth-label {
-    font-size: 0.82rem;
+    font-size: clamp(0.656rem, 0.615rem + 1vw, 0.82rem);
     font-weight: 600;
     color: var(--secondary);
     letter-spacing: 0.02em;
@@ -125,7 +125,7 @@
     top: 50%;
     transform: translateY(-50%);
     color: #b0b0b0;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     pointer-events: none;
     transition: color 0.2s;
 }
@@ -136,7 +136,7 @@
     border: 1.5px solid #e4e0d8;
     border-radius: 12px;
     padding: 0.85rem 1rem 0.85rem 2.8rem;
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
     font-family: 'Poppins', sans-serif;
     color: var(--secondary);
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -173,7 +173,7 @@
 }
 
 .auth-checkbox-label {
-    font-size: 0.85rem;
+    font-size: clamp(0.68rem, 0.637rem + 1vw, 0.85rem);
     color: #777;
     cursor: pointer;
     user-select: none;
@@ -181,7 +181,7 @@
 
 /* Forgot Password */
 .auth-forgot-link {
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
     color: var(--primary-dark);
     text-decoration: none;
     font-weight: 500;
@@ -203,7 +203,7 @@
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     color: #fff;
     font-family: 'Poppins', sans-serif;
-    font-size: 0.95rem;
+    font-size: clamp(0.76rem, 0.712rem + 1vw, 0.95rem);
     font-weight: 600;
     border: none;
     border-radius: 12px;
@@ -235,7 +235,7 @@
 .auth-create-account {
     text-align: center;
     margin-top: 1.75rem;
-    font-size: 0.87rem;
+    font-size: clamp(0.696rem, 0.652rem + 1vw, 0.87rem);
     color: #888;
 }
 
@@ -262,7 +262,7 @@
     display: inline-flex;
     align-items: center;
     color: #999;
-    font-size: 0.83rem;
+    font-size: clamp(0.664rem, 0.622rem + 1vw, 0.83rem);
     font-weight: 500;
     text-decoration: none;
     transition: color 0.2s;
@@ -278,7 +278,7 @@
 /* Alert overrides */
 .alert {
     border-radius: 10px;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     margin-bottom: 1.5rem;
 }
 
@@ -316,7 +316,7 @@
 
 .auth-image-logo-text {
     font-family: 'Playfair Display', serif;
-    font-size: 2.8rem;
+    font-size: clamp(2.24rem, 2.1rem + 1vw, 2.8rem);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.02em;
@@ -325,7 +325,7 @@
 }
 
 .auth-image-tagline {
-    font-size: 1.05rem;
+    font-size: clamp(0.84rem, 0.788rem + 1vw, 1.05rem);
     font-weight: 300;
     color: rgba(255, 255, 255, 0.85);
     letter-spacing: 0.03em;
@@ -338,7 +338,7 @@
     background: rgba(212, 175, 55, 0.25);
     border: 1px solid rgba(212, 175, 55, 0.5);
     color: #f0d060;
-    font-size: 0.78rem;
+    font-size: clamp(0.624rem, 0.585rem + 1vw, 0.78rem);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -372,5 +372,5 @@
         padding: 2rem 1.5rem;
     }
 
-    .auth-title { font-size: 1.6rem; }
+    .auth-title { font-size: clamp(1.28rem, 1.2rem + 1vw, 1.6rem); }
 }

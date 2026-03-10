@@ -29,7 +29,7 @@
                     <div class="row g-3">
                         <?php foreach ($relatedPosts as $related): ?>
                         <?php $relatedImage = resolve_blog_image($related['featured_image'] ?? null); ?>
-                        <div class="col-md-6">
+                        <div class="col-6 col-md-6">
                             <article class="card border-0 shadow-sm h-100">
                                 <a href="<?= url('/blog/' . $related['slug']) ?>">
                                     <img src="<?= htmlspecialchars($relatedImage) ?>" class="card-img-top blog-related-image" alt="<?= htmlspecialchars($related['title']) ?>" onerror="this.onerror=null;this.src='<?= asset('/img/product-placeholder.webp') ?>';">

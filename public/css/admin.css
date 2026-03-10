@@ -59,7 +59,7 @@ body {
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
     font-weight: 600;
     text-decoration: none;
     width: 100%;
@@ -67,7 +67,7 @@ body {
 
 .sidebar-brand i {
     color: var(--primary);
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
 }
 
 .sidebar-brand .brand-logo-img {
@@ -152,14 +152,14 @@ body {
 
 .topbar-title {
     font-weight: 700;
-    font-size: 0.86rem;
+    font-size: clamp(0.688rem, 0.645rem + 1vw, 0.86rem);
     color: #3b2e1e;
     line-height: 1.05;
     white-space: nowrap;
 }
 
 .topbar-subtitle {
-    font-size: 0.73rem;
+    font-size: clamp(0.584rem, 0.547rem + 1vw, 0.73rem);
     color: #8c7554;
     line-height: 1.05;
 }
@@ -170,7 +170,7 @@ body {
     border-radius: 10px;
     border: 1px solid rgba(212, 165, 116, 0.35);
     background: #fff;
-    font-size: 1.05rem;
+    font-size: clamp(0.84rem, 0.788rem + 1vw, 1.05rem);
     color: #5b4a31;
     cursor: pointer;
     display: inline-flex;
@@ -191,7 +191,7 @@ body {
 }
 
 .navbar-user i {
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
     color: var(--primary);
 }
 
@@ -250,7 +250,7 @@ body {
 
 .navbar-user-name {
     font-weight: 500;
-    font-size: 0.88rem;
+    font-size: clamp(0.704rem, 0.66rem + 1vw, 0.88rem);
     line-height: 1;
     white-space: nowrap;
     max-width: 160px;
@@ -267,7 +267,7 @@ body {
     padding: 0.42rem 0.75rem;
     color: #4d3e29;
     text-decoration: none;
-    font-size: 0.84rem;
+    font-size: clamp(0.672rem, 0.63rem + 1vw, 0.84rem);
     line-height: 1;
     background: #fff;
 }
@@ -307,7 +307,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: clamp(1.2rem, 1.125rem + 1vw, 1.5rem);
 }
 
 .stat-icon.primary { background: rgba(212, 165, 116, 0.1); color: var(--primary); }
@@ -316,7 +316,7 @@ body {
 .stat-icon.danger { background: rgba(220, 53, 69, 0.1); color: var(--danger); }
 
 .stat-info h3 {
-    font-size: 1.75rem;
+    font-size: clamp(1.4rem, 1.312rem + 1vw, 1.75rem);
     margin: 0;
     color: var(--dark);
 }
@@ -324,7 +324,7 @@ body {
 .stat-info p {
     margin: 0;
     color: #6c757d;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 /* Cards */
@@ -347,7 +347,7 @@ body {
 
 .card-header h5 {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: clamp(0.88rem, 0.825rem + 1vw, 1.1rem);
 }
 
 .card-body {
@@ -378,7 +378,7 @@ body {
 /* Buttons */
 .btn-sm {
     padding: 0.375rem 0.75rem;
-    font-size: 0.875rem;
+    font-size: clamp(0.7rem, 0.656rem + 1vw, 0.875rem);
 }
 
 /* Forms */
@@ -434,7 +434,7 @@ body {
 }
 
 .image-upload-area i {
-    font-size: 3rem;
+    font-size: clamp(2.4rem, 2.25rem + 1vw, 3rem);
     color: #ddd;
     margin-bottom: 1rem;
 }
@@ -522,7 +522,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
+    font-size: clamp(0.64rem, 0.6rem + 1vw, 0.8rem);
 }
 
 .cursor-pointer {
@@ -634,7 +634,7 @@ body {
     }
 
     .navbar-logout i {
-        font-size: 0.9rem;
+        font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
     }
 }
 
@@ -683,7 +683,7 @@ body {
         top: 0.4rem;
         width: 40%;
         color: #6c757d;
-        font-size: 0.75rem;
+        font-size: clamp(0.6rem, 0.562rem + 1vw, 0.75rem);
         font-weight: 600;
         letter-spacing: 0.02em;
         text-transform: uppercase;
@@ -751,7 +751,7 @@ body {
 .form-label {
     letter-spacing: 0.01em;
     margin-bottom: 0.4rem;
-    font-size: 0.9rem;
+    font-size: clamp(0.72rem, 0.675rem + 1vw, 0.9rem);
 }
 
 .form-label i {

@@ -305,7 +305,7 @@ if (empty($instagramImages) && empty($instagramReels)) {
             <!-- Static Feed -->
             <div class="row g-2">
                 <?php foreach ($instagramImages as $img): ?>
-                    <div class="col-4 col-md-2">
+                    <div class="col-6 col-md-2">
                         <a href="https://instagram.com/hair_aura_official" target="_blank" rel="noopener" class="instagram-item">
                             <img src="<?= asset($img) ?>" alt="Instagram" loading="lazy">
                             <div class="instagram-overlay">

@@ -90,7 +90,7 @@ $discount = $hasSale ? round((($product['price'] - $product['sale_price']) / $pr
             <div class="card-footer-actions">
                 <button class="btn btn-premium-add btn-add-cart" data-product-id="<?= $product['id'] ?>">
                     <span class="btn-text">Add to Cart</span>
-                    <i class="fas fa-plus"></i>
+                    <i class="fas fa-cart-plus"></i>
                 </button>
             </div>
         </div>

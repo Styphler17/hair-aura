@@ -77,10 +77,10 @@ function initSwipers() {
     // Bestseller slider
     if (document.querySelector('.bestseller-swiper')) {
         new Swiper('.bestseller-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 20,
+            slidesPerView: 2,
+            spaceBetween: 10,
             breakpoints: {
-                576: { slidesPerView: 2 },
+                576: { slidesPerView: 2, spaceBetween: 20 },
                 768: { slidesPerView: 3 },
                 992: { slidesPerView: 4 }
             },
